@@ -7,8 +7,9 @@ export const catalogsOptions = queryOptions({
   queryFn: () =>
     apiClient.request<CatalogEntry[]>({
       method: "GET",
-      path: "/flatmates/catalogs"
-    }),
+      path: "/flatmates/catalogs",
+      auth: false
+    }).catch(() => [] as CatalogEntry[]),
   staleTime: 30 * 60 * 1000
 });
 

@@ -18,6 +18,7 @@ export function webSearchOptions(filters: SearchFilters) {
       const response = await apiClient.request<PaginatedPropertyResponse>({
         method: "GET",
         path: "/properties",
+        auth: false,
         query: {
           q: filters.q,
           lat: filters.lat,

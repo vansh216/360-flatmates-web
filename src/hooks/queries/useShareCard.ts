@@ -12,7 +12,8 @@ export function useShareCard(
       apiClient.request<ShareCardResponse>({
         method: "GET",
         path: `/flatmates/web/listings/${listingId}/share-card`,
-        query: format ? { format } : undefined
+        query: format ? { format } : undefined,
+        auth: false
       }),
     enabled: listingId > 0
   });

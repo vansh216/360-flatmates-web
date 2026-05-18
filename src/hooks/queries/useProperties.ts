@@ -26,7 +26,8 @@ export function propertyOptions(id: number) {
     queryFn: () =>
       apiClient.request<Property>({
         method: "GET",
-        path: `/properties/${id}`
+        path: `/properties/${id}`,
+        auth: false
       }),
     enabled: id > 0
   });

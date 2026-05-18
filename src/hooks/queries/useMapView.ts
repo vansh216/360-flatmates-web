@@ -24,6 +24,7 @@ export function mapViewOptions(filters: MapViewFilters) {
       const response = await apiClient.request<PaginatedPropertyResponse>({
         method: "GET",
         path: "/properties",
+        auth: false,
         query: {
           lat: filters.lat,
           lng: filters.lng,
