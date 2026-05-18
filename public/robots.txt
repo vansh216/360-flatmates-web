@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+Allow: /discover
+Allow: /search
+Allow: /stats
+Allow: /about
+Allow: /terms
+Allow: /privacy
+Allow: /share
+Disallow: /app/
+Disallow: /admin/
+Disallow: /chats/
+Disallow: /settings/
+Disallow: /swipe/
+Disallow: /visits/
+Disallow: /likes/
+Disallow: /post/
+Disallow: /onboarding/
+Disallow: /notifications/
+Disallow: /alerts/
+Disallow: /saved-searches/
+Disallow: /dashboard/
+
+Sitemap: https://360ghar.com/sitemap.xml

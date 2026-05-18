@@ -1,0 +1,93 @@
+import { useNavigate } from "react-router";
+import { useDashboardStats } from "@/hooks/queries";
+import type { RoomPosterDashboard } from "@/lib/api/types";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/StateViews";
+import {
+  DashboardPanel,
+  type DashboardMetric,
+  type ListingPerformanceRow
+} from "@/components/organisms/DashboardPanel";
+
+function mapDashboardMetrics(stats: RoomPosterDashboard): DashboardMetric[] {
+  return [
+    {
+      label: "Active Listings",
+      value: String(stats.active_listings),
+      trend: stats.active_listings > 0 ? "up" : "flat",
+      helper: `${stats.pending_review} pending review`
+    },
+    {
+      label: "Views (30d)",
+      value: String(stats.total_views_30d),
+      trend: stats.total_views_30d > 0 ? "up" : "flat"
+    },
+    {
+      label: "Likes (30d)",
+      value: String(stats.total_likes_30d),
+      trend: stats.total_likes_30d > 0 ? "up" : "flat"
+    },
+    {
+      label: "Visits (30d)",
+      value: String(stats.total_visits_30d),
+      trend: stats.total_visits_30d > 0 ? "up" : "flat"
+    }
+  ];
+}
+
+function mapListingRows(stats: RoomPosterDashboard): ListingPerformanceRow[] {
+  return stats.listings.map((listing) => ({
+    id: String(listing.id),
+    title: listing.title,
+    views: listing.views,
+    likes: listing.likes,
+    conversations: listing.conversations,
+    visits: 0,
+    boostStatus: listing.boost_active ? "active" : "inactive"
+  }));
+}
+
+export function DashboardPage() {
+  const navigate = useNavigate();
+  const { data: stats, isLoading, error, refetch } = useDashboardStats();
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-5 page-fade">
+        <Skeleton variant="block" count={4} className="h-20" />
+        <Skeleton variant="card" />
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="flex items-center justify-center page-fade">
+        <ErrorState
+          title="Could not load dashboard"
+          description="Try refreshing the page."
+          onRetry={() => refetch()}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-fade">
+      <h1 className="text-h1 mb-5">Dashboard</h1>
+      <DashboardPanel
+        metrics={mapDashboardMetrics(stats)}
+        rows={mapListingRows(stats)}
+        onEdit={(listingId) => {
+          navigate(`/my-listings/${listingId}/edit`);
+        }}
+        onBoost={(listingId) => {
+          navigate(`/my-listings/${listingId}`);
+        }}
+        onViewAnalytics={(listingId) => {
+          navigate(`/my-listings/${listingId}`);
+        }}
+      />
+    </div>
+  );
+}

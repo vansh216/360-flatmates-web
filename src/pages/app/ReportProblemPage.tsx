@@ -1,0 +1,132 @@
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useReportUserMutation } from "@/hooks/queries/useReports";
+import { uiStore } from "@/lib/stores/ui-store";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { TextArea } from "@/components/ui/Input";
+import type { UserReportReason } from "@/lib/data";
+
+const REPORT_REASONS: Array<{ value: UserReportReason; label: string }> = [
+  { value: "spam", label: "Spam" },
+  { value: "fake_profile", label: "Fake Profile" },
+  { value: "abuse", label: "Abuse" },
+  { value: "inappropriate", label: "Inappropriate Content" },
+  { value: "other", label: "Other" }
+];
+
+export function ReportProblemPage() {
+  const navigate = useNavigate();
+  const reportMutation = useReportUserMutation();
+  const [reason, setReason] = useState<UserReportReason>("other");
+  const [description, setDescription] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!description.trim()) return;
+
+    reportMutation.mutate(
+      {
+        // General problem report — no target user
+        reason,
+        notes: description.trim()
+      },
+      {
+        onSuccess: () => {
+          uiStore.getState().pushToast({
+            type: "success",
+            title: "Report submitted",
+            description: "Thank you for your feedback. We will look into it."
+          });
+          setSubmitted(true);
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Submission failed",
+            description: "Could not submit your report. Please try again."
+          });
+        }
+      }
+    );
+  }
+
+  const isSubmitting = reportMutation.isPending;
+
+  if (submitted) {
+    return (
+      <div className="flex flex-col gap-5 page-fade">
+        <div className="flex items-center gap-3">
+          <Button variant="icon" size="icon" onClick={() => navigate("/profile")}>
+            <ArrowLeft aria-hidden="true" className="h-5 w-5" />
+          </Button>
+          <h1 className="text-h1">Report a Problem</h1>
+        </div>
+        <Card className="flex flex-col items-center gap-3 p-8 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success-soft">
+            <CheckCircle2 aria-hidden="true" className="h-8 w-8 text-success" />
+          </div>
+          <h2 className="text-h3 text-ink">Thank you!</h2>
+          <p className="text-body-md text-ink-2 max-w-sm">
+            Your report has been submitted. We appreciate your feedback and will look into it.
+          </p>
+          <Button className="mt-2" onClick={() => navigate("/profile")}>
+            Back to Profile
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-5 page-fade">
+      <div className="flex items-center gap-3">
+        <Button variant="icon" size="icon" onClick={() => navigate("/profile")}>
+          <ArrowLeft aria-hidden="true" className="h-5 w-5" />
+        </Button>
+        <h1 className="text-h1">Report a Problem</h1>
+      </div>
+
+      <Card className="p-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="reason" className="text-label-md text-ink-2">
+              Reason
+            </label>
+            <select
+              id="reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value as UserReportReason)}
+              className="h-12 rounded-[9px] border border-line bg-surface px-3 text-body-md text-ink focus:border-accent focus:shadow-focus focus:outline-none"
+            >
+              {REPORT_REASONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <TextArea
+            label="Description"
+            placeholder="Tell us what went wrong or what you would like to see..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={5}
+          />
+
+          <Button
+            type="submit"
+            fullWidth
+            loading={isSubmitting}
+            disabled={!description.trim() || isSubmitting}
+          >
+            Submit Report
+          </Button>
+        </form>
+      </Card>
+    </div>
+  );
+}

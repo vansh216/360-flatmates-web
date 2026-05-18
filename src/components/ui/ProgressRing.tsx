@@ -1,0 +1,92 @@
+import type { HTMLAttributes } from "react";
+import { clampPercentage, cn } from "./component-utils";
+
+export type ProgressRingSize = "sm" | "md" | "lg" | "xl";
+
+export interface ProgressRingProps extends HTMLAttributes<HTMLDivElement> {
+  value: number;
+  size?: ProgressRingSize;
+  label?: string;
+  showValue?: boolean;
+}
+
+const sizeMap: Record<ProgressRingSize, { box: number; stroke: number; text: string }> = {
+  sm: { box: 32, stroke: 3, text: "text-[10px]" },
+  md: { box: 44, stroke: 4, text: "text-caption" },
+  lg: { box: 56, stroke: 5, text: "text-label-md" },
+  xl: { box: 80, stroke: 6, text: "text-body-md" }
+};
+
+function toneForValue(value: number): string {
+  if (value >= 70) {
+    return "text-success";
+  }
+
+  if (value >= 40) {
+    return "text-warning";
+  }
+
+  return "text-error";
+}
+
+export function ProgressRing({
+  value,
+  size = "sm",
+  label,
+  showValue = true,
+  className,
+  ...props
+}: ProgressRingProps) {
+  const percentage = clampPercentage(value);
+  const config = sizeMap[size];
+  const radius = (config.box - config.stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <div
+      role="progressbar"
+      aria-label={label ?? "Compatibility score"}
+      aria-valuenow={percentage}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className={cn("relative inline-flex items-center justify-center", className)}
+      style={{ width: config.box, height: config.box }}
+      {...props}
+    >
+      <svg
+        aria-hidden="true"
+        className="absolute inset-0 -rotate-90"
+        height={config.box}
+        viewBox={`0 0 ${config.box} ${config.box}`}
+        width={config.box}
+      >
+        <circle
+          className="text-line"
+          cx={config.box / 2}
+          cy={config.box / 2}
+          fill="none"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={config.stroke}
+        />
+        <circle
+          className={cn(toneForValue(percentage), "ring-draw")}
+          cx={config.box / 2}
+          cy={config.box / 2}
+          fill="none"
+          r={radius}
+          stroke="currentColor"
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+          strokeLinecap="round"
+          strokeWidth={config.stroke}
+        />
+      </svg>
+      {showValue ? (
+        <span className={cn("font-bold tabular-nums text-ink", config.text)}>{percentage}%</span>
+      ) : null}
+    </div>
+  );
+}
+

@@ -1,0 +1,325 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router";
+import {
+  Bell,
+  Heart,
+  Pencil,
+  Shield,
+  UserX,
+  LogOut,
+  Trash2,
+  Palette,
+  Sun,
+  Moon,
+  Monitor,
+  AlertTriangle,
+  Users,
+} from "lucide-react";
+import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
+import { useAuth } from "@/hooks/useAuth";
+import { uiStore } from "@/lib/stores/ui-store";
+import type { ThemePreference } from "@/lib/stores/ui-store";
+import { MenuItemRow } from "@/components/molecules";
+import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Modal } from "@/components/ui/Modal";
+import { ProgressRing } from "@/components/ui/ProgressRing";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/StateViews";
+import { TrustBadge } from "@/components/ui/TrustBadge";
+
+const THEME_OPTIONS: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: Monitor },
+];
+
+export function ProfilePage() {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const { data: profile, isLoading, error, refetch } = useMyProfile();
+  const updateProfile = useUpdateProfile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [theme, setThemeState] = useState<ThemePreference>(uiStore.getState().theme);
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  useEffect(() => {
+    const unsub = uiStore.subscribe((state) => {
+      setThemeState(state.theme);
+    });
+    return unsub;
+  }, []);
+
+  function setTheme(newTheme: ThemePreference) {
+    uiStore.getState().setTheme(newTheme);
+  }
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    try {
+      await signOut();
+      navigate("/login");
+    } catch {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: "Sign out failed",
+        description: "Please try again.",
+      });
+    } finally {
+      setSigningOut(false);
+      setShowSignOutDialog(false);
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-4 p-4 md:p-6">
+        <Skeleton variant="profile" />
+        <Skeleton variant="block" count={3} className="w-full max-w-md" />
+      </div>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <ErrorState
+          title="Could not load profile"
+          description="Please try again."
+          onRetry={() => refetch()}
+        />
+      </div>
+    );
+  }
+
+  const onboardingProgress = profile.onboarding_completed
+    ? 100
+    : ((profile.onboarding_current_step ?? 0) / 8) * 100;
+
+  const handlePhotoUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      updateProfile.mutate({ profile_image_url: dataUrl });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="flex flex-col gap-5 page-fade max-w-2xl mx-auto">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
+      {/* Header card */}
+      <Card className="flex flex-col items-center gap-4 p-6 text-center">
+        <Avatar
+          name={profile.full_name}
+          size="xl"
+          src={profile.profile_image_url}
+          editable
+          onEdit={() => {
+            handlePhotoUpload();
+          }}
+        />
+        <div>
+          <h1 className="text-h1">{profile.full_name}</h1>
+          {profile.profession && (
+            <p className="text-body-md text-ink-2 mt-1">{profile.profession}</p>
+          )}
+          <div className="flex items-center justify-center gap-2 mt-2">
+            {profile.mode && <Badge mode={profile.mode} variant="mode" />}
+            <TrustBadge variant="verified" />
+          </div>
+        </div>
+
+        {!profile.onboarding_completed && (
+          <div className="w-full flex flex-col items-center gap-2 mt-2">
+            <p className="text-caption text-ink-3">
+              Profile {Math.round(onboardingProgress)}% complete
+            </p>
+            <ProgressRing size="md" value={onboardingProgress} />
+            <Link to="/onboarding">
+              <Button size="compact" variant="secondary">
+                Complete Profile
+              </Button>
+            </Link>
+          </div>
+        )}
+      </Card>
+
+      {/* Profile section */}
+      <Card className="divide-y divide-line p-0">
+        <MenuItemRow
+          icon={Pencil}
+          label="Edit Profile"
+          description="Update your name, bio, and preferences"
+          onClick={() => navigate("/profile/edit")}
+          isLast
+        />
+      </Card>
+
+      {/* Activity section */}
+      <h2 className="text-label-md text-ink-3 mt-2 px-1">Activity</h2>
+      <Card className="divide-y divide-line p-0">
+        <MenuItemRow
+          icon={Heart}
+          label="Likes"
+          description="People who liked you"
+          onClick={() => navigate("/likes")}
+        />
+        <MenuItemRow
+          icon={Users}
+          label="Matches"
+          description="People you matched with"
+          onClick={() => navigate("/matches")}
+          isLast
+        />
+      </Card>
+
+      {/* Preferences */}
+      <h2 className="text-label-md text-ink-3 mt-2 px-1">Preferences</h2>
+      <Card className="divide-y divide-line p-0">
+        <MenuItemRow
+          icon={Bell}
+          label="Notifications"
+          description="Push, email, and quiet hours"
+          onClick={() => navigate("/settings/notifications")}
+        />
+        <MenuItemRow
+          icon={Palette}
+          label="Appearance"
+          description="Theme and display"
+          onClick={() => navigate("/settings/appearance")}
+          isLast
+        />
+      </Card>
+
+      {/* Inline theme toggle */}
+      <Card className="flex flex-col gap-3 p-5">
+        <h2 className="text-h3">Theme</h2>
+        <div className="flex gap-2">
+          {THEME_OPTIONS.map((option) => {
+            const Icon = option.icon;
+            const isActive = theme === option.value;
+            return (
+              <Button
+                key={option.value}
+                variant={isActive ? "primary" : "secondary"}
+                size="compact"
+                leadingIcon={<Icon aria-hidden="true" className="h-4 w-4" />}
+                onClick={() => setTheme(option.value)}
+                aria-pressed={isActive}
+                className="flex-1"
+              >
+                {option.label}
+              </Button>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* Privacy & Safety */}
+      <h2 className="text-label-md text-ink-3 mt-2 px-1">Privacy & Safety</h2>
+      <Card className="divide-y divide-line p-0">
+        <MenuItemRow
+          icon={Shield}
+          label="Blocked Users"
+          description="Manage who you have blocked"
+          onClick={() => navigate("/settings/blocked-users")}
+        />
+        <MenuItemRow
+          icon={UserX}
+          label="Report a Problem"
+          onClick={() => navigate("/settings/report-problem")}
+          isLast
+        />
+      </Card>
+
+      {/* Account */}
+      <h2 className="text-label-md text-ink-3 mt-2 px-1">Account</h2>
+      <Card className="divide-y divide-line p-0">
+        <MenuItemRow
+          icon={LogOut}
+          label="Sign Out"
+          tone="warning"
+          onClick={() => setShowSignOutDialog(true)}
+        />
+        <MenuItemRow
+          icon={Trash2}
+          label="Delete Account"
+          description="Permanently delete your account and data"
+          tone="error"
+          isLast
+          onClick={() => setShowDeleteDialog(true)}
+        />
+      </Card>
+
+      {/* Sign Out Confirmation */}
+      <Modal
+        open={showSignOutDialog}
+        title="Sign Out"
+        description="Are you sure you want to sign out? You will need to log in again to access your account."
+        onClose={() => setShowSignOutDialog(false)}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowSignOutDialog(false)} className="w-full md:w-auto">
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleSignOut} loading={signingOut} className="w-full bg-error text-white hover:bg-error/95 md:w-auto">
+              Sign Out
+            </Button>
+          </>
+        }
+      />
+
+      {/* Delete Account Confirmation */}
+      <Modal
+        open={showDeleteDialog}
+        title="Delete Account"
+        onClose={() => setShowDeleteDialog(false)}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowDeleteDialog(false)} className="w-full md:w-auto">
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={() => setShowDeleteDialog(false)} className="w-full bg-error text-white hover:bg-error/95 md:w-auto">
+              Contact Support
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-3 rounded-xl bg-error-soft p-4">
+            <AlertTriangle aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-error" />
+            <div>
+              <p className="text-body-md font-semibold text-error">This action is irreversible</p>
+              <p className="mt-1 text-body-md text-ink-2">
+                Deleting your account will permanently remove your profile, listings, conversations,
+                and all associated data. This cannot be undone.
+              </p>
+            </div>
+          </div>
+          <p className="text-body-md text-ink-2">
+            Account deletion requires verification by our support team. Please contact us to proceed.
+          </p>
+        </div>
+      </Modal>
+    </div>
+  );
+}

@@ -1,0 +1,10 @@
+export { HeroSection } from "./HeroSection";
+export { LandingClientSections } from "./LandingClientSections";
+export { FeatureHighlights } from "./FeatureHighlights";
+export { HowItWorks } from "./HowItWorks";
+export { AppPreview } from "./AppPreview";
+export { StatsMarquee } from "./StatsMarquee";
+export { CitiesShowcase } from "./CitiesShowcase";
+export { TestimonialsSection } from "./TestimonialsSection";
+export { FAQAccordion } from "./FAQAccordion";
+export { BottomCTA } from "./BottomCTA";
