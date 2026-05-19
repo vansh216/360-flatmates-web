@@ -41,25 +41,6 @@ export function MyListingDetailPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center page-fade">
-        <ErrorState onRetry={() => refetch()} title="Could not load listing" description="Please try again." />
-      </div>
-    );
-  }
-
-  if (!property) {
-    return (
-      <div className="flex items-center justify-center page-fade">
-        <EmptyState
-          title="Listing not found"
-          description="This listing may have been removed or you don't have access."
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-5 page-fade">
       <div className="flex items-center justify-between">
@@ -71,36 +52,51 @@ export function MyListingDetailPage() {
         >
           <ArrowLeft aria-hidden="true" className="h-5 w-5" />
         </Button>
-        <Button
-          variant="secondary"
-          size="compact"
-          leadingIcon={<Pencil aria-hidden="true" className="h-4 w-4" />}
-          onClick={() => navigate(`/my-listings/${listingId}/edit`)}
-        >
-          Edit
-        </Button>
+        {property && (
+          <Button
+            variant="secondary"
+            size="compact"
+            leadingIcon={<Pencil aria-hidden="true" className="h-4 w-4" />}
+            onClick={() => navigate(`/my-listings/${listingId}/edit`)}
+          >
+            Edit
+          </Button>
+        )}
       </div>
 
-      <ListingCard
-        listing={propertyToListingCardProps(property)}
-        onOpen={() => {}}
-      />
+      {error ? (
+        <Card className="flex items-center justify-center p-8">
+          <ErrorState onRetry={() => refetch()} title="Could not load listing" description="Please try again." />
+        </Card>
+      ) : !property ? (
+        <EmptyState
+          title="Listing not found"
+          description="This listing may have been removed or you don't have access."
+        />
+      ) : (
+        <>
+          <ListingCard
+            listing={propertyToListingCardProps(property)}
+            onOpen={() => {}}
+          />
 
-      <Card className="p-5">
-        <h2 className="text-h3 mb-3">Listing Status</h2>
-        <div className="flex flex-col gap-2 text-body-md text-ink-2">
-          <p>
-            <span className="font-semibold text-ink">Status:</span>{" "}
-            {PROPERTY_STATUS_LABEL[property.property_status ?? ""] ?? "Draft"}
-          </p>
-          <p>
-            <span className="font-semibold text-ink">Views:</span> {property.view_count ?? 0}
-          </p>
-          <p>
-            <span className="font-semibold text-ink">Interested:</span> {property.interest_count ?? 0}
-          </p>
-        </div>
-      </Card>
+          <Card className="p-5">
+            <h2 className="text-h3 mb-3">Listing Status</h2>
+            <div className="flex flex-col gap-2 text-body-md text-ink-2">
+              <p>
+                <span className="font-semibold text-ink">Status:</span>{" "}
+                {PROPERTY_STATUS_LABEL[property.property_status ?? ""] ?? "Draft"}
+              </p>
+              <p>
+                <span className="font-semibold text-ink">Views:</span> {property.view_count ?? 0}
+              </p>
+              <p>
+                <span className="font-semibold text-ink">Interested:</span> {property.interest_count ?? 0}
+              </p>
+            </div>
+          </Card>
+        </>
+      )}
     </div>
   );
 }

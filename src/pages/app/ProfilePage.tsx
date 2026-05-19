@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import {
   Bell,
   Heart,
@@ -8,7 +8,6 @@ import {
   UserX,
   LogOut,
   Trash2,
-  Palette,
   AlertTriangle,
   Users,
 } from "lucide-react";
@@ -31,7 +30,7 @@ import { TrustBadge } from "@/components/ui/TrustBadge";
 export function ProfilePage() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const { data: profile, isLoading, error, refetch } = useMyProfile();
+  const { data: profile, isLoading, refetch } = useMyProfile();
   const updateProfile = useUpdateProfile();
   const { upload: uploadImage } = useImageUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +83,7 @@ export function ProfilePage() {
           {/* Preferences section */}
           <div className="h-3 w-20 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
           <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
-            <Skeleton variant="menuItemRow" count={2} />
+            <Skeleton variant="menuItemRow" />
           </div>
           {/* Theme card with toggle placeholder */}
           <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
@@ -109,21 +108,12 @@ export function ProfilePage() {
     );
   }
 
-  if (error || !profile) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <ErrorState
-          title="Could not load profile"
-          description="Please try again."
-          onRetry={() => refetch()}
-        />
-      </div>
-    );
-  }
-
-  const onboardingProgress = profile.onboarding_completed
-    ? 100
-    : ((profile.onboarding_current_step ?? 0) / 8) * 100;
+  const hasProfile = !!profile;
+  const onboardingProgress = hasProfile
+    ? profile.onboarding_completed
+      ? 100
+      : ((profile.onboarding_current_step ?? 0) / 8) * 100
+    : 0;
 
   const handlePhotoUpload = () => {
     fileInputRef.current?.click();
@@ -154,73 +144,91 @@ export function ProfilePage() {
         onChange={handleFileChange}
       />
 
-      {/* Header card */}
-      <Card className="flex flex-col items-center gap-4 p-6 text-center">
-        <Avatar
-          name={profile.full_name}
-          size="xl"
-          src={profile.profile_image_url}
-          editable
-          onEdit={() => {
-            handlePhotoUpload();
-          }}
-        />
-        <div>
-          <h1 className="text-h1">{profile.full_name}</h1>
-          {profile.profession && (
-            <p className="text-body-md text-ink-2 mt-1">{profile.profession}</p>
-          )}
-          <div className="flex items-center justify-center gap-2 mt-2">
-            {profile.mode && <Badge mode={profile.mode} variant="mode" />}
-            <TrustBadge variant="verified" />
+      {/* Header card — profile-dependent */}
+      {hasProfile ? (
+        <Card className="flex flex-col items-center gap-4 p-6 text-center">
+          <Avatar
+            name={profile.full_name}
+            size="xl"
+            src={profile.profile_image_url}
+            editable
+            onEdit={() => {
+              handlePhotoUpload();
+            }}
+          />
+          <div>
+            <h1 className="text-h1">{profile.full_name}</h1>
+            {profile.profession && (
+              <p className="text-body-md text-ink-2 mt-1">{profile.profession}</p>
+            )}
+            <div className="flex items-center justify-center gap-2 mt-2">
+              {profile.mode && <Badge mode={profile.mode} variant="mode" />}
+              <TrustBadge variant="verified" />
+            </div>
           </div>
-        </div>
 
-        {!profile.onboarding_completed && (
-          <div className="w-full flex flex-col items-center gap-2 mt-2">
-            <p className="text-caption text-ink-3">
-              Profile {Math.round(onboardingProgress)}% complete
-            </p>
-            <ProgressRing size="md" value={onboardingProgress} />
-            <Link to="/onboarding">
-              <Button size="compact" variant="secondary">
+          {!profile.onboarding_completed && (
+            <div className="w-full flex flex-col items-center gap-2 mt-2">
+              <p className="text-caption text-ink-3">
+                Profile {Math.round(onboardingProgress)}% complete
+              </p>
+              <ProgressRing size="md" value={onboardingProgress} />
+              <Button
+                size="compact"
+                variant="secondary"
+                onClick={() => navigate("/onboarding")}
+              >
                 Complete Profile
               </Button>
-            </Link>
-          </div>
-        )}
-      </Card>
+            </div>
+          )}
+        </Card>
+      ) : (
+        <Card className="flex flex-col items-center gap-3 p-6 text-center">
+          <ErrorState
+            title="Could not load profile"
+            description="Please try again."
+            onRetry={() => refetch()}
+          />
+        </Card>
+      )}
 
-      {/* Profile section */}
-      <Card className="divide-y divide-line p-0">
-        <MenuItemRow
-          icon={Pencil}
-          label="Edit Profile"
-          description="Update your name, bio, and preferences"
-          onClick={() => navigate("/profile/edit")}
-          isLast
-        />
-      </Card>
+      {/* Profile section — profile-dependent */}
+      {hasProfile && (
+        <Card className="divide-y divide-line p-0">
+          <MenuItemRow
+            icon={Pencil}
+            label="Edit Profile"
+            description="Update your name, bio, and preferences"
+            onClick={() => navigate("/profile/edit")}
+            isLast
+          />
+        </Card>
+      )}
 
-      {/* Activity section */}
-      <h2 className="text-label-md text-ink-3 mt-2 px-1">Activity</h2>
-      <Card className="divide-y divide-line p-0">
-        <MenuItemRow
-          icon={Heart}
-          label="Likes"
-          description="People who liked you"
-          onClick={() => navigate("/likes")}
-        />
-        <MenuItemRow
-          icon={Users}
-          label="Matches"
-          description="People you matched with"
-          onClick={() => navigate("/matches")}
-          isLast
-        />
-      </Card>
+      {/* Activity section — profile-dependent */}
+      {hasProfile && (
+        <>
+          <h2 className="text-label-md text-ink-3 mt-2 px-1">Activity</h2>
+          <Card className="divide-y divide-line p-0">
+            <MenuItemRow
+              icon={Heart}
+              label="Likes"
+              description="People who liked you"
+              onClick={() => navigate("/likes")}
+            />
+            <MenuItemRow
+              icon={Users}
+              label="Matches"
+              description="People you matched with"
+              onClick={() => navigate("/matches")}
+              isLast
+            />
+          </Card>
+        </>
+      )}
 
-      {/* Preferences */}
+      {/* Preferences — always visible */}
       <h2 className="text-label-md text-ink-3 mt-2 px-1">Preferences</h2>
       <Card className="divide-y divide-line p-0">
         <MenuItemRow
@@ -228,12 +236,6 @@ export function ProfilePage() {
           label="Notifications"
           description="Push, email, and quiet hours"
           onClick={() => navigate("/settings/notifications")}
-        />
-        <MenuItemRow
-          icon={Palette}
-          label="Appearance"
-          description="Theme and display"
-          onClick={() => navigate("/settings/appearance")}
           isLast
         />
       </Card>
@@ -242,9 +244,7 @@ export function ProfilePage() {
       <Card className="flex items-center justify-between gap-4 p-5">
         <div>
           <h2 className="text-h3">Theme</h2>
-          <p className="text-caption text-ink-3 mt-0.5">
-            More options in <Link to="/settings/appearance" className="text-accent hover:underline">Appearance settings</Link>
-          </p>
+          <p className="text-caption text-ink-3 mt-0.5">Switch between light and dark mode</p>
         </div>
         <ThemeToggle size="md" />
       </Card>

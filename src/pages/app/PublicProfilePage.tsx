@@ -56,25 +56,13 @@ export function PublicProfilePage() {
     );
   }
 
-  if (error || !profile) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <ErrorState
-          title="Profile not found"
-          description="This user may not exist or their profile is private."
-          onRetry={() => refetch()}
-        />
-      </div>
-    );
-  }
-
   const matchScore = compatibility?.overall_percentage ?? 0;
 
   return (
     <>
       <SeoHelmet
-        title={`${profile.full_name} — Flatmate Profile`}
-        description={`View ${profile.full_name}'s flatmate profile on 360 Flatmates. ${profile.profession ? `${profile.profession} looking for flatmates. ` : ""}Compatibility scores, lifestyle preferences, and verified user information.`}
+        title={profile ? `${profile.full_name} — Flatmate Profile` : "Flatmate Profile"}
+        description={profile ? `View ${profile.full_name}'s flatmate profile on 360 Flatmates. ${profile.profession ? `${profile.profession} looking for flatmates. ` : ""}Compatibility scores, lifestyle preferences, and verified user information.` : "View flatmate profiles on 360 Flatmates."}
         canonicalUrl={url}
         ogType="profile"
       >
@@ -87,6 +75,16 @@ export function PublicProfilePage() {
       </SeoHelmet>
 
       <div className="flex flex-col gap-5 p-4 md:p-6 max-w-lg mx-auto">
+        {error || !profile ? (
+          <Card className="flex items-center justify-center p-8">
+            <ErrorState
+              title="Profile not found"
+              description="This user may not exist or their profile is private."
+              onRetry={() => refetch()}
+            />
+          </Card>
+        ) : (
+        <>
         <Card className="flex flex-col items-center gap-4 p-6 text-center">
           <div className="relative">
             <Avatar
@@ -152,6 +150,8 @@ export function PublicProfilePage() {
             Start Conversation
           </Button>
         </div>
+        </>
+        )}
       </div>
     </>
   );

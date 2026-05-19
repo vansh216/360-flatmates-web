@@ -238,19 +238,7 @@ export function MyListingEditPage() {
     );
   }
 
-  if (error || !property) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <ErrorState
-          title="Could not load listing"
-          description="Please try again."
-          onRetry={() => refetch()}
-        />
-      </div>
-    );
-  }
-
-  const imageUrls = property.image_urls ?? [];
+  const imageUrls = property?.image_urls ?? [];
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 max-w-lg mx-auto">
@@ -267,6 +255,15 @@ export function MyListingEditPage() {
         <h1 className="text-h1">Edit Listing</h1>
       </div>
 
+      {error || !property ? (
+        <Card className="flex items-center justify-center p-8">
+          <ErrorState
+            title="Could not load listing"
+            description="Please try again."
+            onRetry={() => refetch()}
+          />
+        </Card>
+      ) : (
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
         {/* Server error */}
         {serverError && (
@@ -443,6 +440,7 @@ export function MyListingEditPage() {
           </Button>
         </div>
       </form>
+      )}
     </div>
   );
 }

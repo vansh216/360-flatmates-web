@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useDashboardStats } from "@/hooks/queries";
 import type { RoomPosterDashboard } from "@/lib/api/types";
+import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
 import {
@@ -50,7 +51,7 @@ function mapListingRows(stats: RoomPosterDashboard): ListingPerformanceRow[] {
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { data: stats, isLoading, error, refetch } = useDashboardStats();
+  const { data: stats, isLoading, refetch } = useDashboardStats();
 
   const metrics = useMemo(() => stats ? mapDashboardMetrics(stats) : [], [stats]);
   const rows = useMemo(() => stats ? mapListingRows(stats) : [], [stats]);
@@ -85,34 +86,32 @@ export function DashboardPage() {
     );
   }
 
-  if (error || !stats) {
-    return (
-      <div className="flex items-center justify-center page-fade">
-        <ErrorState
-          title="Could not load dashboard"
-          description="Try refreshing the page."
-          onRetry={() => refetch()}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="page-fade">
       <h1 className="text-h1 mb-5">Dashboard</h1>
-      <DashboardPanel
-        metrics={metrics}
-        rows={rows}
-        onEdit={(listingId) => {
-          navigate(`/my-listings/${listingId}/edit`);
-        }}
-        onBoost={(listingId) => {
-          navigate(`/my-listings/${listingId}`);
-        }}
-        onViewAnalytics={(listingId) => {
-          navigate(`/my-listings/${listingId}`);
-        }}
-      />
+      {stats ? (
+        <DashboardPanel
+          metrics={metrics}
+          rows={rows}
+          onEdit={(listingId) => {
+            navigate(`/my-listings/${listingId}/edit`);
+          }}
+          onBoost={(listingId) => {
+            navigate(`/my-listings/${listingId}`);
+          }}
+          onViewAnalytics={(listingId) => {
+            navigate(`/my-listings/${listingId}`);
+          }}
+        />
+      ) : (
+        <Card className="flex items-center justify-center p-8">
+          <ErrorState
+            title="Could not load dashboard"
+            description="Try refreshing the page."
+            onRetry={() => refetch()}
+          />
+        </Card>
+      )}
     </div>
   );
 }

@@ -69,6 +69,59 @@ Vite + React Router v7 SPA consuming a shared FastAPI backend (`/api/v1`). Clien
 - Reusable `<ThemeToggle>` component (`src/components/ui/ThemeToggle.tsx`) with `size` prop (`"sm"` for top-bars, `"md"` for sections)
 - Theme toggle is available on: PublicLayout header, AppShell top bar, Profile page, Appearance page (`/settings/appearance`)
 
+## Async State & Data Fetching Guidelines
+
+Every page that fetches data must handle all three async states: **loading**, **error**, and **empty**. Never leave a page without skeleton loaders, and never block the entire page UI behind a single API failure.
+
+### Loading States — Skeletons Everywhere
+
+- Every page with API calls must show a **skeleton loader** matching its layout during `isLoading`
+- Use `<Skeleton variant="...">` from `src/components/ui/Skeleton.tsx` with the appropriate variant:
+  - Page-level: `feed`, `listingDetail`, `publicProfile`, `swipeCard`
+  - Component-level: `menuItemRow`, `notificationCard`, `conversationRow`, `visitCard`, `statCard`, `chatMessage`, `profileGridCard`, `listingCard`, `searchBar`, `filterChips`, `searchResults`
+  - Fallback: `block`, `card`, `listItem`, `profile`
+- Skeletons must match the real layout dimensions (same grid columns, card structure, spacing)
+- Skeletons must include `aria-hidden="true"` and `motion-reduce:animate-none` for accessibility
+- Never show a blank page or generic spinner when content-specific skeletons exist
+
+### Error States — Graceful Degradation
+
+- **Never use a full-page `<ErrorState>` early return** on pages that have non-API-dependent UI (headers, back buttons, navigation, theme toggles, sign-out actions)
+- Instead, always render the page chrome (title, back button, page layout) and show **inline `<ErrorState>`** inside a `<Card>` only for the API-dependent section
+- Pages whose **entire content is the API response** (maps, swipe decks, chat threads) may use a full-page error — but only when there is truly nothing else to show
+- Pattern for mixed pages:
+  ```tsx
+  return (
+    <div className="page-fade">
+      <h1 className="text-h1 mb-5">Page Title</h1>   {/* always visible */}
+      {data ? (
+        <APIDependentContent />
+      ) : error ? (
+        <Card className="flex items-center justify-center p-8">
+          <ErrorState title="Could not load..." onRetry={refetch} />
+        </Card>
+      ) : null}
+    </div>
+  );
+  ```
+- Use `<AsyncView>` from `src/components/ui/StateViews.tsx` for simple load/error/empty/render patterns
+- Use `<EmptyState>` for zero-data states (not errors) and `<ErrorState>` for API failures
+- Always provide an `onRetry` callback on `<ErrorState>` when `refetch` is available
+
+### State Management — Zustand vs TanStack Query
+
+- **Server state** (API data): TanStack React Query via hooks in `src/hooks/queries/`
+  - All API calls go through TanStack Query hooks — never `useEffect` + `useState` for fetches
+  - Use `isLoading` (not `isFetching`) for initial-load skeleton decisions
+  - Stale time and refetch intervals are configured per-query in the hook
+- **Client-only state** (UI toggles, form drafts, preferences): Zustand stores in `src/lib/stores/`
+  - `uiStore` for theme, toasts, modals
+  - `searchStore` for filter state
+  - `swipeStore` for animation direction
+  - `mapStore` for viewport state
+- **Never** mix server state into Zustand stores — let TanStack Query own the cache
+- **Optimistic updates**: use TanStack Query's `onMutate` + `onError` rollback pattern for mutations
+
 ## Documentation Maintenance
 
 - **CLAUDE.md** and **AGENTS.md** must be updated whenever project structure, conventions, architecture, key commands, or design-system references change.

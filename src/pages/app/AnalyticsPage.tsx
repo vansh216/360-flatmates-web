@@ -42,7 +42,7 @@ export function AnalyticsPage() {
   const [searchParams] = useSearchParams();
   const propertyId = Number(searchParams.get("propertyId") ?? "0");
 
-  const { data: analytics, isLoading, error, refetch } = useListingAnalytics(propertyId);
+  const { data: analytics, isLoading, refetch } = useListingAnalytics(propertyId);
 
   if (!propertyId || Number.isNaN(propertyId) || propertyId === 0) {
     return (
@@ -91,55 +91,55 @@ export function AnalyticsPage() {
     );
   }
 
-  if (error || !analytics) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <ErrorState
-          title="Could not load analytics"
-          description="Try refreshing the page."
-          onRetry={() => refetch()}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="p-4 md:p-6">
-      <PageHeader title="Listing Analytics" description={`Performance for listing #${analytics.listing_id}`} />
+      <PageHeader title="Listing Analytics" description={analytics ? `Performance for listing #${analytics.listing_id}` : undefined} />
 
-      <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3">
-        <StatCard
-          label="Total Views"
-          value={analytics.total_views}
-          description={`${analytics.unique_views} unique`}
-        />
-        <StatCard
-          label="Likes"
-          value={analytics.likes}
-        />
-        <StatCard
-          label="Shares"
-          value={analytics.shares}
-        />
-        <StatCard
-          label="Conversations Started"
-          value={analytics.conversations_started}
-        />
-        <StatCard
-          label="Visits Scheduled"
-          value={analytics.visits_scheduled}
-        />
-        <StatCard
-          label="Boost"
-          value={analytics.boost_active ? "Active" : "Inactive"}
-          description={analytics.boost_expires_at ? `Expires ${analytics.boost_expires_at}` : undefined}
-        />
-      </div>
+      {analytics ? (
+        <>
+          <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3">
+            <StatCard
+              label="Total Views"
+              value={analytics.total_views}
+              description={`${analytics.unique_views} unique`}
+            />
+            <StatCard
+              label="Likes"
+              value={analytics.likes}
+            />
+            <StatCard
+              label="Shares"
+              value={analytics.shares}
+            />
+            <StatCard
+              label="Conversations Started"
+              value={analytics.conversations_started}
+            />
+            <StatCard
+              label="Visits Scheduled"
+              value={analytics.visits_scheduled}
+            />
+            <StatCard
+              label="Boost"
+              value={analytics.boost_active ? "Active" : "Inactive"}
+              description={analytics.boost_expires_at ? `Expires ${analytics.boost_expires_at}` : undefined}
+            />
+          </div>
 
-      {analytics.daily_stats.length > 0 && (
-        <div className="mt-6">
-          <DailyStatsTable dailyStats={analytics.daily_stats} />
-        </div>
+          {analytics.daily_stats.length > 0 && (
+            <div className="mt-6">
+              <DailyStatsTable dailyStats={analytics.daily_stats} />
+            </div>
+          )}
+        </>
+      ) : (
+        <Card className="mt-5 flex items-center justify-center p-8">
+          <ErrorState
+            title="Could not load analytics"
+            description="Try refreshing the page."
+            onRetry={() => refetch()}
+          />
+        </Card>
       )}
     </div>
   );

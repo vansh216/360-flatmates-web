@@ -197,18 +197,6 @@ export function ProfileEditPage() {
     );
   }
 
-  if (error || !profile) {
-    return (
-      <div className="flex items-center justify-center page-fade">
-        <ErrorState
-          title="Could not load profile"
-          description="Please try again."
-          onRetry={() => refetch()}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-5 page-fade max-w-lg mx-auto">
       {/* Header */}
@@ -223,6 +211,16 @@ export function ProfileEditPage() {
         </Button>
         <h1 className="text-h1">Edit Profile</h1>
       </div>
+
+      {error || !profile ? (
+        <Card className="flex items-center justify-center p-8">
+          <ErrorState
+            title="Could not load profile"
+            description="Please try again."
+            onRetry={() => refetch()}
+          />
+        </Card>
+      ) : (
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
         {/* Server error */}
@@ -384,6 +382,7 @@ export function ProfileEditPage() {
           </Button>
         </div>
       </form>
+      )}
     </div>
   );
 }

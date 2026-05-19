@@ -118,18 +118,6 @@ export function VisitDetailPage() {
     );
   }
 
-  if (error || !visit) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <ErrorState
-          title="Visit not found"
-          description="This visit may have been removed."
-          onRetry={() => refetch()}
-        />
-      </div>
-    );
-  }
-
   function handleCancel() {
     cancelVisit.mutate(undefined, {
       onSuccess: () => navigate("/visits"),
@@ -169,15 +157,31 @@ export function VisitDetailPage() {
     );
   }
 
-  const isUpcoming =
-    visit.status === "requested" ||
-    visit.status === "confirmed" ||
-    visit.status === "reschedule_suggested";
+  const isUpcoming = visit
+    ? visit.status === "requested" ||
+      visit.status === "confirmed" ||
+      visit.status === "reschedule_suggested"
+    : false;
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 max-w-lg mx-auto">
       <h1 className="text-h1">Visit Details</h1>
 
+      {error || !visit ? (
+        <>
+          <Card className="flex items-center justify-center p-8">
+            <ErrorState
+              title="Visit not found"
+              description="This visit may have been removed."
+              onRetry={() => refetch()}
+            />
+          </Card>
+          <Button variant="tertiary" fullWidth onClick={() => navigate("/visits")}>
+            Back to Visits
+          </Button>
+        </>
+      ) : (
+        <>
       <VisitCard
         visit={visitToVisitCardProps(visit)}
         canConfirm={visit.status === "requested"}
@@ -311,6 +315,8 @@ export function VisitDetailPage() {
           />
         </div>
       </Modal>
+      </>
+      )}
     </div>
   );
 }
