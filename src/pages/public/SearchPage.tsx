@@ -14,6 +14,7 @@ import { type FilterSection, FilterPanel } from "@/components/molecules/FilterPa
 import { type ListingCardData, ListingCard } from "@/components/molecules/ListingCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Button } from "@/components/ui/Button";
+import { Input, SelectField } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/StateViews";
 import { BottomSheet } from "@/components/ui/Modal";
 
@@ -209,44 +210,41 @@ export function SearchPage() {
 
         {/* Unified Search & Quick Filter Bar */}
         <div className="flex flex-wrap items-center gap-3 border border-line bg-surface p-3 rounded-2xl mb-6 shadow-xs">
-          <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-[280px]">
-            <Search className="absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-ink-3 pointer-events-none" />
-            <input
+          <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[280px]">
+            <Input
               type="search"
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
               placeholder="Search by city, locality, or keyword (e.g. 1BHK, WiFi)..."
-              className="w-full rounded-xl border border-line bg-surface py-2 pl-10 pr-4 text-body-md text-ink placeholder:text-ink-3 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              leadingIcon={<Search className="h-4.5 w-4.5" />}
             />
           </form>
 
           <div className="flex flex-wrap items-center gap-2">
             {/* City Dropdown */}
-            <select
-              value={params.city}
+            <SelectField
+              value={String(params.city ?? 0)}
               onChange={(e) => setParams({ city: Number(e.target.value), page: 1 })}
-              className="h-9 rounded-xl border border-line bg-surface px-3 text-body-sm font-semibold text-ink-2 focus:border-accent focus:outline-none cursor-pointer"
-            >
-              <option value={0}>All Cities</option>
-              {cities?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              fullWidth={false}
+              options={[
+                { value: "0", label: "All Cities" },
+                ...(cities?.map((c) => ({ value: String(c.id), label: c.name })) ?? []),
+              ]}
+            />
 
             {/* Bedrooms Dropdown */}
-            <select
-              value={params.bedrooms}
+            <SelectField
+              value={params.bedrooms ?? ""}
               onChange={(e) => setParams({ bedrooms: e.target.value, page: 1 })}
-              className="h-9 rounded-xl border border-line bg-surface px-3 text-body-sm font-semibold text-ink-2 focus:border-accent focus:outline-none cursor-pointer"
-            >
-              <option value="">All BHKs</option>
-              <option value="1">1 BHK</option>
-              <option value="2">2 BHK</option>
-              <option value="3">3 BHK</option>
-              <option value="4+">4+ BHK</option>
-            </select>
+              fullWidth={false}
+              options={[
+                { value: "", label: "All BHKs" },
+                { value: "1", label: "1 BHK" },
+                { value: "2", label: "2 BHK" },
+                { value: "3", label: "3 BHK" },
+                { value: "4+", label: "4+ BHK" },
+              ]}
+            />
 
             {/* Amenities dialog button */}
             <Button

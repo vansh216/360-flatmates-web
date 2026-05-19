@@ -8,5 +8,7 @@ export * from "./ListingBuilder";
 //   import { MapExplorer } from "@/components/organisms/MapExplorer";
 // Prefer React.lazy() for these components.
 export * from "./SearchResults";
+export * from "./LegalPage";
+export * from "./PeopleGridPage";
 export * from "./SwipeDeck";
 
