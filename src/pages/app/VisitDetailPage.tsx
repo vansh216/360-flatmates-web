@@ -97,22 +97,22 @@ export function VisitDetailPage() {
     return (
       <div className="flex flex-col gap-5 p-4 md:p-6 max-w-lg mx-auto">
         {/* Title */}
-        <div className="h-7 w-32 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+        <Skeleton className="h-7 w-32" />
         {/* Visit card */}
         <Skeleton variant="visitCard" />
         {/* Detail card with key-value rows */}
         <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm flex flex-col gap-3">
           {Array.from({ length: 3 }, (_, i) => (
             <div key={i} className="flex items-center justify-between">
-              <div className="h-4 w-20 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-              <div className="h-5 w-16 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-5 w-16 rounded-full" />
             </div>
           ))}
         </div>
         {/* Action buttons */}
-        <div className="flex gap-3">
-          <div className="h-[52px] flex-1 rounded-[10px] shimmer animate-shimmer motion-reduce:animate-none" />
-          <div className="h-[52px] flex-1 rounded-[10px] shimmer animate-shimmer motion-reduce:animate-none" />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Skeleton className="h-[52px] flex-1 rounded-[10px]" />
+          <Skeleton className="h-[52px] flex-1 rounded-[10px]" />
         </div>
       </div>
     );
@@ -218,7 +218,7 @@ export function VisitDetailPage() {
       </Card>
 
       {/* Action buttons */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         {visit.status === "requested" && (
           <>
             <Button variant="primary" fullWidth onClick={handleConfirm} loading={updateVisit.isPending}>

@@ -244,7 +244,7 @@ export function AppShell({
         ) : null}
       </aside>
       <div
-        className={cn("min-h-screen pb-24 md:pb-0 md:pl-[var(--sidebar-w)]", !isDragging && "transition-[padding-left] duration-200 ease-out")}
+        className={cn("min-h-screen pb-[calc(96px+env(safe-area-inset-bottom))] md:pb-0 md:pl-[var(--sidebar-w)]", !isDragging && "transition-[padding-left] duration-200 ease-out")}
         style={{ '--sidebar-w': `${currentWidth}px` } as React.CSSProperties}
       >
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-paper px-5 md:px-6">
@@ -280,6 +280,7 @@ export function AppShell({
           >
             <SearchBar
               placeholder="Search listings"
+              aria-label="Search listings"
               value={searchQuery}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
@@ -312,7 +313,7 @@ export function AppShell({
       </div>
       <nav
         aria-label="Mobile primary"
-        className="fixed inset-x-0 bottom-0 z-30 grid h-[76px] grid-cols-5 border-t border-line bg-paper/88 px-2 py-2 backdrop-blur-[9px] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(76px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-line bg-paper/88 px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))] backdrop-blur-[9px] md:hidden"
       >
         {mobileItems.map((item) => (
           <ShellNavLink collapsed={false} mobile item={item} active={isActive(item.href)} key={item.href} />

@@ -10,6 +10,8 @@ import {
   Trash2,
   AlertTriangle,
   Users,
+  Smartphone,
+  Check,
 } from "lucide-react";
 import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
 import { useImageUpload } from "@/hooks/useImageUpload";
@@ -26,6 +28,8 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { TrustBadge } from "@/components/ui/TrustBadge";
+import { usePWA } from "@/hooks/usePWA";
+import { PWAInstallInstructionsModal } from "@/components/organisms/PWAInstallInstructionsModal";
 
 export function ProfilePage() {
   const navigate = useNavigate();
@@ -38,6 +42,8 @@ export function ProfilePage() {
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [showPWAInstructions, setShowPWAInstructions] = useState(false);
+  const { isInstallable, isInstalled, isIOS, installApp } = usePWA();
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -61,12 +67,12 @@ export function ProfilePage() {
       <div className="flex flex-col items-center gap-4 p-4 md:p-6 max-w-2xl mx-auto">
         {/* Profile header card: avatar + name + profession + badges */}
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-6 shadow-sm text-center w-full">
-          <div className="h-[120px] w-[120px] rounded-xl shimmer animate-shimmer motion-reduce:animate-none" />
-          <div className="h-7 w-24 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-          <div className="h-4 w-32 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton className="h-[120px] w-[120px] rounded-xl" />
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-4 w-32" />
           <div className="flex gap-2">
-            <div className="h-5 w-16 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
-            <div className="h-5 w-16 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="h-5 w-16 rounded-full" />
           </div>
         </div>
         {/* Menu section groups */}
@@ -76,30 +82,30 @@ export function ProfilePage() {
             <Skeleton variant="menuItemRow" />
           </div>
           {/* Activity section */}
-          <div className="h-3 w-14 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton className="h-3 w-14" />
           <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
             <Skeleton variant="menuItemRow" count={2} />
           </div>
           {/* Preferences section */}
-          <div className="h-3 w-20 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton className="h-3 w-20" />
           <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
             <Skeleton variant="menuItemRow" />
           </div>
           {/* Theme card with toggle placeholder */}
           <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
             <div className="flex flex-col gap-1">
-              <div className="h-5 w-16 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-              <div className="h-3 w-32 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-3 w-32" />
             </div>
-            <div className="h-8 w-14 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+            <Skeleton className="h-8 w-14 rounded-full" />
           </div>
           {/* Privacy & Safety section */}
-          <div className="h-3 w-24 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton className="h-3 w-24" />
           <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
             <Skeleton variant="menuItemRow" count={2} />
           </div>
           {/* Account section with sign out / delete */}
-          <div className="h-3 w-16 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton className="h-3 w-16" />
           <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
             <Skeleton variant="menuItemRow" count={2} />
           </div>
@@ -168,15 +174,21 @@ export function ProfilePage() {
           </div>
 
           {!profile.onboarding_completed && (
-            <div className="w-full flex flex-col items-center gap-2 mt-2">
-              <p className="text-caption text-ink-3">
-                Profile {Math.round(onboardingProgress)}% complete
-              </p>
-              <ProgressRing size="md" value={onboardingProgress} />
+            <div className="w-full mt-2 bg-accent-soft/30 border border-accent/10 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <ProgressRing size="lg" value={onboardingProgress} />
+                <div>
+                  <h3 className="text-body-md font-semibold text-ink">Complete your profile</h3>
+                  <p className="text-caption text-ink-3 mt-0.5">
+                    Your profile is {Math.round(onboardingProgress)}% complete. Complete it to find compatible matches.
+                  </p>
+                </div>
+              </div>
               <Button
                 size="compact"
-                variant="secondary"
+                variant="primary"
                 onClick={() => navigate("/onboarding")}
+                className="w-full sm:w-auto shrink-0"
               >
                 Complete Profile
               </Button>
@@ -236,8 +248,40 @@ export function ProfilePage() {
           label="Notifications"
           description="Push, email, and quiet hours"
           onClick={() => navigate("/settings/notifications")}
-          isLast
+          isLast={!isInstallable && !isIOS && !isInstalled}
         />
+        {isInstallable && (
+          <MenuItemRow
+            icon={Smartphone}
+            label="Install App"
+            description="Install 360 Flatmates on your device"
+            onClick={installApp}
+            isLast
+          />
+        )}
+        {isIOS && !isInstalled && (
+          <MenuItemRow
+            icon={Smartphone}
+            label="Install App"
+            description="How to install on your iOS device"
+            onClick={() => setShowPWAInstructions(true)}
+            isLast
+          />
+        )}
+        {isInstalled && (
+          <MenuItemRow
+            icon={Smartphone}
+            label="App Status"
+            description="Installed on your device"
+            disabled
+            trailing={
+              <span className="text-caption font-semibold text-emerald-600 flex items-center gap-1 pr-1">
+                <Check className="h-3.5 w-3.5" /> Installed
+              </span>
+            }
+            isLast
+          />
+        )}
       </Card>
 
       {/* Inline theme toggle */}
@@ -335,6 +379,12 @@ export function ProfilePage() {
           </p>
         </div>
       </Modal>
+
+      {/* PWA iOS Instructions Modal */}
+      <PWAInstallInstructionsModal
+        open={showPWAInstructions}
+        onClose={() => setShowPWAInstructions(false)}
+      />
     </div>
   );
 }

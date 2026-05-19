@@ -1,0 +1,65 @@
+[
+  {
+    "name": "Mobile",
+    "viewport": "375x667",
+    "pages": [
+      {
+        "url": "/",
+        "overflow": 0,
+        "status": "\u2705"
+      },
+      {
+        "url": "/home",
+        "overflow": 0,
+        "status": "\u2705"
+      },
+      {
+        "url": "/discover",
+        "overflow": 0,
+        "status": "\u2705"
+      }
+    ]
+  },
+  {
+    "name": "Tablet",
+    "viewport": "768x1024",
+    "pages": [
+      {
+        "url": "/",
+        "overflow": 0,
+        "status": "\u2705"
+      },
+      {
+        "url": "/home",
+        "overflow": 0,
+        "status": "\u2705"
+      },
+      {
+        "url": "/discover",
+        "overflow": 0,
+        "status": "\u2705"
+      }
+    ]
+  },
+  {
+    "name": "Desktop",
+    "viewport": "1440x900",
+    "pages": [
+      {
+        "url": "/",
+        "overflow": 0,
+        "status": "\u2705"
+      },
+      {
+        "url": "/home",
+        "overflow": 0,
+        "status": "\u2705"
+      },
+      {
+        "url": "/discover",
+        "overflow": 0,
+        "status": "\u2705"
+      }
+    ]
+  }
+]

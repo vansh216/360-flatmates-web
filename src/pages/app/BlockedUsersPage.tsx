@@ -6,6 +6,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { AsyncView } from "@/components/ui/StateViews";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export function BlockedUsersPage() {
   const navigate = useNavigate();
@@ -32,13 +33,13 @@ export function BlockedUsersPage() {
             {Array.from({ length: 3 }, (_, i) => (
               <div key={i} className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div aria-hidden="true" className="h-[34px] w-[34px] shrink-0 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+                  <Skeleton className="h-[34px] w-[34px] shrink-0 rounded-full" />
                   <div className="flex flex-col gap-1.5 min-w-0">
-                    <div aria-hidden="true" className="h-4 w-24 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-                    <div aria-hidden="true" className="h-3 w-16 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
                   </div>
                 </div>
-                <div aria-hidden="true" className="h-8 w-20 shrink-0 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+                <Skeleton className="h-8 w-20 shrink-0 rounded-full" />
               </div>
             ))}
           </div>

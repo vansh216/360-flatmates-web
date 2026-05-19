@@ -22,7 +22,7 @@ function StatsStripFallback() {
 
 function TestimonialsFallback() {
   return (
-    <section className="bg-surface py-20 md:py-24">
+    <section className="bg-paper py-20 md:py-24">
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <p className="text-eyebrow mb-5">Don't take our word for it</p>
         <h2 className="text-h1 text-ink">Real people, real flatmates</h2>

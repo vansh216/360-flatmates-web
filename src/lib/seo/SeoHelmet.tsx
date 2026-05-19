@@ -40,6 +40,7 @@ export function SeoHelmet({
   const organizationSchema = buildOrganizationSchema();
   const webSiteSchema = buildWebSiteSchema();
   const softwareSchema = buildSoftwareApplicationSchema();
+  const isHomepage = canonical === SITE_URL || canonical === `${SITE_URL}/`;
 
   return (
     <Helmet>
@@ -65,24 +66,28 @@ export function SeoHelmet({
       <meta name="twitter:description" content={metaDescription} />
       <meta name="twitter:image" content={image} />
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationSchema),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(webSiteSchema),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(softwareSchema),
-        }}
-      />
+      {isHomepage && (
+        <>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(organizationSchema),
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(webSiteSchema),
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(softwareSchema),
+            }}
+          />
+        </>
+      )}
 
       {children}
     </Helmet>

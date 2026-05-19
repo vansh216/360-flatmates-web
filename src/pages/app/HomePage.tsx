@@ -55,11 +55,41 @@ export function HomePage() {
 
   return (
     <div className="flex flex-col gap-6 page-fade">
+      {/* Personalized Welcome Banner */}
+      <div className="relative overflow-hidden rounded-2xl border border-line-low bg-surface/50 p-6 md:p-8 shadow-xs">
+        <div className="absolute top-[-30%] left-[-20%] w-[50%] aspect-square rounded-full bg-accent/5 blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-[-30%] right-[-10%] w-[40%] aspect-square rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
+        
+        <p className="text-eyebrow text-accent uppercase tracking-[0.16em]">Dashboard</p>
+        <h1 className="mt-2 text-display text-3xl md:text-4xl text-ink font-normal leading-tight">
+          Welcome back, <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">{profile?.full_name?.split(" ")[0] || "Friend"}</span>
+        </h1>
+        <p className="mt-3 text-body-md text-ink-2 max-w-[65ch]">
+          Ready to find your vibe match? Check out your personal dashboard and recommendations below.
+        </p>
+
+        {/* Dashboard Quick Stats */}
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div className="rounded-xl border border-line bg-paper/50 p-4 hover:border-accent/20 transition-all duration-300">
+            <span className="text-h3 font-serif font-normal text-ink">{recommended.length}</span>
+            <p className="text-caption text-ink-3 mt-1">Recommended peers</p>
+          </div>
+          <div className="rounded-xl border border-line bg-paper/50 p-4 hover:border-accent/20 transition-all duration-300">
+            <span className="text-h3 font-serif font-normal text-ink">{listings.length}</span>
+            <p className="text-caption text-ink-3 mt-1">Property listings</p>
+          </div>
+          <div className="col-span-2 sm:col-span-1 rounded-xl border border-line bg-paper/50 p-4 hover:border-accent/20 transition-all duration-300">
+            <span className="text-h3 font-serif font-normal text-ink">{nearbyPeers.length}</span>
+            <p className="text-caption text-ink-3 mt-1">Nearby flatmates</p>
+          </div>
+        </div>
+      </div>
+
       {/* Search bar — standalone per DESIGN.md spec */}
       <SearchBar placeholder="Search by location, name or landmark" />
 
       {/* Quick filter chips */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x -mx-5 px-5 md:mx-0 md:px-0">
         {QUICK_FILTERS.map((item) => (
           <Chip
             key={item}
@@ -68,6 +98,7 @@ export function HomePage() {
               setActiveFilter(item);
               navigate(`/search${FILTER_TO_SEARCH[item] ?? ""}`);
             }}
+            className="snap-start"
           >
             {item}
           </Chip>
@@ -82,8 +113,8 @@ export function HomePage() {
           {["Recommended for You", "New Listings", "Nearby Flatmates"].map((section) => (
             <section key={section} className="flex flex-col gap-3">
               <div className="flex items-center justify-between gap-3">
-                <div className="h-4 w-32 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
-                <div className="h-3 w-14 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+                <Skeleton className="h-4 w-32 rounded-full" />
+                <Skeleton className="h-3 w-14 rounded-full" />
               </div>
               <div className="flex gap-4 overflow-hidden lg:grid lg:grid-cols-2 xl:grid-cols-3">
                 {section === "New Listings"
@@ -106,7 +137,7 @@ export function HomePage() {
           >
             {recommended.length > 0 ? (
               recommended.slice(0, 4).map((peer, i) => (
-                <div key={peer.id} className="min-w-[180px] max-w-[200px] md:max-w-none lg:min-w-0 lg:max-w-none snap-start lg:snap-align-none card-appear"
+                <div key={peer.id} className="w-[180px] sm:w-[200px] md:w-[220px] shrink-0 snap-start card-appear"
                     style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ProfileGridCard
                     profile={profileToProfileGridCardProps(peer)}
@@ -125,15 +156,15 @@ export function HomePage() {
           <FeedSection
             title="New Listings"
             actionLabel="See all"
-            onAction={() => navigate("/explore")}
+            onAction={() => navigate("/search")}
           >
             {listings.length > 0 ? (
               listings.slice(0, 4).map((property, i) => (
-                <div key={property.id} className="min-w-[280px] max-w-[340px] md:max-w-none lg:min-w-0 lg:max-w-none snap-start lg:snap-align-none card-appear"
+                <div key={property.id} className="w-[280px] sm:w-[320px] md:w-[340px] shrink-0 snap-start card-appear"
                     style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ListingCard
                     listing={propertyToListingCardProps(property)}
-                    onOpen={(id) => navigate(`/listings/${id}`)}
+                    onOpen={(id) => navigate(`/listing/${id}`)}
                   />
                 </div>
               ))
@@ -152,7 +183,7 @@ export function HomePage() {
           >
             {nearbyPeers.length > 0 ? (
               nearbyPeers.slice(0, 4).map((peer, i) => (
-                <div key={peer.id} className="min-w-[180px] max-w-[200px] md:max-w-none lg:min-w-0 lg:max-w-none snap-start lg:snap-align-none card-appear"
+                <div key={peer.id} className="w-[180px] sm:w-[200px] md:w-[220px] shrink-0 snap-start card-appear"
                     style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ProfileGridCard
                     profile={profileToProfileGridCardProps(peer)}

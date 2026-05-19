@@ -7,6 +7,7 @@ import { FLATMATE_MODE_OPTIONS } from "@/lib/data/domain";
 import { Button } from "@/components/ui/Button";
 import { SelectableCardGrid } from "@/components/molecules/SelectableCardGrid";
 import { uiStore } from "@/lib/stores/ui-store";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 const MODE_ICONS: Record<UserMode, React.ReactNode> = {
   room_poster: <Home aria-hidden="true" className="h-6 w-6" />,
@@ -43,23 +44,23 @@ export function ChooseRolePage() {
       <div className="flex flex-col gap-5 p-4 md:p-6 mx-auto max-w-lg">
         {/* Title + description */}
         <div className="flex flex-col gap-2">
-          <div className="h-7 w-3/4 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-          <div className="h-4 w-full rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton className="h-7 w-3/4" />
+          <Skeleton className="h-4 w-full" />
         </div>
         {/* 3 selectable card placeholders */}
         <div className="flex flex-col gap-3">
           {Array.from({ length: 3 }, (_, i) => (
             <div key={i} className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
-              <div className="h-12 w-12 shrink-0 rounded-xl shimmer animate-shimmer motion-reduce:animate-none" />
+              <Skeleton className="h-12 w-12 shrink-0 rounded-xl" />
               <div className="flex flex-1 flex-col gap-2">
-                <div className="h-4 w-1/3 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-                <div className="h-3 w-3/4 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-3 w-3/4" />
               </div>
             </div>
           ))}
         </div>
         {/* Continue button */}
-        <div className="h-[52px] w-full rounded-[10px] shimmer animate-shimmer motion-reduce:animate-none" />
+        <Skeleton className="h-[52px] w-full rounded-[10px]" />
       </div>
     );
   }

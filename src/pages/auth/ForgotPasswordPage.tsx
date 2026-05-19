@@ -81,9 +81,9 @@ export function ForgotPasswordPage() {
     return (
       <>
         <SeoHelmet title="Password Reset" description="Reset your 360 Flatmates password." canonicalUrl={`${SITE_URL}/forgot-password`} noindex />
-        <h1 className="text-h1">Password reset</h1>
+        <h1 className="text-display text-3xl md:text-4xl text-ink font-normal tracking-tight">Password reset</h1>
         <p className="mt-3 text-body-md text-ink-2">
-          Your password has been updated successfully. You can now sign in with your new password.
+          Your password has been updated successfully. You can now sign in with your new credentials.
         </p>
         <Link to="/login" className={buttonClasses("primary", "default", true) + " mt-6"}>
           Back to Login
@@ -95,9 +95,9 @@ export function ForgotPasswordPage() {
   return (
     <>
       <SeoHelmet title="Reset Password" description="Reset your 360 Flatmates account password via phone OTP verification." canonicalUrl={`${SITE_URL}/forgot-password`} noindex />
-      <h1 className="text-h1">Reset Password</h1>
+      <h1 className="text-display text-3xl md:text-4xl text-ink font-normal tracking-tight">Reset password</h1>
       <p className="mt-2 text-body-md text-ink-2">
-        Enter your phone number, verify the code, then set a new password.
+        Verify your credentials to secure your <span className="text-serif-italic text-accent italic font-normal text-[18px]">account access</span>.
       </p>
 
       <StepProgress

@@ -42,7 +42,7 @@ export function AnalyticsPage() {
   const [searchParams] = useSearchParams();
   const propertyId = Number(searchParams.get("propertyId") ?? "0");
 
-  const { data: analytics, isLoading, refetch } = useListingAnalytics(propertyId);
+  const { data: analytics, isLoading, error, refetch } = useListingAnalytics(propertyId);
 
   if (!propertyId || Number.isNaN(propertyId) || propertyId === 0) {
     return (
@@ -56,46 +56,51 @@ export function AnalyticsPage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-5 p-4 md:p-6">
-        {/* Title */}
-        <div className="h-7 w-44 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-        {/* StatCard grid */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-          {Array.from({ length: 6 }, (_, i) => (
-            <Skeleton key={i} variant="statCard" />
-          ))}
-        </div>
-        {/* Table skeleton */}
-        <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm overflow-hidden">
-          <div className="border-b border-line px-4 py-3">
-            <div className="h-5 w-32 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-          </div>
-          <div className="border-b border-line bg-paper-2 px-4 py-2 flex gap-4">
-            <div className="h-3 w-12 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-            <div className="h-3 w-10 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-            <div className="h-3 w-10 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-            <div className="h-3 w-10 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-          </div>
-          {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="border-b border-line-2 last:border-b-0 px-4 py-2 flex gap-4">
-              <div className="h-4 w-16 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-              <div className="h-4 w-8 rounded-sm shimmer animate-shimmer motion-reduce:animate-none ml-auto" />
-              <div className="h-4 w-8 rounded-sm shimmer animate-shimmer motion-reduce:animate-none ml-auto" />
-              <div className="h-4 w-8 rounded-sm shimmer animate-shimmer motion-reduce:animate-none ml-auto" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-4 md:p-6">
-      <PageHeader title="Listing Analytics" description={analytics ? `Performance for listing #${analytics.listing_id}` : undefined} />
+      <PageHeader
+        title="Listing Analytics"
+        description={analytics ? `Performance for listing #${analytics.listing_id}` : "Loading performance metrics..."}
+      />
 
-      {analytics ? (
+      {isLoading ? (
+        <div className="flex flex-col gap-5 mt-5">
+          {/* StatCard grid */}
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            {Array.from({ length: 6 }, (_, i) => (
+              <Skeleton key={i} variant="statCard" />
+            ))}
+          </div>
+          {/* Table skeleton */}
+          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm overflow-hidden">
+            <div className="border-b border-line px-4 py-3">
+              <Skeleton className="h-5 w-32" />
+            </div>
+            <div className="border-b border-line bg-paper-2 px-4 py-2 flex gap-4">
+              <Skeleton className="h-3 w-12" />
+              <Skeleton className="h-3 w-10" />
+              <Skeleton className="h-3 w-10" />
+              <Skeleton className="h-3 w-10" />
+            </div>
+            {Array.from({ length: 4 }, (_, i) => (
+              <div key={i} className="border-b border-line-2 last:border-b-0 px-4 py-2 flex gap-4">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-8 ml-auto" />
+                <Skeleton className="h-4 w-8 ml-auto" />
+                <Skeleton className="h-4 w-8 ml-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : error || !analytics ? (
+        <Card className="mt-5 flex items-center justify-center p-8">
+          <ErrorState
+            title="Could not load analytics"
+            description="Try refreshing the page."
+            onRetry={() => refetch()}
+          />
+        </Card>
+      ) : (
         <>
           <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3">
             <StatCard
@@ -132,14 +137,6 @@ export function AnalyticsPage() {
             </div>
           )}
         </>
-      ) : (
-        <Card className="mt-5 flex items-center justify-center p-8">
-          <ErrorState
-            title="Could not load analytics"
-            description="Try refreshing the page."
-            onRetry={() => refetch()}
-          />
-        </Card>
       )}
     </div>
   );

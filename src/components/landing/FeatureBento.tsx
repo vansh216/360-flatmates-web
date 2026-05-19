@@ -7,16 +7,16 @@ export function FeatureBento() {
 
   return (
     <section
-      className="bg-paper overflow-hidden"
+      className="bg-surface border-b border-line-low overflow-hidden"
       aria-labelledby="features-heading"
     >
       <div className="mx-auto max-w-7xl px-5 py-20 md:px-12 md:py-28">
         <RevealSection className="text-center mb-14">
           <p className="text-eyebrow mb-5">Why 360 Flatmates</p>
-          <h2 id="features-heading" className="text-display max-w-2xl mx-auto text-ink">
-            Compatibility &gt; just budget &amp; location
+          <h2 id="features-heading" className="text-display max-w-3xl mx-auto text-ink text-4xl md:text-5xl leading-tight">
+            Compatibility is <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-6xl">greater than</span> budget & location
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-body-lg text-ink-3">
+          <p className="mx-auto mt-5 max-w-xl text-body-lg text-ink-2">
             We match on the stuff that actually makes or breaks living together.
           </p>
         </RevealSection>
@@ -24,7 +24,7 @@ export function FeatureBento() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Hero card — 2 cols × 2 rows on lg */}
           <RevealSection className="md:col-span-2 lg:col-span-2 lg:row-span-2">
-            <div className="bento-card h-full p-6 md:p-8 bg-gradient-to-br from-accent-soft to-surface border-accent/10">
+            <div className="bento-card card-glow h-full p-4 sm:p-6 md:p-8 bg-gradient-to-br from-accent-soft to-paper border border-accent/15">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/15 text-accent mb-5">
                 <heroFeature.icon className="h-6 w-6" />
               </div>
@@ -36,7 +36,8 @@ export function FeatureBento() {
                   return (
                     <div
                       key={dim.label}
-                      className={`flex flex-col items-center gap-2 rounded-xl p-3 transition-all duration-300 hover:scale-[1.04] ${dim.tint} bg-surface border border-line-low`}
+                      className={`flex flex-col items-center gap-2 rounded-xl p-3 transition-all duration-300 hover:scale-[1.06] active:scale-95 hover:shadow-xs ${dim.tint} bg-surface border border-line cursor-default`}
+                      style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
                     >
                       <DimIcon className="h-4 w-4" />
                       <span className="text-label-md">{dim.label}</span>
@@ -56,8 +57,8 @@ export function FeatureBento() {
                 key={feature.title}
                 className={isWide ? "md:col-span-2 lg:col-span-2" : "md:col-span-1 lg:col-span-1"}
               >
-                <div className="bento-card h-full p-6 flex flex-col gap-4">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${feature.tint} bg-surface`}>
+                <div className="bento-card card-glow h-full p-4 sm:p-6 flex flex-col gap-4 bg-paper border border-line-low hover:border-accent/15 transition-all duration-300">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${feature.tint} bg-surface border border-line-low`}>
                     <FeatureIcon className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
@@ -69,7 +70,7 @@ export function FeatureBento() {
                       {feature.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="rounded-full border border-line-low px-3 py-1 text-label-md text-ink-2"
+                          className="rounded-full border border-line-low bg-paper px-3 py-1 text-label-md text-ink-2"
                         >
                           {tag}
                         </span>
@@ -85,3 +86,4 @@ export function FeatureBento() {
     </section>
   );
 }
+

@@ -22,7 +22,7 @@ export function PublicLayout() {
     <div className="flex min-h-screen flex-col bg-paper text-ink">
       <ScrollProgressBar />
       <header className="sticky top-0 z-30 border-b border-line-low bg-surface/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-5 md:px-12">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-5 md:px-12">
           <Link to="/" aria-label="360 Flatmates home" className="shrink-0">
             <Logo compact />
           </Link>
@@ -37,17 +37,17 @@ export function PublicLayout() {
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-6">
-            <ThemeToggle size="sm" />
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-6">
+            <ThemeToggle size="sm" className="hidden sm:block" />
             <Link
               to="/login"
-              className="text-label-lg text-ink-2 hover:text-accent transition-colors duration-300"
+              className="hidden text-label-lg text-ink-2 hover:text-accent transition-colors duration-300 sm:block"
             >
               Sign in
             </Link>
             <Link
               to="/discover"
-              className={buttonClasses("primary", "compact") + " px-6 h-10 shadow-cta"}
+              className={buttonClasses("primary", "compact") + " hidden px-6 h-10 shadow-cta sm:inline-flex"}
             >
               Join
             </Link>
@@ -105,6 +105,26 @@ export function PublicLayout() {
                   {link.label}
                 </Link>
               ))}
+              <div className="mt-3 flex flex-col gap-3 border-t border-line pt-4">
+                <Link
+                  to="/login"
+                  onClick={() => setDrawerOpen(false)}
+                  className="rounded-[9px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/discover"
+                  onClick={() => setDrawerOpen(false)}
+                  className={buttonClasses("primary", "compact") + " h-10 shadow-cta text-center"}
+                >
+                  Join
+                </Link>
+                <div className="flex items-center gap-2 px-4 py-2">
+                  <ThemeToggle size="sm" />
+                  <span className="text-body-md text-ink-2">Dark mode</span>
+                </div>
+              </div>
             </nav>
           </div>
         </div>

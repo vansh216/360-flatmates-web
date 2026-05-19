@@ -22,13 +22,13 @@ function StatItem({
   };
 
   return (
-    <div className="flex flex-col items-center gap-2 rounded-2xl bg-paper-2 border border-line-low px-6 py-5">
-      <p className="text-display text-4xl md:text-5xl tabular text-ink">
+    <div className="flex flex-col items-center justify-center text-center p-6 md:p-8">
+      <p className="text-display text-5xl md:text-6xl tabular text-accent font-light tracking-tight leading-none">
         <span ref={ref}>
           {value >= numericValue ? suffix : formatValue(value, numericValue)}
         </span>
       </p>
-      <p className="text-eyebrow text-ink-3">{label}</p>
+      <p className="text-label-md text-ink-3 uppercase tracking-widest mt-3.5">{label}</p>
     </div>
   );
 }
@@ -36,25 +36,33 @@ function StatItem({
 export function StatsStrip() {
   return (
     <section
-      className="relative bg-surface py-16 md:py-20 border-y border-line-low"
+      className="relative bg-surface py-16 md:py-24 border-y border-line-low"
       aria-labelledby="stats-heading"
     >
       <div className="mx-auto max-w-7xl px-5 md:px-12">
-        <RevealSection className="mb-10 text-center">
+        <RevealSection className="mb-14 text-center">
           <p id="stats-heading" className="text-eyebrow mb-4">
             By the numbers
           </p>
-          <h2 className="text-h1 text-ink">The proof is in the platform</h2>
+          <h2 className="text-h1 text-ink text-3xl md:text-4xl">The proof is in the platform</h2>
         </RevealSection>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {STATS.map((stat) => (
-            <StatItem
+        {/* Seamless border-delimited stats row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 border border-line-low rounded-3xl bg-paper/40 backdrop-blur-xs divide-y-0 lg:divide-x divide-line-low/50 overflow-hidden shadow-xs hover:border-accent/15 transition-all duration-300">
+          {STATS.map((stat, idx) => (
+            <div
               key={stat.label}
-              numericValue={stat.numericValue}
-              suffix={stat.display}
-              label={stat.label}
-            />
+              className={`
+                ${idx % 2 === 1 ? 'border-l border-line-low/50 lg:border-l-0' : ''}
+                ${idx >= 2 ? 'border-t border-line-low/50 lg:border-t-0' : ''}
+              `}
+            >
+              <StatItem
+                numericValue={stat.numericValue}
+                suffix={stat.display}
+                label={stat.label}
+              />
+            </div>
           ))}
         </div>
       </div>
@@ -69,3 +77,4 @@ export function StatsStrip() {
     </section>
   );
 }
+

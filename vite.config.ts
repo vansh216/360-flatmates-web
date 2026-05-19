@@ -1,8 +1,66 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: "auto",
+      includeAssets: [
+        "favicon.svg",
+        "robots.txt",
+        "sitemap.xml",
+        "favicon-192.png",
+        "favicon-512.png",
+        "favicon-192-maskable.png",
+        "favicon-512-maskable.png",
+      ],
+      manifest: {
+        name: "360 Flatmates",
+        short_name: "360 Flatmates",
+        description: "Find compatible flatmates and verified rooms across India.",
+        theme_color: "#F4F3EE",
+        background_color: "#F4F3EE",
+        display: "standalone",
+        orientation: "portrait",
+        start_url: "/",
+        icons: [
+          {
+            src: "favicon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any",
+          },
+          {
+            src: "favicon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "favicon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "favicon-192-maskable.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
+            src: "favicon-512-maskable.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+    }),
+  ],
   resolve: {
     tsconfigPaths: true,
   },

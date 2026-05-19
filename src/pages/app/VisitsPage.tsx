@@ -215,7 +215,37 @@ export function VisitsPage() {
       {/* Calendar view: only visible at md+ breakpoint */}
       {viewMode === "calendar" ? (
         <div className="hidden md:block">
-          <CalendarView visits={filteredVisits} />
+          <AsyncView
+            data={filteredVisits}
+            isLoading={isLoading}
+            error={error}
+            isEmpty={() => false}
+            loading={
+              <div className="flex flex-col gap-3">
+                {/* Month navigation placeholder */}
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-9 w-20 rounded-lg" />
+                  <Skeleton className="h-6 w-32 rounded-lg" />
+                  <Skeleton className="h-9 w-20 rounded-lg" />
+                </div>
+                {/* Day headers */}
+                <div className="grid grid-cols-7 gap-1 text-center">
+                  {Array.from({ length: 7 }, (_, i) => (
+                    <Skeleton key={i} className="h-6 w-full rounded-md" />
+                  ))}
+                </div>
+                {/* Calendar grid placeholder */}
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: 35 }, (_, i) => (
+                    <Skeleton key={i} className="h-12 w-full rounded-lg" />
+                  ))}
+                </div>
+              </div>
+            }
+            onRetry={() => refetch()}
+          >
+            {(data) => <CalendarView visits={data} />}
+          </AsyncView>
         </div>
       ) : null}
 

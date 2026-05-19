@@ -105,9 +105,15 @@ export function SearchResults({
             onAction={onClearFilters}
           />
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {listings.map((listing) => (
-              <ListingCard listing={listing} key={listing.id} onOpen={onListingOpen} />
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {listings.map((listing, index) => (
+              <div
+                key={listing.id}
+                className="card-appear"
+                style={{ animationDelay: `${Math.min(index, 5) * 50}ms` }}
+              >
+                <ListingCard listing={listing} ctaLabel="View Details" onOpen={onListingOpen} />
+              </div>
             ))}
           </div>
         )}

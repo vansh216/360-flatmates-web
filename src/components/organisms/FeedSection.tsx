@@ -33,7 +33,7 @@ export function FeedSection({
           </Button>
         ) : null}
       </div>
-      <div className="flex snap-x gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-2 lg:snap-none lg:overflow-x-visible xl:grid-cols-3 lg:pb-0">
+      <div className="flex snap-x gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth w-auto -mx-5 px-5 md:-mx-6 md:px-6">
         {children}
       </div>
     </section>

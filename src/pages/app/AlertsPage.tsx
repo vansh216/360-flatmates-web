@@ -7,6 +7,7 @@ import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { AsyncView } from "@/components/ui/StateViews";
+import { Skeleton } from "@/components/ui/Skeleton";
 import type { SearchAlertCreate } from "@/lib/api/types";
 
 export function AlertsPage() {
@@ -57,13 +58,13 @@ export function AlertsPage() {
               <div key={i} className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm">
                 <div className="min-w-0 flex-1 flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="h-4 w-28 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-                    <div className="h-5 w-14 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-5 w-14 rounded-full" />
                   </div>
-                  <div className="h-3 w-24 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-                  <div className="h-3 w-20 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-3 w-20" />
                 </div>
-                <div className="h-9 w-9 rounded-[9px] shimmer animate-shimmer motion-reduce:animate-none" />
+                <Skeleton className="h-9 w-9 rounded-[9px]" />
               </div>
             ))}
           </div>

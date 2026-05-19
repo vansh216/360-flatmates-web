@@ -10,8 +10,8 @@ export function FAQAccordion() {
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <div className="mb-14 text-center">
           <p className="text-eyebrow mb-5">FAQ</p>
-          <h2 id="faq-heading" className="text-display max-w-xl mx-auto text-ink">
-            Got questions? We got you
+          <h2 id="faq-heading" className="text-display max-w-xl mx-auto text-ink text-4xl md:text-5xl">
+            Got questions? <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-6xl">We got you</span>
           </h2>
         </div>
 
@@ -19,12 +19,12 @@ export function FAQAccordion() {
           {FAQ_ITEMS.map((item) => (
             <details
               key={item.question}
-              className="faq-item group border-b border-line-low"
+              className="faq-item group border-b border-line-low transition-all duration-300 px-4 -mx-4 rounded-2xl open:bg-accent-soft/10"
             >
-              <summary className="flex cursor-pointer items-center justify-between py-6 text-h3 md:text-xl text-ink hover:text-accent transition-colors duration-300 list-none [&::-webkit-details-marker]:hidden">
-                <span className="max-w-[85%] font-medium">{item.question}</span>
-                <div className="h-8 w-8 rounded-full border border-line-low flex items-center justify-center transition-all duration-300 group-open:rotate-180 group-open:bg-accent group-open:border-accent group-open:text-white">
-                  <ChevronDown className="h-5 w-5" aria-hidden="true" />
+              <summary className="flex cursor-pointer items-center justify-between py-6 text-h3 md:text-xl text-ink hover:text-accent group-open:text-accent transition-colors duration-300 list-none [&::-webkit-details-marker]:hidden">
+                <span className="max-w-[85%] font-medium transition-all">{item.question}</span>
+                <div className="h-8 w-8 rounded-full border border-line-low flex items-center justify-center transition-all duration-300 group-open:rotate-180 group-open:bg-accent group-open:border-accent group-open:text-white shadow-xs">
+                  <ChevronDown className="h-4.5 w-4.5" aria-hidden="true" />
                 </div>
               </summary>
               <div className="faq-item-content">
@@ -48,3 +48,4 @@ export function FAQAccordion() {
     </section>
   );
 }
+

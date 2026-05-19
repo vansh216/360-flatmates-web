@@ -30,14 +30,8 @@ export function ManagePage() {
         error={error}
         isEmpty={(data) => data.length === 0}
         loading={
-          <div className="flex flex-col gap-5">
-            <div className="flex items-center justify-between gap-4">
-              <div className="shimmer animate-shimmer motion-reduce:animate-none h-7 w-40 rounded-sm" />
-              <div className="shimmer animate-shimmer motion-reduce:animate-none h-10 w-32 rounded-[10px]" />
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Skeleton variant="listingCard" count={3} />
-            </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Skeleton variant="listingCard" count={3} />
           </div>
         }
         empty={

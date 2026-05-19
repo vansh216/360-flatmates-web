@@ -19,7 +19,8 @@ import {
   UserCircle,
   Wind,
   Users,
-  Home
+  Home,
+  PartyPopper
 } from "lucide-react";
 import {
   AnimatePresence,
@@ -75,6 +76,7 @@ export interface SwipeProfile {
   genderPreference?: string;
   nonNegotiables?: string[];
   hasPets?: boolean;
+  partyHabit?: string;
   details?: ReactNode;
 }
 
@@ -122,7 +124,8 @@ const LIFESTYLE_ITEMS = [
   { key: "foodHabits" as const, icon: Utensils, label: "Food Habits" },
   { key: "smokingDrinking" as const, icon: Wind, label: "Smoking / Drinking" },
   { key: "guestsPolicy" as const, icon: Users, label: "Guests Policy" },
-  { key: "workStyle" as const, icon: Home, label: "Work Style" }
+  { key: "workStyle" as const, icon: Home, label: "Work Style" },
+  { key: "partyHabit" as const, icon: PartyPopper, label: "Party Habit" }
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -168,7 +171,7 @@ export function SwipeDeck({
   const currentIndex = controlledIndex ?? internalIndex;
   const [animating, setAnimating] = useState(false);
   const [exitDirection, setExitDirection] = useState<SwipeDirection>(null);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => window.innerWidth >= 768);
   const hasSwipedRef = useRef(false);
 
   /* ----- Notify parent of index changes ----- */
@@ -177,9 +180,9 @@ export function SwipeDeck({
   }, [currentIndex, onIndexChange]);
 
   /* ----- Re-expand card when index changes ----- */
-  // Each new card should appear in expanded (scrollable) mode by default.
+  // Each new card should appear in expanded (scrollable) mode by default on desktop, collapsed on mobile.
   useEffect(() => {
-    setIsExpanded(true); // eslint-disable-line react-hooks/set-state-in-effect
+    setIsExpanded(window.innerWidth >= 768); // eslint-disable-line react-hooks/set-state-in-effect
   }, [currentIndex]);
 
   const current = profiles[currentIndex];
@@ -259,7 +262,8 @@ export function SwipeDeck({
       aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp Space Escape"
       tabIndex={0}
       className={cn(
-        "mx-auto flex w-full max-w-[480px] flex-col gap-5 outline-none",
+        "mx-auto flex w-full flex-col gap-5 outline-none transition-all duration-300 ease-out",
+        isExpanded ? "max-w-[480px] md:max-w-3xl lg:max-w-4xl" : "max-w-[480px]",
         focusRing,
         className
       )}
@@ -472,32 +476,33 @@ function SwipeableCard({
         )}
       >
         {isExpanded ? (
-          /* ---- EXPANDED VIEW: Photo header + scrollable details ---- */
-          <div className="flex h-full flex-col" aria-expanded="true">
-            {/* Photo header — shorter on mobile to maximise scroll area */}
-            <div className="relative h-[160px] md:h-[200px] shrink-0">
+          /* ---- EXPANDED VIEW: Side-by-side on desktop/tablet, full-scroll on mobile ---- */
+          <div className="flex h-full flex-col md:flex-row overflow-y-auto md:overflow-hidden" aria-expanded="true">
+            {/* Left/Top: Photo */}
+            <div className="relative h-[220px] shrink-0 md:h-full md:w-[40%] lg:w-[45%]">
               <NetworkImage
                 alt={profile.name}
                 src={profile.photoUrl}
-                wrapperClassName="h-full w-full"
+                width={800}
+                wrapperClassName="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/50" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/60 md:bg-gradient-to-t" />
               <div className="absolute left-4 top-4 flex flex-wrap gap-2">
                 {profile.mode ? <Badge mode={profile.mode} variant="mode" /> : null}
               </div>
               <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
-                <div className="rounded-full bg-surface p-1 shadow-xs">
+                <div className="rounded-full bg-surface/90 backdrop-blur-xs p-1 shadow-xs">
                   <ProgressRing size="lg" value={profile.matchScore} />
                 </div>
                 {profile.verified ? <TrustBadge /> : null}
               </div>
               <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                <h2 className="text-h2 font-normal">
+                <h2 className="text-h2 font-normal leading-tight">
                   {profile.name}
                   {profile.age ? `, ${profile.age}` : ""}
                 </h2>
                 {profile.location ? (
-                  <p className="mt-0.5 flex items-center gap-1.5 text-body-md text-white/80">
+                  <p className="mt-0.5 flex items-center gap-1.5 text-body-md text-white/90">
                     <MapPin aria-hidden="true" className="h-4 w-4" />
                     {profile.location}
                   </p>
@@ -505,27 +510,58 @@ function SwipeableCard({
               </div>
             </div>
 
-            {/* Collapse handle */}
-            <button
-              type="button"
-              onClick={onToggleExpand}
-              aria-label="Collapse profile details"
-              className={cn(
-                "flex shrink-0 items-center justify-center py-2",
-                "text-ink-3 hover:text-ink-2 transition-colors duration-150"
-              )}
-            >
-              <div className="h-1 w-8 rounded-full bg-ink-4" />
-            </button>
+            {/* Right/Bottom: Details */}
+            <div className="flex flex-1 flex-col overflow-y-auto md:h-full min-w-0">
+              {/* Collapse handle / bar */}
+              <button
+                type="button"
+                onClick={onToggleExpand}
+                aria-label="Collapse profile details"
+                className={cn(
+                  "flex shrink-0 items-center justify-center py-2.5 md:py-3 border-b border-line/40 bg-surface z-10 sticky top-0",
+                  "text-ink-3 hover:text-ink-2 transition-colors duration-150"
+                )}
+              >
+                <div className="h-1.5 w-10 rounded-full bg-ink-4/80" />
+              </button>
 
-            {/* Scrollable details body */}
-            <div
-              ref={scrollRef}
-              role="region"
-              aria-label="Profile details"
-              className="swipe-card-scroll flex-1 overflow-y-auto px-5 pb-4 scrollbar-thin"
-            >
-              <div className="flex flex-col gap-5">
+              {/* Scrollable details body */}
+              <div
+                ref={scrollRef}
+                role="region"
+                aria-label="Profile details"
+                className="swipe-card-scroll flex-1 px-5 py-4 space-y-6 md:pb-6 scrollbar-thin"
+              >
+                {/* Basic Specifications Grid */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 border-b border-line/45 pb-5">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-caption text-ink-3">Gender</span>
+                    <span className="text-body-md font-semibold text-ink">
+                      {profile.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : "Not specified"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-caption text-ink-3">Profession</span>
+                    <span className="text-body-md font-semibold text-ink line-clamp-1">
+                      {profile.profession || "Not specified"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-caption text-ink-3">Budget</span>
+                    <span className="text-body-md font-semibold text-ink">
+                      {profile.budgetMin !== undefined || profile.budgetMax !== undefined
+                        ? formatBudgetRange(profile.budgetMin, profile.budgetMax)
+                        : "Any budget"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-caption text-ink-3">Move-In Timeline</span>
+                    <span className="text-body-md font-semibold text-ink">
+                      {profile.moveInTimeline ? formatMoveInTimeline(profile.moveInTimeline) : "Flexible"}
+                    </span>
+                  </div>
+                </div>
+
                 {/* About section */}
                 {profile.bio || profile.profession ? (
                   <section>
@@ -579,7 +615,8 @@ function SwipeableCard({
                         const value = profile[item.key];
                         if (!value) return null;
                         const Icon = item.icon;
-                        const label = formatLifestyleLabel(item.key, value);
+                        const rawLabel = formatLifestyleLabel(item.key, value);
+                        const label = rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1);
                         return (
                           <Chip key={item.key} variant="info" className="bg-paper-2">
                             <Icon
@@ -640,20 +677,17 @@ function SwipeableCard({
                   </section>
                 ) : null}
 
-                {/* Move-in label (if not already shown via moveInTimeline) */}
+                {/* Move-in label */}
                 {profile.moveInLabel && !profile.moveInTimeline ? (
                   <p className="text-body-md text-ink-3">
                     {profile.moveInLabel}
                   </p>
                 ) : null}
 
-                {/* Spacer so last item isn't cut off by fade */}
-                <div className="h-2" />
+                {/* Spacer */}
+                <div className="h-4" />
               </div>
             </div>
-
-            {/* Bottom scroll fade indicator */}
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-surface to-transparent" />
           </div>
         ) : (
           /* ---- COLLAPSED VIEW: Full-bleed photo with overlay ---- */
@@ -668,6 +702,7 @@ function SwipeableCard({
               <NetworkImage
                 alt={profile.name}
                 src={profile.photoUrl}
+                width={800}
                 wrapperClassName="h-full w-full"
               />
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-accent/40" />
@@ -691,6 +726,25 @@ function SwipeableCard({
                     {profile.location}
                   </p>
                 ) : null}
+                
+                {/* Key metadata badges for rich quick view */}
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {profile.gender ? (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
+                      {profile.gender === "male" ? "♂️ Male" : profile.gender === "female" ? "♀️ Female" : `👤 ${profile.gender}`}
+                    </span>
+                  ) : null}
+                  {profile.profession ? (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white line-clamp-1 max-w-[150px]">
+                      💼 {profile.profession}
+                    </span>
+                  ) : null}
+                  {profile.budgetMin !== undefined || profile.budgetMax !== undefined ? (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-accent/70 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
+                      💰 {formatBudgetRange(profile.budgetMin, profile.budgetMax).replace("Any budget", "Flex")}
+                    </span>
+                  ) : null}
+                </div>
                 {profile.topMatches && profile.topMatches.length > 0 ? (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {profile.topMatches.slice(0, 3).map((match) => (
@@ -787,6 +841,7 @@ function SwipeCard({
         <NetworkImage
           alt={profile.name}
           src={profile.photoUrl}
+          width={800}
           wrapperClassName="h-full w-full"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-accent/40" />
@@ -810,6 +865,25 @@ function SwipeCard({
               {profile.location}
             </p>
           ) : null}
+          
+          {/* Key metadata badges for rich quick view */}
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {profile.gender ? (
+              <span className="inline-flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
+                {profile.gender === "male" ? "♂️ Male" : profile.gender === "female" ? "♀️ Female" : `👤 ${profile.gender}`}
+              </span>
+            ) : null}
+            {profile.profession ? (
+              <span className="inline-flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white line-clamp-1 max-w-[150px]">
+                💼 {profile.profession}
+              </span>
+            ) : null}
+            {profile.budgetMin !== undefined || profile.budgetMax !== undefined ? (
+              <span className="inline-flex items-center gap-1 rounded-md bg-accent/70 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
+                💰 {formatBudgetRange(profile.budgetMin, profile.budgetMax).replace("Any budget", "Flex")}
+              </span>
+            ) : null}
+          </div>
           {profile.topMatches && profile.topMatches.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {profile.topMatches.slice(0, 3).map((match) => (

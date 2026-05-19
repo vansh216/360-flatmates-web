@@ -24,16 +24,16 @@ export function MyListingDetailPage() {
     return (
       <div className="flex flex-col gap-5 page-fade">
         <div className="flex items-center justify-between">
-          <div className="h-9 w-9 rounded-[9px] shimmer animate-shimmer motion-reduce:animate-none" />
-          <div className="h-8 w-16 rounded-[10px] shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton className="h-9 w-9 rounded-[9px]" />
+          <Skeleton className="h-8 w-16 rounded-[10px]" />
         </div>
         <Skeleton variant="listingCard" />
         <Card className="p-5">
-          <div className="h-5 w-28 rounded-full shimmer animate-shimmer motion-reduce:animate-none mb-3" />
+          <Skeleton className="h-5 w-28 rounded-full mb-3" />
           {Array.from({ length: 3 }, (_, i) => (
             <div key={i} className="flex flex-col gap-1 mb-2">
-              <div className="h-4 w-20 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
-              <div className="h-4 w-32 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+              <Skeleton className="h-4 w-20 rounded-full" />
+              <Skeleton className="h-4 w-32 rounded-full" />
             </div>
           ))}
         </Card>

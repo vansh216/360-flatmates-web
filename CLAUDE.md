@@ -24,11 +24,12 @@ Key reference documents:
 ## Build, Test, and Development Commands
 
 ```bash
-npm run dev       # Start Vite dev server (port 5173)
-npm run build     # TypeScript check + Vite production build
-npm run lint      # ESLint check
-npm test          # Run Vitest unit tests
-npm run test:e2e  # Playwright end-to-end tests
+npm run dev                 # Start Vite dev server (port 5173)
+npm run build               # TypeScript check + PWA icon generation + sitemap generation + Vite production build
+npm run lint                # ESLint check
+npm test                    # Run Vitest unit tests
+npm run test:e2e            # Playwright end-to-end tests
+npm run generate:pwa-icons  # Generate PWA standard & maskable PNG icons from favicon.svg
 ```
 
 ## Coding Style & Naming Conventions
@@ -57,7 +58,7 @@ npm run test:e2e  # Playwright end-to-end tests
 
 ## Architecture Overview
 
-Vite + React Router v7 SPA consuming a shared FastAPI backend (`/api/v1`). Client-rendered with no SSR. Authentication via Supabase (Phone OTP + Password + Google OAuth). State management via Zustand (local state) and TanStack React Query (server state). Real-time updates via SSE with BroadcastChannel multi-tab dedup. Responsive navigation: bottom nav on mobile, collapsed icon sidebar on tablet, full sidebar on desktop. Three user modes (Room Poster, Co-Hunter, Open to Both) control navigation tabs and feature access. All design tokens are CSS custom properties with dark mode overrides. Route guards (`AuthGuard`, `AdminGuard`, `AuthRedirectGuard`) protect authenticated and admin routes.
+Vite + React Router v7 SPA consuming a shared FastAPI backend (`/api/v1`). Client-rendered with no SSR. Authentication via Supabase (Phone OTP + Password + Google OAuth). Progressive Web App (PWA) enabled with service worker caching, offline asset precaching, custom install banner, and manual installation guide modal for iOS Safari. State management via Zustand (local state) and TanStack React Query (server state). Real-time updates via SSE with BroadcastChannel multi-tab dedup. Responsive navigation: bottom nav on mobile, collapsed icon sidebar on tablet, full sidebar on desktop. Three user modes (Room Poster, Co-Hunter, Open to Both) control navigation tabs and feature access. All design tokens are CSS custom properties with dark mode overrides. Route guards (`AuthGuard`, `AdminGuard`, `AuthRedirectGuard`) protect authenticated and admin routes.
 
 ## Theme & Appearance
 

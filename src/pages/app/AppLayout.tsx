@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useMyProfile } from "@/hooks/queries/useProfiles";
 import { uiStore } from "@/lib/stores/ui-store";
 import { PageSpinner } from "@/components/ui/Spinner";
+import { PWAInstallBanner } from "@/components/molecules/PWAInstallBanner";
 
 export function AppLayout() {
   const { user, loading: authLoading } = useAuth();
@@ -41,6 +42,7 @@ export function AppLayout() {
       sidebarWidth={sidebarWidth}
       onSidebarWidthChange={setSidebarWidth}
     >
+      <PWAInstallBanner className="mb-5" />
       <Outlet />
     </AppShell>
   );

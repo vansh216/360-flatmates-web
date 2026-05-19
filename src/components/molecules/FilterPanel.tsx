@@ -68,7 +68,7 @@ export function FilterPanel({
           </section>
         ))}
       </div>
-      <div className="sticky bottom-0 mt-auto flex gap-2 border-t border-line bg-paper/88 py-3 backdrop-blur-[9px]">
+      <div className="sticky bottom-0 mt-auto flex gap-2 border-t border-line bg-paper/88 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur-[9px]">
         <Button fullWidth variant="secondary" onClick={onClear}>
           Clear
         </Button>

@@ -7,6 +7,8 @@ import {
   useMapEvents
 } from "react-leaflet";
 import L from "leaflet";
+import { useStore } from "zustand";
+import { uiStore } from "@/lib/stores/ui-store";
 import type { MapCluster, MapPin } from "@/lib/api/types";
 import type { MapBounds } from "@/lib/stores/map-store";
 import { SlidersHorizontal } from "lucide-react";
@@ -52,49 +54,79 @@ import { DEFAULT_CENTER as DEFAULT_CENTER_OBJECT } from "@/lib/stores/map-store"
 const DEFAULT_CENTER: [number, number] = [DEFAULT_CENTER_OBJECT.lat, DEFAULT_CENTER_OBJECT.lng];
 const DEFAULT_ZOOM = 12;
 
-// ── Cached design-token reader for Leaflet icon HTML ────────────────
-
-const cssVarCache = new Map<string, string>();
-
-function getCSSVar(name: string): string {
-  const cached = cssVarCache.get(name);
-  if (cached !== undefined) return cached;
-  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  cssVarCache.set(name, value);
-  return value;
-}
-
-function invalidateCSSVarCache() {
-  cssVarCache.clear();
-}
-
-
-
 // ── Custom Leaflet icons ───────────────────────────────────────
+
+function formatRent(rent?: number): string {
+  if (rent === undefined) return "₹--";
+  if (rent >= 100000) {
+    const l = rent / 100000;
+    return `₹${rent % 100000 !== 0 ? l.toFixed(1) : l.toFixed(0)}L`;
+  }
+  if (rent >= 1000) {
+    const k = rent / 1000;
+    return `₹${rent % 1000 !== 0 ? k.toFixed(1) : k.toFixed(0)}k`;
+  }
+  return `₹${rent}`;
+}
 
 function createPinIcon(pin: MapPin): L.DivIcon {
   const isCoHunter = pin.mode === "co_hunter";
-  const dotColor = isCoHunter ? "#5A9DA8" : "#C96442";
-  const ringColor = isCoHunter ? "#CFE4DF" : "#F8D5C8";
+  const labelText = isCoHunter ? "Flatmate" : formatRent(pin.monthly_rent);
+  
+  const html = isCoHunter
+    ? `
+      <div class="map-hunter-badge" role="button" tabindex="0" aria-label="Flatmate profile pin" style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--color-surface);
+        border: 1.5px solid var(--color-teal-mid);
+        color: var(--color-ink);
+        font-family: var(--font-inter, Inter, sans-serif);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 9999px;
+        box-shadow: var(--shadow-sm);
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+        gap: 4px;
+      ">
+        <span style="font-size: 10px;">👤</span>
+        <span>Flatmate</span>
+      </div>
+    `
+    : `
+      <div class="map-rent-badge" role="button" tabindex="0" aria-label="Rent property pin: ${labelText}" style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--color-surface);
+        border: 1.5px solid var(--color-accent);
+        color: var(--color-ink);
+        font-family: var(--font-inter, Inter, sans-serif);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 9999px;
+        box-shadow: var(--shadow-sm);
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+      ">
+        ${labelText}
+      </div>
+    `;
 
-  const html = `
-    <div style="
-      width: 14px;
-      height: 14px;
-      background: ${dotColor};
-      border: 2.5px solid ${ringColor};
-      border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(31,26,20,0.15);
-      transition: transform 150ms ease-out, box-shadow 150ms ease-out;
-      cursor: pointer;
-    "></div>
-  `;
+  const width = isCoHunter ? 72 : 52;
+  const height = 24;
 
   return L.divIcon({
     html,
     className: "",
-    iconSize: [14, 14],
-    iconAnchor: [7, 7]
+    iconSize: [width, height],
+    iconAnchor: [width / 2, height / 2]
   });
 }
 
@@ -104,19 +136,19 @@ function createClusterIcon(cluster: MapCluster): L.DivIcon {
   const hasRooms = (breakdown?.room_available ?? 0) > 0;
   const hasHunters = (breakdown?.co_hunter ?? 0) > 0;
 
-  let accentColor = getCSSVar("--color-accent");
-  let bgColor = getCSSVar("--color-accent-container");
+  let accentColor = "var(--color-accent)";
+  let bgColor = "var(--color-accent-container)";
 
   if (hasRooms && hasHunters) {
-    accentColor = getCSSVar("--color-warning");
-    bgColor = getCSSVar("--color-warning-soft");
+    accentColor = "var(--color-warning)";
+    bgColor = "var(--color-warning-soft)";
   } else if (hasHunters && !hasRooms) {
-    accentColor = getCSSVar("--color-teal-mid");
-    bgColor = getCSSVar("--color-teal-soft");
+    accentColor = "var(--color-teal-mid)";
+    bgColor = "var(--color-teal-soft)";
   }
 
-  const inkColor = getCSSVar("--color-ink");
-  const shadowSm = `0 2px 6px ${getCSSVar("--color-line")}`;
+  const inkColor = "var(--color-ink)";
+  const shadowSm = "var(--shadow-sm)";
   const fontSize = count >= 100 ? "13px" : count >= 10 ? "12px" : "11px";
 
   const html = `
@@ -126,7 +158,7 @@ function createClusterIcon(cluster: MapCluster): L.DivIcon {
       justify-content: center;
       pointer-events: auto;
     ">
-      <div style="
+      <div role="button" tabindex="0" aria-label="Listing cluster: ${count} items" style="
         background: ${bgColor};
         border: 2.5px solid ${accentColor};
         border-radius: 50%;
@@ -247,15 +279,19 @@ export function MapView({
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setIsMounted(true); }, []);
 
-  // Invalidate CSS variable cache when theme changes
-  useEffect(() => {
-    const observer = new MutationObserver(invalidateCSSVarCache);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme", "data-palette"],
-    });
-    return () => observer.disconnect();
-  }, []);
+  const theme = useStore(uiStore, (s) => s.theme);
+  const isDark = useMemo(() => {
+    return (
+      theme === "dark" ||
+      (theme === "system" &&
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+    );
+  }, [theme]);
+
+  const tileUrl = isDark
+    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+    : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
 
   // Memoize icons to avoid re-creation on every render
   const pinIconMap = useMemo(() => {
@@ -313,11 +349,21 @@ export function MapView({
         className
       )}
     >
-      {/* Hover style for pin dot markers */}
+      {/* Hover styles for premium map pin badges */}
       <style>{`
-        .leaflet-marker-icon:hover > div > div {
-          transform: scale(1.3);
-          box-shadow: 0 3px 10px rgba(31,26,20,0.25);
+        .leaflet-marker-icon:hover .map-rent-badge {
+          transform: scale(1.08);
+          background-color: var(--color-accent) !important;
+          border-color: var(--color-accent) !important;
+          color: #ffffff !important;
+          box-shadow: 0 4px 12px var(--color-accent-soft);
+        }
+        .leaflet-marker-icon:hover .map-hunter-badge {
+          transform: scale(1.08);
+          background-color: var(--color-teal-mid) !important;
+          border-color: var(--color-teal-mid) !important;
+          color: #ffffff !important;
+          box-shadow: 0 4px 12px var(--color-teal-soft);
         }
       `}</style>
 
@@ -354,8 +400,9 @@ export function MapView({
           style={{ height: "100%" }}
         >
           <TileLayer
+            key={tileUrl}
             attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            url={tileUrl}
           />
           <MapEventHandler onViewportChange={onViewportChange} />
           <LeafletZoomControls onLocate={onLocate} />

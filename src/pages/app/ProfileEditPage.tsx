@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input, TextArea, SelectField } from "@/components/ui/Input";
 import { ErrorState } from "@/components/ui/StateViews";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 /* ── Zod schema ──────────────────────────────────────────── */
 
@@ -169,19 +170,19 @@ export function ProfileEditPage() {
       <div className="flex flex-col gap-5 page-fade max-w-lg mx-auto">
         {/* Header row */}
         <div className="flex items-center gap-3">
-          <div aria-hidden="true" className="h-10 w-10 rounded-[9px] shimmer animate-shimmer motion-reduce:animate-none" />
-          <div aria-hidden="true" className="h-8 w-32 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton className="h-10 w-10 rounded-[9px]" />
+          <Skeleton className="h-8 w-32" />
         </div>
 
         {/* Form cards with labeled inputs */}
         {Array.from({ length: 3 }, (_, cardIdx) => (
           <div key={cardIdx} className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
             <div className="flex flex-col gap-4">
-              <div aria-hidden="true" className="h-5 w-28 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+              <Skeleton className="h-5 w-28" />
               {Array.from({ length: 4 }, (_, rowIdx) => (
                 <div key={rowIdx} className="flex flex-col gap-1.5">
-                  <div aria-hidden="true" className="h-4 w-20 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
-                  <div aria-hidden="true" className="h-12 w-full rounded-[9px] shimmer animate-shimmer motion-reduce:animate-none" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-12 w-full rounded-[9px]" />
                 </div>
               ))}
             </div>
@@ -190,8 +191,8 @@ export function ProfileEditPage() {
 
         {/* Save/Cancel buttons */}
         <div className="flex flex-col gap-2 pb-6">
-          <div aria-hidden="true" className="h-[52px] w-full rounded-[10px] shimmer animate-shimmer motion-reduce:animate-none" />
-          <div aria-hidden="true" className="h-[52px] w-full rounded-[10px] shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton className="h-[52px] w-full rounded-[10px]" />
+          <Skeleton className="h-[52px] w-full rounded-[10px]" />
         </div>
       </div>
     );

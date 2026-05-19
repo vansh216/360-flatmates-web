@@ -36,14 +36,14 @@ export function ChatDetailPage() {
       <div className="flex flex-col gap-3 p-4">
         {/* Header bar: avatar + name + actions */}
         <div className="flex items-center gap-3 border-b border-line pb-3">
-          <div className="shimmer animate-shimmer motion-reduce:animate-none h-[52px] w-[52px] shrink-0 rounded-xl" />
+          <Skeleton className="h-[52px] w-[52px] shrink-0 rounded-xl" />
           <div className="flex flex-1 flex-col gap-1.5 min-w-0">
-            <div className="shimmer animate-shimmer motion-reduce:animate-none h-4 w-28 rounded-sm" />
-            <div className="shimmer animate-shimmer motion-reduce:animate-none h-3 w-20 rounded-sm" />
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-20" />
           </div>
           <div className="flex gap-2">
-            <div className="shimmer animate-shimmer motion-reduce:animate-none h-9 w-9 rounded-[9px]" />
-            <div className="shimmer animate-shimmer motion-reduce:animate-none h-9 w-9 rounded-[9px]" />
+            <Skeleton className="h-9 w-9 rounded-[9px]" />
+            <Skeleton className="h-9 w-9 rounded-[9px]" />
           </div>
         </div>
         {/* Alternating chat message bubbles */}
@@ -53,9 +53,9 @@ export function ChatDetailPage() {
         <div className="flex justify-end"><Skeleton variant="chatMessage" side="right" /></div>
         {/* Input bar */}
         <div className="mt-auto flex items-center gap-2 rounded-[9px] border border-line bg-surface p-3">
-          <div className="shimmer animate-shimmer motion-reduce:animate-none h-5 w-5 rounded-sm" />
-          <div className="shimmer animate-shimmer motion-reduce:animate-none h-4 flex-1 rounded-sm" />
-          <div className="shimmer animate-shimmer motion-reduce:animate-none h-8 w-8 rounded-[9px]" />
+          <Skeleton className="h-5 w-5" />
+          <Skeleton className="h-4 flex-1" />
+          <Skeleton className="h-8 w-8 rounded-[9px]" />
         </div>
       </div>
     );

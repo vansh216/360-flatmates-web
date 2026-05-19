@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from "react";
+import { useState, useEffect, type HTMLAttributes } from "react";
 import { clampPercentage, cn } from "./component-utils";
 
 export type ProgressRingSize = "sm" | "md" | "lg" | "xl";
@@ -38,7 +38,17 @@ export function RingSvg({
 }: RingSvgProps) {
   const radius = (box - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference - (percentage / 100) * circumference;
+  
+  // Animate drawing from 0 to percentage on mount
+  const [offset, setOffset] = useState(circumference);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const dashOffset = circumference - (percentage / 100) * circumference;
+      setOffset(dashOffset);
+    }, 100);
+    return () => clearTimeout(t);
+  }, [percentage, circumference]);
 
   return (
     <svg
@@ -65,10 +75,13 @@ export function RingSvg({
         r={radius}
         stroke={fillColor}
         strokeDasharray={circumference}
-        strokeDashoffset={dashOffset}
+        strokeDashoffset={offset}
         strokeLinecap="round"
         strokeWidth={stroke}
         transform={`rotate(-90 ${box / 2} ${box / 2})`}
+        style={{
+          transition: "stroke-dashoffset 800ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+        }}
       />
     </svg>
   );

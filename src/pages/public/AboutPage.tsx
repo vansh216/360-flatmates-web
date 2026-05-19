@@ -40,40 +40,52 @@ export function AboutPage() {
         description="Learn about 360 Flatmates, our mission to make flatmate matching smarter through compatibility scores, verified listings, and safety-first workflows across India."
         canonicalUrl={`${SITE_URL}/about`}
       />
-      <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-12 md:px-6">
-        <div className="text-center">
-          <p className="text-eyebrow text-accent">About</p>
-          <h1 className="mt-3 text-h1">360 Flatmates</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-body-lg text-ink-2">
-            We help young professionals find homes and people through compatibility, verified
+      <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-16 md:px-12">
+        <div className="text-center mb-16">
+          <p className="text-eyebrow text-accent uppercase tracking-widest">About</p>
+          <h1 className="mt-4 text-display text-4xl md:text-6xl text-ink font-normal leading-tight tracking-tight max-w-3xl mx-auto">
+            Finding a home starts with <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-7xl">finding your people</span>
+          </h1>
+          <p className="mx-auto mt-6 max-w-xl text-body-lg text-ink-2">
+            We help young professionals find homes and build harmonious lives through compatibility, verified
             listings, and safety-first workflows.
           </p>
         </div>
 
-        <section className="mt-12">
-          <h2 className="text-h2 text-center">Our values</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <section className="py-16 border-t border-line-low">
+          <h2 className="text-display text-3xl md:text-4xl text-ink font-normal text-center mb-10">Our values</h2>
+          <div className="grid gap-6 md:grid-cols-2">
             {VALUES.map((value) => (
-              <Card key={value.title} className="flex flex-col gap-3 p-5">
-                <TrustBadge variant={value.badge} />
-                <h3 className="text-h3">{value.title}</h3>
-                <p className="text-body-md text-ink-2">{value.description}</p>
+              <Card
+                key={value.title}
+                className="flex flex-col gap-4 p-6 border border-line-low hover:border-accent/20 hover:shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all duration-300"
+                style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+              >
+                <div className="flex justify-between items-start">
+                  <TrustBadge variant={value.badge} />
+                </div>
+                <h3 className="text-h3 text-ink mt-2">{value.title}</h3>
+                <p className="text-body-md text-ink-2 leading-relaxed">{value.description}</p>
               </Card>
             ))}
           </div>
         </section>
 
-        <section className="mt-12">
-          <h2 className="text-h2 text-center">The team</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-body-lg text-ink-2">
-            We are a small team of engineers and designers based in India, building the flatmate
-            experience we wished we had. If you have ever moved into a place and realized too late
-            that your flatmate keeps the AC on 18 degrees all night, you understand our mission.
-          </p>
+        <section className="py-16 border-t border-line-low">
+          <div className="bg-paper/50 border border-line-low rounded-2xl p-8 md:p-12 max-w-3xl mx-auto text-center relative overflow-hidden">
+            <div className="absolute top-[-20%] left-[-20%] w-[50%] aspect-square rounded-full bg-accent/5 blur-[80px] pointer-events-none" />
+            <h2 className="text-display text-3xl text-ink font-normal mb-6">The team</h2>
+            <p className="text-body-lg text-ink-2 leading-relaxed max-w-2xl mx-auto font-serif italic text-lg md:text-xl">
+              "We are a small team of engineers and designers based in India, building the flatmate
+              experience we wished we had. If you have ever moved into a place and realized too late
+              that your flatmate keeps the AC on 18 degrees all night, you understand our mission."
+            </p>
+            <p className="mt-6 text-eyebrow text-accent uppercase tracking-wider">— The 360 Flatmates Team</p>
+          </div>
         </section>
 
-        <div className="mt-10 text-center">
-          <Link to="/discover" className={buttonClasses()}>
+        <div className="mt-8 text-center">
+          <Link to="/discover" className={buttonClasses("primary", "tall") + " shadow-cta"}>
             Browse Listings
           </Link>
         </div>

@@ -2,6 +2,7 @@ import type { HTMLAttributes } from "react";
 import { Pencil } from "lucide-react";
 import { cn, getInitials, clampPercentage } from "./component-utils";
 import { RingSvg } from "./ProgressRing";
+import { optimizeImageUrl } from "@/lib/image-utils";
 
 export type AvatarSize = "compact" | "sm" | "md" | "lg" | "xl";
 export type AvatarShape = "editorial" | "circle";
@@ -44,6 +45,14 @@ const ringSizeMap: Record<AvatarSize, { box: number; stroke: number; inset: numb
   xl:      { box: 130, stroke: 4,  inset: 5 },
 };
 
+const avatarWidthMap: Record<AvatarSize, number> = {
+  compact: 100,
+  sm: 100,
+  md: 120,
+  lg: 200,
+  xl: 300,
+};
+
 export function Avatar({
   name,
   src,
@@ -63,6 +72,8 @@ export function Avatar({
   const renderRing = ringValue !== undefined && animated;
   const ringConfig = ringSizeMap[size];
   const ringPercentage = ringValue !== undefined ? clampPercentage(ringValue) : 0;
+
+  const optimizedSrc = optimizeImageUrl(src, { width: avatarWidthMap[size] });
 
   return (
     <div className={cn("relative inline-flex shrink-0", className)} {...props}>
@@ -93,11 +104,11 @@ export function Avatar({
           roundedClass
         )}
       >
-        {src ? (
+        {optimizedSrc ? (
           <img
             alt={alt ?? name}
             className="object-cover absolute inset-0 h-full w-full"
-            src={src}
+            src={optimizedSrc}
             loading="lazy"
             decoding="async"
           />

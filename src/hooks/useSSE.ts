@@ -18,6 +18,7 @@ import {
 import { setAccessToken } from "@/lib/api";
 import { getEnv } from "@/lib/env";
 import { uiStore } from "@/lib/stores/ui-store";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const SSE_URL = `${getEnv().VITE_API_BASE_URL}/flatmates/sse`;
 
@@ -125,9 +126,6 @@ export function useSSE(
 
   const handleAuthFailure = useCallback(async (): Promise<string | null> => {
     try {
-      const { getSupabaseBrowserClient } = await import(
-        "@/lib/supabase/client"
-      );
       const supabase = getSupabaseBrowserClient();
       const { data, error } = await supabase.auth.refreshSession();
       if (error || !data.session) return null;

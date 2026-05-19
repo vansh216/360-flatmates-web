@@ -1,10 +1,12 @@
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
-import { type ReactNode, useCallback, useEffect, useRef, useSyncExternalStore, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useSSE } from "@/hooks/useSSE";
 import { ApiClientError, setAccessToken, setRefreshTokenHandler } from "@/lib/api";
+import { useStore } from "zustand";
 import { uiStore } from "@/lib/stores/ui-store";
 import type { PalettePreference, ThemePreference } from "@/lib/stores/ui-store";
 import { searchStore } from "@/lib/stores/search-store";
@@ -44,9 +46,6 @@ function ProviderInternals({
 
       refreshPromise = (async () => {
         try {
-          const { getSupabaseBrowserClient } = await import(
-            "@/lib/supabase/client"
-          );
           const supabase = getSupabaseBrowserClient();
           const { data, error } = await supabase.auth.refreshSession();
           if (error) throw error;
@@ -128,19 +127,8 @@ function ProviderInternals({
 }
 
 function ToastContainer() {
-  const toasts = useSyncExternalStore(
-    (cb) => {
-      let prev = uiStore.getState().toasts;
-      return uiStore.subscribe(() => {
-        const next = uiStore.getState().toasts;
-        if (next !== prev) {
-          prev = next;
-          cb();
-        }
-      });
-    },
-    () => uiStore.getState().toasts
-  );
+  const toasts = useStore(uiStore, (s) => s.toasts);
+  const dismissToast = useStore(uiStore, (s) => s.dismissToast);
 
   if (toasts.length === 0) return null;
 
@@ -152,7 +140,7 @@ function ToastContainer() {
           type={toast.type}
           title={toast.title}
           description={toast.description}
-          onClick={() => uiStore.getState().dismissToast(toast.id)}
+          onClick={() => dismissToast(toast.id)}
         />
       ))}
     </ToastViewport>

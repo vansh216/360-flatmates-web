@@ -47,9 +47,9 @@ export function LoginPage() {
   return (
     <>
       <SeoHelmet title="Sign In" description="Sign in to your 360 Flatmates account to access compatible flatmate matches, verified listings, and in-app chat." canonicalUrl={`${SITE_URL}/login`} noindex />
-      <h1 className="text-h1">Sign in</h1>
+      <h1 className="text-display text-3xl md:text-4xl text-ink font-normal tracking-tight">Sign in</h1>
       <p className="mt-2 text-body-md text-ink-2">
-        Enter your phone number and password to continue.
+        Enter your credentials to find your <span className="text-serif-italic text-accent italic font-normal text-[18px]">vibe match</span>.
       </p>
 
       {error && (

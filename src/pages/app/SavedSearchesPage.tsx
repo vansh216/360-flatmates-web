@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { AsyncView } from "@/components/ui/StateViews";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export function SavedSearchesPage() {
   const navigate = useNavigate();
@@ -29,19 +30,19 @@ export function SavedSearchesPage() {
               <div key={i} className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <div className="shimmer animate-shimmer motion-reduce:animate-none h-4 w-28 rounded-sm" />
-                    <div className="shimmer animate-shimmer motion-reduce:animate-none h-5 w-16 rounded-full" />
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
                   </div>
                   <div className="mt-1 flex flex-wrap gap-1">
-                    <div className="shimmer animate-shimmer motion-reduce:animate-none h-6 w-14 rounded-full" />
-                    <div className="shimmer animate-shimmer motion-reduce:animate-none h-6 w-16 rounded-full" />
-                    <div className="shimmer animate-shimmer motion-reduce:animate-none h-6 w-12 rounded-full" />
+                    <Skeleton className="h-6 w-14 rounded-full" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                    <Skeleton className="h-6 w-12 rounded-full" />
                   </div>
-                  <div className="shimmer animate-shimmer motion-reduce:animate-none mt-1 h-3 w-24 rounded-sm" />
+                  <Skeleton className="mt-1 h-3 w-24" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="shimmer animate-shimmer motion-reduce:animate-none h-9 w-9 rounded-[9px]" />
-                  <div className="shimmer animate-shimmer motion-reduce:animate-none h-9 w-9 rounded-[9px]" />
+                  <Skeleton className="h-9 w-9 rounded-[9px]" />
+                  <Skeleton className="h-9 w-9 rounded-[9px]" />
                 </div>
               </div>
             ))}

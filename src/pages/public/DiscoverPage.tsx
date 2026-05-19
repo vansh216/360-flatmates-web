@@ -98,50 +98,58 @@ export function DiscoverPage() {
         />
       </SeoHelmet>
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
-        <PageHeader
-          eyebrow="Public discovery"
-          title="Browse Listings"
-          description="Contact and like actions open the auth wall for unauthenticated users."
-          actions={
-            cityOptions.length > 0 ? (
-              <SelectField
-                options={cityOptions}
-                value={params.city ? String(params.city) : ""}
-                onChange={(e) => setParams({ city: Number(e.target.value), page: 1 })}
-                placeholder="Select city"
-                fullWidth={false}
-              />
-            ) : undefined
-          }
-        />
+        {/* Editorial introductory header with ambient glows */}
+        <div className="relative overflow-hidden rounded-2xl border border-line-low bg-surface/50 p-6 md:p-8 mb-8 shadow-xs">
+          <div className="absolute top-[-30%] left-[-20%] w-[50%] aspect-square rounded-full bg-accent/5 blur-[80px] pointer-events-none" />
+          <div className="absolute bottom-[-30%] right-[-10%] w-[40%] aspect-square rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
+          
+          <PageHeader
+            eyebrow="Public discovery"
+            title="Browse Listings"
+            description="Explore curated properties and verified spaces. Contact and like actions open the auth wall for unauthenticated users."
+            actions={
+              cityOptions.length > 0 ? (
+                <SelectField
+                  options={cityOptions}
+                  value={params.city ? String(params.city) : ""}
+                  onChange={(e) => setParams({ city: Number(e.target.value), page: 1 })}
+                  placeholder="Select city"
+                  fullWidth={false}
+                  className="shadow-xs border-line-low hover:border-accent/40"
+                />
+              ) : undefined
+            }
+          />
+        </div>
 
-        <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x -mx-5 px-5 md:mx-0 md:px-0">
           {QUICK_FILTERS.map((item) => (
             <Chip
               key={item}
               selected={params.filter === item}
               onClick={() => setParams({ filter: item, page: 1 })}
               aria-label={`Filter by ${item}`}
+              className="snap-start"
             >
               {item}
             </Chip>
           ))}
         </div>
 
-        <section className="mt-6 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+        <section className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <AsyncView
             data={listings.length > 0 ? listings : null}
             isLoading={searchLoading || citiesLoading}
             error={searchError}
             onRetry={() => refetch()}
             loading={
-              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 col-span-full">
                 <Skeleton variant="listingCard" count={6} />
               </div>
             }
             empty={
-              <div className="col-span-full text-center py-12">
-                <p className="text-h3 text-ink-2">No listings found</p>
+              <div className="col-span-full text-center py-16 bg-surface/30 border border-line-low rounded-2xl">
+                <p className="text-h3 text-ink-2 font-semibold">No listings found</p>
                 <p className="mt-2 text-body-md text-ink-3">
                   Try a different city or adjust filters.
                 </p>
@@ -149,13 +157,19 @@ export function DiscoverPage() {
             }
           >
             {(data) =>
-              data.map((listing) => (
-                <ListingCard
+              data.map((listing, index) => (
+                <div
                   key={listing.id}
-                  listing={listing}
-                  onOpen={(id) => navigate(`/discover/${id}`)}
-                  onContact={() => navigate("/login")}
-                />
+                  className="card-appear"
+                  style={{ animationDelay: `${Math.min(index, 5) * 50}ms` }}
+                >
+                  <ListingCard
+                    listing={listing}
+                    ctaLabel="View Details"
+                    onOpen={(id) => navigate(`/discover/${id}`)}
+                    onContact={() => navigate("/login")}
+                  />
+                </div>
               ))
             }
           </AsyncView>

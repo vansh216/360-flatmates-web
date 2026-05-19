@@ -2,12 +2,16 @@ import type { ImgHTMLAttributes, ReactNode } from "react";
 import { useState } from "react";
 import { ImageIcon } from "lucide-react";
 import { cn } from "./component-utils";
+import { optimizeImageUrl } from "@/lib/image-utils";
 
 export interface NetworkImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> {
   src?: string | null;
   alt: string;
   wrapperClassName?: string;
   fallback?: ReactNode;
+  width?: number;
+  quality?: number;
+  format?: "webp" | "avif";
 }
 
 function NetworkImageInner({
@@ -16,6 +20,9 @@ function NetworkImageInner({
   wrapperClassName,
   fallback,
   className,
+  width,
+  quality,
+  format,
   ...props
 }: Omit<NetworkImageProps, "src"> & { src: string }) {
   const [failed, setFailed] = useState(false);
@@ -41,6 +48,7 @@ function NetworkImageInner({
         onError={() => setFailed(true)}
         loading="lazy"
         decoding="async"
+        width={width}
         {...props}
       />
     </span>
@@ -53,9 +61,14 @@ export function NetworkImage({
   wrapperClassName,
   fallback,
   className,
+  width,
+  quality,
+  format,
   ...props
 }: NetworkImageProps) {
-  if (!src) {
+  const optimizedSrc = optimizeImageUrl(src, { width, quality, format });
+
+  if (!optimizedSrc) {
     return (
       <div
         aria-label={alt}
@@ -67,17 +80,21 @@ export function NetworkImage({
     );
   }
 
-  // Using src as key ensures the inner component remounts when src changes,
+  // Using optimizedSrc as key ensures the inner component remounts when src changes,
   // resetting the failed state so a new image can attempt loading.
   return (
     <NetworkImageInner
-      key={src}
-      src={src}
+      key={optimizedSrc}
+      src={optimizedSrc}
       alt={alt}
       wrapperClassName={wrapperClassName}
       fallback={fallback}
       className={className}
+      width={width}
+      quality={quality}
+      format={format}
       {...props}
     />
   );
 }
+

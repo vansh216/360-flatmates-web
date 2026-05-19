@@ -96,9 +96,9 @@ export function SignupPage() {
         className="mb-6"
       />
 
-      <h1 className="text-h1">Create account</h1>
+      <h1 className="text-display text-3xl md:text-4xl text-ink font-normal tracking-tight">Create account</h1>
       <p className="mt-2 text-body-md text-ink-2">
-        Enter your phone number, verify with OTP, and set a password.
+        Join our community to discover your next <span className="text-serif-italic text-accent italic font-normal text-[18px]">compatible home</span>.
       </p>
 
       {error && (

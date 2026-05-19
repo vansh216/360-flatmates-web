@@ -32,6 +32,20 @@ export function CityPage() {
 
   const city = SUPPORTED_CITIES.find((c) => c.slug === slug);
 
+  const filters: SearchFilters = {
+    city: city?.name || "",
+    limit: 12,
+  };
+
+  const { data: searchResults, isLoading } = useWebSearch(filters);
+
+  const listings: ListingCardData[] = useMemo(() => {
+    if (!searchResults?.results) return [];
+    return searchResults.results
+      .filter((r): r is Extract<typeof r, { property_type: unknown }> => "property_type" in (r as unknown as Record<string, unknown>))
+      .map((r) => propertyToListingCardProps(r as Parameters<typeof propertyToListingCardProps>[0]));
+  }, [searchResults]);
+
   if (!city) {
     return (
       <div className="mx-auto max-w-7xl px-5 py-20 text-center">
@@ -46,19 +60,6 @@ export function CityPage() {
     );
   }
 
-  const filters: SearchFilters = {
-    city: city.name,
-    limit: 12,
-  };
-
-  const { data: searchResults, isLoading } = useWebSearch(filters);
-
-  const listings: ListingCardData[] = useMemo(() => {
-    if (!searchResults?.results) return [];
-    return searchResults.results
-      .filter((r): r is Extract<typeof r, { property_type: unknown }> => "property_type" in (r as unknown as Record<string, unknown>))
-      .map((r) => propertyToListingCardProps(r as Parameters<typeof propertyToListingCardProps>[0]));
-  }, [searchResults]);
 
   const url = `${SITE_URL}/cities/${city.slug}`;
   const breadcrumbLd = buildBreadcrumbJsonLd([
@@ -96,12 +97,13 @@ export function CityPage() {
         {/* Hero */}
         <section className="relative h-80 md:h-96 overflow-hidden">
           <img
-            src={`https://images.unsplash.com/photo-${CITY_IMAGES[city.slug] ?? "1596176530529-78163a4f7af2"}?w=1200&auto=format&fit=crop&q=80`}
+            src={`https://images.unsplash.com/photo-${CITY_IMAGES[city.slug] ?? "1596176530529-78163a4f7af2"}?w=1200&fm=webp&fit=crop&q=80`}
             alt={`${city.name} cityscape`}
             className="absolute inset-0 h-full w-full object-cover"
             width={1200}
             height={630}
             loading="eager"
+            fetchPriority="high"
             decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/30 to-transparent" />
@@ -158,6 +160,7 @@ export function CityPage() {
                   <ListingCard
                     key={listing.id}
                     listing={listing}
+                    ctaLabel="View Details"
                     onOpen={(id) => navigate(`/discover/${id}`)}
                     onContact={() => navigate("/login")}
                   />

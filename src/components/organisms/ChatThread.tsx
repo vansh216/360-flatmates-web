@@ -81,7 +81,7 @@ export function ChatThread({
   }
 
   return (
-    <section className={cn("flex h-full min-h-[calc(100dvh-4rem)] md:min-h-[640px] flex-col bg-paper", className)} {...props}>
+    <section className={cn("flex h-[calc(100dvh-64px-76px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] md:min-h-[640px] flex-col bg-paper", className)} {...props}>
       <header className="flex min-h-14 items-center gap-3 border-b border-line bg-surface px-4">
         <Avatar name={participant.name} size="sm" src={participant.avatarUrl} />
         <div className="min-w-0 flex-1">
@@ -111,7 +111,7 @@ export function ChatThread({
       </div>
       <footer className="border-t border-line bg-paper/88 p-3 backdrop-blur-[9px]">
         <div className="flex items-center gap-2">
-          <TrustBadge variant="privacy" />
+          <TrustBadge variant="privacy" className="hidden sm:inline-flex" />
           <Button aria-label="Emoji" size="icon" variant="icon">
             <Smile aria-hidden="true" className="h-5 w-5" />
           </Button>

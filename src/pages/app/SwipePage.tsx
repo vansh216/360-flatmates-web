@@ -39,7 +39,8 @@ function peerToSwipeProfile(peer: FlatmatesPeer): SwipeProfile {
     gender: peer.gender,
     genderPreference: peer.gender_preference,
     nonNegotiables: peer.non_negotiables,
-    hasPets: peer.has_pets
+    hasPets: peer.has_pets,
+    partyHabit: peer.party_habit
   };
 }
 
@@ -205,9 +206,7 @@ export function SwipePage() {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  MatchCelebration                                                          */
-/* -------------------------------------------------------------------------- */
+import { motion } from "framer-motion";
 
 function MatchCelebration({
   profile,
@@ -219,32 +218,117 @@ function MatchCelebration({
   onChat: () => void;
 }) {
   useEffect(() => {
-    const timer = setTimeout(onDismiss, 5000);
+    const timer = setTimeout(onDismiss, 8000);
     return () => clearTimeout(timer);
   }, [onDismiss]);
 
+  const particles = useMemo(() => {
+    let seed = 1;
+    const nextRand = () => {
+      const x = Math.sin(seed++) * 10000;
+      return x - Math.floor(x);
+    };
+
+    return Array.from({ length: 24 }).map((_, i) => {
+      const angle = (i * 360) / 24 + nextRand() * 15;
+      const distance = 80 + nextRand() * 120;
+      const size = 6 + nextRand() * 10;
+      const delay = nextRand() * 0.2;
+      const duration = 0.8 + nextRand() * 0.6;
+      const colors = ["#C96442", "#E9A891", "#319795", "#E53E3E", "#D69E2E"];
+      const color = colors[Math.floor(nextRand() * colors.length)];
+
+      return {
+        id: i,
+        color,
+        size,
+        delay,
+        duration,
+        x: Math.cos((angle * Math.PI) / 180) * distance,
+        y: Math.sin((angle * Math.PI) / 180) * distance,
+      };
+    });
+  }, []);
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/75 backdrop-blur-md"
       onClick={onDismiss}
       role="dialog"
       aria-label="Match celebration"
     >
-      <div
-        className="match-celebration flex flex-col items-center gap-4 rounded-2xl bg-surface p-8 shadow-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="relative">
-          <ProgressRing value={profile.matchScore} size="xl" />
+      <div className="relative flex flex-col items-center justify-center">
+        {/* Confetti Explosion Group */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          {particles.map((p) => (
+            <motion.div
+              key={p.id}
+              className="absolute rounded-full"
+              style={{
+                width: p.size,
+                height: p.size,
+                backgroundColor: p.color,
+              }}
+              initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
+              animate={{
+                x: p.x,
+                y: p.y,
+                scale: [0, 1, 0.8, 0],
+                opacity: [1, 1, 0.6, 0],
+              }}
+              transition={{
+                delay: p.delay,
+                duration: p.duration,
+                ease: "easeOut",
+              }}
+            />
+          ))}
         </div>
-        <h2 className="text-h1 text-center">It&apos;s a Match!</h2>
-        <p className="text-body-md text-ink-2 text-center">
-          You and {profile.name} liked each other.
-        </p>
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={onDismiss}>Keep Swiping</Button>
-          <Button onClick={onChat}>Say Hello</Button>
-        </div>
+
+        {/* Outer Halo Glow */}
+        <div className="absolute h-96 w-96 rounded-full bg-accent/20 blur-[120px] pointer-events-none animate-pulse" />
+
+        {/* Celebration Card Container */}
+        <motion.div
+          className="relative max-w-sm rounded-3xl border border-line bg-surface p-8 shadow-2xl text-center flex flex-col items-center gap-6"
+          onClick={(e) => e.stopPropagation()}
+          initial={{ scale: 0.8, opacity: 0, y: 40 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ type: "spring", damping: 15, stiffness: 100 }}
+        >
+          {/* Match Score Progress Ring with animated delay */}
+          <div className="relative flex items-center justify-center">
+            <motion.div
+              initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              transition={{ delay: 0.2, type: "spring", damping: 12 }}
+            >
+              <ProgressRing value={profile.matchScore} size="xl" />
+            </motion.div>
+            
+            {/* Sparkle details */}
+            <span className="absolute -top-1 -right-2 text-2xl animate-bounce">✨</span>
+            <span className="absolute -bottom-2 -left-2 text-xl animate-bounce delay-150">🎉</span>
+          </div>
+
+          <div>
+            <h2 className="text-display text-4xl text-ink font-normal leading-none">
+              It&apos;s a <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">Match!</span>
+            </h2>
+            <p className="mt-3 text-body-md text-ink-2 px-4 leading-relaxed">
+              You and <strong className="text-ink font-semibold">{profile.name}</strong> liked each other.
+            </p>
+          </div>
+
+          <div className="flex w-full gap-3 mt-2">
+            <Button variant="secondary" onClick={onDismiss} className="flex-1">
+              Keep Swiping
+            </Button>
+            <Button onClick={onChat} className="flex-1">
+              Say Hello
+            </Button>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
