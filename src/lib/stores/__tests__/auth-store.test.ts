@@ -1,48 +1,81 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { useAuthStore } from "../auth-store";
+import { authStore } from "../auth-store";
 
-describe("useAuthStore", () => {
+describe("authStore", () => {
   beforeEach(() => {
-    useAuthStore.setState(useAuthStore.getInitialState());
+    authStore.setState({
+      user: null,
+      session: null,
+      loading: true,
+      isLoginModalOpen: false,
+      pendingRedirect: null,
+      authError: null,
+    });
   });
 
   it("should have correct initial state", () => {
-    const state = useAuthStore.getState();
+    const state = authStore.getState();
     expect(state.isLoginModalOpen).toBe(false);
     expect(state.pendingRedirect).toBeNull();
     expect(state.authError).toBeNull();
+    expect(state.user).toBeNull();
+    expect(state.session).toBeNull();
+    expect(state.loading).toBe(true);
   });
 
   it("openLoginModal sets isLoginModalOpen to true", () => {
-    useAuthStore.getState().openLoginModal();
-    expect(useAuthStore.getState().isLoginModalOpen).toBe(true);
+    authStore.getState().openLoginModal();
+    expect(authStore.getState().isLoginModalOpen).toBe(true);
   });
 
   it("closeLoginModal sets isLoginModalOpen to false", () => {
-    useAuthStore.getState().openLoginModal();
-    useAuthStore.getState().closeLoginModal();
-    expect(useAuthStore.getState().isLoginModalOpen).toBe(false);
+    authStore.getState().openLoginModal();
+    authStore.getState().closeLoginModal();
+    expect(authStore.getState().isLoginModalOpen).toBe(false);
   });
 
   it("setPendingRedirect sets pendingRedirect", () => {
-    useAuthStore.getState().setPendingRedirect("/dashboard");
-    expect(useAuthStore.getState().pendingRedirect).toBe("/dashboard");
+    authStore.getState().setPendingRedirect("/dashboard");
+    expect(authStore.getState().pendingRedirect).toBe("/dashboard");
   });
 
   it("clearPendingRedirect sets pendingRedirect to null", () => {
-    useAuthStore.getState().setPendingRedirect("/dashboard");
-    useAuthStore.getState().clearPendingRedirect();
-    expect(useAuthStore.getState().pendingRedirect).toBeNull();
+    authStore.getState().setPendingRedirect("/dashboard");
+    authStore.getState().clearPendingRedirect();
+    expect(authStore.getState().pendingRedirect).toBeNull();
   });
 
   it("setAuthError sets authError", () => {
-    useAuthStore.getState().setAuthError("Invalid credentials");
-    expect(useAuthStore.getState().authError).toBe("Invalid credentials");
+    authStore.getState().setAuthError("Invalid credentials");
+    expect(authStore.getState().authError).toBe("Invalid credentials");
   });
 
   it("clearAuthError sets authError to null", () => {
-    useAuthStore.getState().setAuthError("Something went wrong");
-    useAuthStore.getState().clearAuthError();
-    expect(useAuthStore.getState().authError).toBeNull();
+    authStore.getState().setAuthError("Something went wrong");
+    authStore.getState().clearAuthError();
+    expect(authStore.getState().authError).toBeNull();
+  });
+
+  it("setSession updates both session and user", () => {
+    const mockSession = {
+      access_token: "test",
+      user: { id: "u1", email: "test@test.com" },
+    } as unknown as import("@supabase/supabase-js").Session;
+
+    authStore.getState().setSession(mockSession);
+
+    expect(authStore.getState().session).toBe(mockSession);
+    expect(authStore.getState().user).toBe(mockSession.user);
+  });
+
+  it("setSession to null clears user", () => {
+    authStore.getState().setSession(null);
+    expect(authStore.getState().session).toBeNull();
+    expect(authStore.getState().user).toBeNull();
+  });
+
+  it("setLoading updates loading state", () => {
+    authStore.getState().setLoading(false);
+    expect(authStore.getState().loading).toBe(false);
   });
 });

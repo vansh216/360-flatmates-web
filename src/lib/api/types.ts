@@ -343,7 +343,7 @@ export interface VisitList {
   total: number;
 }
 
-export type VisitSlice = VisitList;
+
 
 
 export interface PropertyCreate {

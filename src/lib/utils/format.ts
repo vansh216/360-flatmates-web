@@ -164,3 +164,73 @@ export function stripEmptyFields(data: Record<string, unknown>): Record<string, 
   return result;
 }
 
+export function formatRelativeTime(value?: string | Date): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  // Same day
+  if (
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear()
+  ) {
+    return date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  }
+
+  // Yesterday
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (
+    date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear()
+  ) {
+    return "Yesterday";
+  }
+
+  // Within the last week
+  if (diffDays < 7) {
+    return date.toLocaleDateString("en-IN", { weekday: "long" });
+  }
+
+  // Otherwise
+  return DATE_FORMATTER.format(date);
+}
+
+export function formatMessageTime(value?: string | Date): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const timeString = date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+
+  // Same day
+  if (
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear()
+  ) {
+    return timeString;
+  }
+
+  // Yesterday
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (
+    date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear()
+  ) {
+    return `Yesterday, ${timeString}`;
+  }
+
+  // Older
+  return `${DATE_FORMATTER.format(date)}, ${timeString}`;
+}
+

@@ -11,7 +11,7 @@ import { uiStore } from "@/lib/stores/ui-store";
 import type { PalettePreference, ThemePreference } from "@/lib/stores/ui-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { Toast, ToastViewport } from "@/components/ui/Toast";
-import { PageSpinner } from "@/components/ui/Spinner";
+
 
 let refreshPromise: Promise<string | null> | null = null;
 
@@ -118,10 +118,6 @@ function ProviderInternals({
       mql.removeEventListener("change", onSystemChange);
     };
   }, []);
-
-  if (loading) {
-    return <PageSpinner />;
-  }
 
   return children;
 }

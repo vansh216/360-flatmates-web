@@ -91,8 +91,6 @@ export function App() {
               <Route index element={<LandingPage />} />
               <Route path="discover" element={<DiscoverPage />} />
               <Route path="discover/:id" element={<ListingDetailPage />} />
-              <Route path="search" element={<SearchPage />} />
-              <Route path="search/semantic" element={<SemanticSearchPage />} />
               <Route path="cities/:slug" element={<CityPage />} />
               <Route path="blog" element={<BlogPage />} />
               <Route path="blog/:slug" element={<BlogPostPage />} />

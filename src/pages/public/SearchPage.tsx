@@ -1,13 +1,13 @@
-import { useMemo, useCallback, useEffect, useState, Suspense, lazy } from "react";
+import { useMemo, useCallback, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useQueryStates } from "nuqs";
 import { SeoHelmet, SITE_URL, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
-import { Search, SlidersHorizontal, Map as MapIcon, List as ListIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
 
-import { useWebSearch } from "@/hooks/queries/useSearch";
+import { useInfiniteWebSearch } from "@/hooks/queries/useSearch";
 import { useAmenities, useCities } from "@/hooks/queries/useCatalogs";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
-import type { SearchFilters, Property, MapPin } from "@/lib/api/types";
+import type { SearchFilters } from "@/lib/api/types";
 import { searchPageParams } from "@/lib/schemas/search-params";
 import { searchStore } from "@/lib/stores/search-store";
 import { type FilterSection, FilterPanel } from "@/components/molecules/FilterPanel";
@@ -16,12 +16,6 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/StateViews";
 import { BottomSheet } from "@/components/ui/Modal";
-import { Spinner } from "@/components/ui/Spinner";
-import { cn } from "@/components/ui/component-utils";
-
-const MapView = lazy(
-  () => import("@/components/organisms/MapView").then((mod) => ({ default: mod.MapView }))
-);
 
 const breadcrumbLd = buildBreadcrumbJsonLd([
   homeBreadcrumb(),
@@ -50,9 +44,8 @@ export function SearchPage() {
   }
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
-  const filters: SearchFilters = useMemo(
+  const filters: Omit<SearchFilters, "page"> = useMemo(
     () => ({
       q: params.q || undefined,
       city: cities?.find((c) => c.id === params.city)?.name,
@@ -61,73 +54,41 @@ export function SearchPage() {
       price_min: params.priceMin ?? undefined,
       price_max: params.priceMax ?? undefined,
       limit: PAGE_SIZE,
-      page: params.page,
     }),
-    [params.q, params.city, params.bedrooms, params.amenities, params.priceMin, params.priceMax, params.page, cities]
+    [params.q, params.city, params.bedrooms, params.amenities, params.priceMin, params.priceMax, cities]
   );
 
   const {
     data: searchResults,
     isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
     refetch,
-  } = useWebSearch(filters);
+  } = useInfiniteWebSearch(filters);
 
   useEffect(() => {
-    searchStore.getState().setFilters(filters);
-  }, [filters]);
-
-  const totalPages = searchResults?.total_pages ?? 1;
-  const currentPage = params.page;
-  const hasPrev = currentPage > 1;
-  const hasNext = currentPage < totalPages;
+    // Pass the full filters including a dummy page just for store compatibility if needed
+    searchStore.getState().setFilters({ ...filters, page: params.page });
+  }, [filters, params.page]);
 
   const listings: ListingCardData[] = useMemo(() => {
-    if (!searchResults?.results) return [];
-    return searchResults.results
-      .filter(
-        (r): r is Extract<typeof r, { property_type: unknown }> =>
-          "property_type" in (r as unknown as Record<string, unknown>)
-      )
-      .map((r) =>
-        propertyToListingCardProps(
-          r as Parameters<typeof propertyToListingCardProps>[0]
+    if (!searchResults?.pages) return [];
+    return searchResults.pages.flatMap((page) =>
+      (page.results || [])
+        .filter(
+          (r): r is Extract<typeof r, { property_type: unknown }> =>
+            "property_type" in (r as unknown as Record<string, unknown>)
         )
-      );
+        .map((r) =>
+          propertyToListingCardProps(
+            r as Parameters<typeof propertyToListingCardProps>[0]
+          )
+        )
+    );
   }, [searchResults]);
 
-  const mapPins = useMemo(() => {
-    if (!searchResults?.results) return [];
-    return (searchResults.results as Property[])
-      .filter((p) => p.latitude !== undefined && p.longitude !== undefined)
-      .map((p) => ({
-        id: p.id,
-        lat: p.latitude!,
-        lng: p.longitude!,
-        title: p.title,
-        locality: p.locality,
-        monthly_rent: p.monthly_rent,
-        main_image_url: p.main_image_url,
-        is_available: p.is_available,
-        sharing_type: p.sharing_type,
-      }));
-  }, [searchResults]);
-
-  const [prevPins, setPrevPins] = useState(mapPins);
-  const [mapCenter, setMapCenter] = useState<[number, number]>(() => {
-    if (mapPins.length > 0 && mapPins[0].lat && mapPins[0].lng) {
-      return [mapPins[0].lat, mapPins[0].lng];
-    }
-    return [28.6139, 77.2090];
-  });
-  const [mapZoom, setMapZoom] = useState(11);
-
-  if (mapPins !== prevPins) {
-    setPrevPins(mapPins);
-    if (mapPins.length > 0 && mapPins[0].lat && mapPins[0].lng) {
-      setMapCenter([mapPins[0].lat, mapPins[0].lng]);
-      setMapZoom(12);
-    }
-  }
+  const totalResults = searchResults?.pages[0]?.total ?? listings.length;
 
   const filterSections: FilterSection[] = useMemo(
     () => [
@@ -191,39 +152,30 @@ export function SearchPage() {
     setLocalSearch("");
   }, [setParams]);
 
-  const handlePageChange = useCallback(
-    (page: number) => {
-      setParams({ page });
-      const scrollContainer = document.getElementById("listings-scroll-container");
-      if (scrollContainer) {
-        scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
-      } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-    },
-    [setParams]
-  );
-
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setParams({ q: localSearch, page: 1 });
   };
 
-  const handleViewportChange = useCallback((bounds: unknown, zoom: number) => {
-    setMapZoom(zoom);
-  }, []);
+  // Intersection Observer for Infinite Scroll
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  const handlePinSelect = useCallback((pin: MapPin) => {
-    setViewMode("list");
-    const cardEl = document.getElementById(`listing-card-${pin.id}`);
-    if (cardEl) {
-      cardEl.scrollIntoView({ behavior: "smooth", block: "center" });
-      cardEl.classList.add("ring-2", "ring-accent", "ring-offset-2");
-      setTimeout(() => {
-        cardEl.classList.remove("ring-2", "ring-accent", "ring-offset-2");
-      }, 2000);
-    }
-  }, []);
+  useEffect(() => {
+    const element = observerTarget.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <>
@@ -321,140 +273,72 @@ export function SearchPage() {
           </div>
         </div>
 
-        {/* Split Screen Container */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] xl:grid-cols-[1.2fr_1fr] border border-line rounded-2xl bg-surface shadow-sm overflow-hidden h-[calc(100vh-18rem)] min-h-[480px] lg:h-[calc(100vh-15rem)] lg:min-h-[550px] relative">
-          
-          {/* Left Column: Listings list */}
-          <div className={cn(
-            "flex flex-col min-w-0 h-full",
-            viewMode === "map" ? "hidden lg:flex" : "flex"
-          )}>
-            <div className="flex items-center justify-between border-b border-line px-5 py-3 bg-paper-2/30 shrink-0">
-              <span className="text-eyebrow text-ink-3 tracking-widest uppercase">
-                {isLoading ? (
-                  <Skeleton className="h-4 w-28" />
-                ) : (
-                  `${searchResults?.total ?? listings.length} results found`
-                )}
-              </span>
-              <button
-                onClick={() => navigate("/saved-searches")}
-                className="text-body-sm font-semibold text-accent hover:underline"
-              >
-                Save search
-              </button>
-            </div>
-
-            {/* Scrolling list */}
-            <div id="listings-scroll-container" className="flex-1 overflow-y-auto p-4 md:p-6 bg-paper-2/10">
-              {isLoading ? (
-                <div className="grid gap-6 md:grid-cols-2">
-                  {Array.from({ length: 4 }, (_, i) => (
-                    <Skeleton key={i} variant="listingCard" />
-                  ))}
-                </div>
-              ) : listings.length === 0 ? (
-                <EmptyState
-                  title="No results found"
-                  description="Try clearing your filters or refining your search query."
-                  actionLabel="Clear Filters"
-                  onAction={handleClearFilters}
-                />
+        {/* Listings Container */}
+        <div className="flex flex-col min-w-0 h-full border border-line rounded-2xl bg-surface shadow-sm overflow-hidden min-h-[550px]">
+          <div className="flex items-center justify-between border-b border-line px-5 py-3 bg-paper-2/30 shrink-0">
+            <span className="text-eyebrow text-ink-3 tracking-widest uppercase">
+              {isLoading && listings.length === 0 ? (
+                <Skeleton className="h-4 w-28" />
               ) : (
-                <div className="grid gap-6 md:grid-cols-2">
-                  {listings.map((listing, index) => (
-                    <div
-                      key={listing.id}
-                      id={`listing-card-${listing.id}`}
-                      className="card-appear transition-all duration-300 rounded-2xl"
-                      style={{ animationDelay: `${Math.min(index, 5) * 50}ms` }}
-                    >
-                      <ListingCard
-                        listing={listing}
-                        ctaLabel="View Details"
-                        onOpen={(id) => navigate(`/listing/${id}`)}
-                      />
-                    </div>
-                  ))}
-                </div>
+                `${totalResults} results found`
               )}
-            </div>
-
-            {/* Pagination footer */}
-            {!isLoading && totalPages > 1 && (
-              <div className="border-t border-line px-5 py-3 bg-paper-2/30 shrink-0 flex items-center justify-between gap-2">
-                <Button
-                  leadingIcon={<ChevronLeft aria-hidden="true" className="h-4 w-4" />}
-                  variant="secondary"
-                  size="compact"
-                  disabled={!hasPrev}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  className="rounded-xl"
-                >
-                  Prev
-                </Button>
-                <span className="text-body-sm font-medium text-ink-2">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  trailingIcon={<ChevronRight aria-hidden="true" className="h-4 w-4" />}
-                  variant="secondary"
-                  size="compact"
-                  disabled={!hasNext}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  className="rounded-xl"
-                >
-                  Next
-                </Button>
-              </div>
-            )}
+            </span>
+            <button
+              onClick={() => navigate("/saved-searches")}
+              className="text-body-sm font-semibold text-accent hover:underline"
+            >
+              Save search
+            </button>
           </div>
 
-          {/* Right Column: Leaflet Map */}
-          <div className={cn(
-            "relative h-full border-t lg:border-t-0 lg:border-l border-line min-h-[400px] lg:min-h-0",
-            viewMode === "list" ? "hidden lg:block" : "block"
-          )}>
-            {isLoading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-paper-2/30 backdrop-blur-[2px]">
-                <Spinner size="md" />
+          {/* Scrolling list */}
+          <div id="listings-scroll-container" className="flex-1 p-4 md:p-6 bg-paper-2/10">
+            {isLoading && listings.length === 0 ? (
+              <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <Skeleton key={i} variant="listingCard" />
+                ))}
               </div>
-            )}
-            <Suspense fallback={
-              <div className="flex h-full items-center justify-center bg-paper-2">
-                <Spinner size="md" />
-              </div>
-            }>
-              <MapView
-                clusters={[]}
-                pins={isLoading ? [] : mapPins}
-                center={mapCenter}
-                zoom={mapZoom}
-                onPinSelect={handlePinSelect}
-                onViewportChange={handleViewportChange}
+            ) : listings.length === 0 ? (
+              <EmptyState
+                title="No results found"
+                description="Try clearing your filters or refining your search query."
+                actionLabel="Clear Filters"
+                onAction={handleClearFilters}
               />
-            </Suspense>
-          </div>
-        </div>
-
-        {/* Mobile Toggle floating button */}
-        <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-          <Button
-            onClick={() => setViewMode((prev) => (prev === "list" ? "map" : "list"))}
-            className="rounded-full shadow-lg font-semibold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all bg-ink text-surface px-5 py-2.5"
-          >
-            {viewMode === "list" ? (
-              <>
-                <MapIcon className="h-4.5 w-4.5" />
-                <span>Show Map</span>
-              </>
             ) : (
-              <>
-                <ListIcon className="h-4.5 w-4.5" />
-                <span>Show List</span>
-              </>
+              <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {listings.map((listing, index) => (
+                  <div
+                    key={listing.id}
+                    id={`listing-card-${listing.id}`}
+                    className="card-appear transition-all duration-300 rounded-2xl"
+                    style={{ animationDelay: `${Math.min(index % PAGE_SIZE, 10) * 50}ms` }}
+                  >
+                    <ListingCard
+                      listing={listing}
+                      ctaLabel="View Details"
+                      onOpen={(id) => navigate(`/listing/${id}`)}
+                    />
+                  </div>
+                ))}
+              </div>
             )}
-          </Button>
+            
+            {/* Infinite Scroll Sentinel */}
+            {listings.length > 0 && (
+              <div ref={observerTarget} className="mt-8 flex justify-center pb-8 h-20">
+                {isFetchingNextPage ? (
+                  <div className="flex items-center gap-2 text-ink-3">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-body-sm">Loading more...</span>
+                  </div>
+                ) : !hasNextPage ? (
+                  <span className="text-body-sm text-ink-3">You've reached the end of the list.</span>
+                ) : null}
+              </div>
+            )}
+          </div>
         </div>
       </main>
 
@@ -480,4 +364,3 @@ export function SearchPage() {
     </>
   );
 }
-

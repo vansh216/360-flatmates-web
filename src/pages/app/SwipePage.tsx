@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
 import { SwipeDeck, type SwipeProfile } from "@/components/organisms/SwipeDeck";
 import { formatLocation, formatMoveInTimeline } from "@/lib/utils/format";
+import { motion } from "framer-motion";
 
 function peerToSwipeProfile(peer: FlatmatesPeer): SwipeProfile {
   return {
@@ -140,6 +141,7 @@ export function SwipePage() {
   }, [currentProfile, handleSwipeAction]);
 
   const handleKeyboardExpand = useCallback(() => {
+    useSwipeStore.getState().toggleExpanded();
   }, []);
 
   const handleKeyboardDismiss = useCallback(() => {
@@ -206,7 +208,6 @@ export function SwipePage() {
   );
 }
 
-import { motion } from "framer-motion";
 
 function MatchCelebration({
   profile,

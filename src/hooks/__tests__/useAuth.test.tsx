@@ -27,7 +27,7 @@ vi.mock("@/lib/supabase/client", () => ({
   })
 }));
 
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, _resetAuthForTests } from "@/hooks/useAuth";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -45,6 +45,8 @@ function createWrapper() {
 describe("useAuth", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset the singleton so each test gets a fresh init
+    _resetAuthForTests();
     mockGetSession.mockResolvedValue({ data: { session: null } });
     mockOnAuthStateChange.mockReturnValue({
       data: { subscription: { unsubscribe: vi.fn() } }
@@ -66,19 +68,18 @@ describe("useAuth", () => {
     expect(mockGetSession).toHaveBeenCalledTimes(1);
   });
 
-  it("subscribes to onAuthStateChange on mount", () => {
+  it("subscribes to onAuthStateChange on first mount (singleton)", () => {
     renderHook(() => useAuth(), { wrapper: createWrapper() });
     expect(mockOnAuthStateChange).toHaveBeenCalledTimes(1);
   });
 
-  it("unsubscribes from onAuthStateChange on unmount", () => {
-    const mockUnsubscribe = vi.fn();
-    mockOnAuthStateChange.mockReturnValue({
-      data: { subscription: { unsubscribe: mockUnsubscribe } }
-    });
+  it("does not re-subscribe on subsequent mounts (singleton)", () => {
     const { unmount } = renderHook(() => useAuth(), { wrapper: createWrapper() });
     unmount();
-    expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+    // Second mount — singleton already initialized
+    renderHook(() => useAuth(), { wrapper: createWrapper() });
+    // Still only 1 call from the first init
+    expect(mockOnAuthStateChange).toHaveBeenCalledTimes(1);
   });
 
   it("sets user and session when getSession returns a session", async () => {

@@ -30,13 +30,13 @@ export function HomePage() {
   const newListingsFilters = profile?.city
     ? { city: profile.city, sort_by: "newest" as const, limit: 8, page: 1 }
     : undefined;
-  const { data: newListingsData, isLoading: propertiesLoading, error: propertiesError } = useWebSearch(
+  const { data: newListingsData, isLoading: propertiesLoading } = useWebSearch(
     newListingsFilters ?? { limit: 8, page: 1, sort_by: "newest" as const }
   );
-  const { data: recommendedPeers, isLoading: peersLoading, error: peersError } = usePeers(
+  const { data: recommendedPeers, isLoading: peersLoading } = usePeers(
     profile?.city ? { city: profile.city, limit: 8 } : undefined
   );
-  const { data: swipeDeckProfiles, isLoading: swipeLoading, error: swipeError } = useSwipeDeck(
+  const { data: swipeDeckProfiles, isLoading: swipeLoading } = useSwipeDeck(
     profile?.city ? { city: profile.city, limit: 8 } : undefined
   );
 
@@ -157,8 +157,8 @@ export function HomePage() {
               ))
             ) : (
               <EmptyState
-                title={swipeError ? "Swipe API Error" : "No recommendations yet"}
-                description={swipeError ? String(swipeError) : "Complete your profile for better matches!"}
+                title="No recommendations yet"
+                description="Complete your profile for better matches!"
               />
             )}
           </FeedSection>
@@ -180,8 +180,8 @@ export function HomePage() {
               ))
             ) : (
               <EmptyState
-                title={propertiesError ? "Properties API Error" : "No new listings"}
-                description={propertiesError ? String(propertiesError) : "No new listings in your area yet."}
+                title="No new listings"
+                description="No new listings in your area yet."
               />
             )}
           </FeedSection>
@@ -203,8 +203,8 @@ export function HomePage() {
               ))
             ) : (
               <EmptyState
-                title={peersError ? "Peers API Error" : "No flatmates nearby"}
-                description={peersError ? String(peersError) : "Expand your search area to find more flatmates."}
+                title="No flatmates nearby"
+                description="Expand your search area to find more flatmates."
               />
             )}
           </FeedSection>

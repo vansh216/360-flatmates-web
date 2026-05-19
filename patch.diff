@@ -1,0 +1,71 @@
+--- src/pages/app/HomePage.tsx
++++ src/pages/app/HomePage.tsx
+@@ -29,11 +29,11 @@
+   const newListingsFilters = profile?.city
+     ? { city: profile.city, sort_by: "newest" as const, limit: 8, page: 1 }
+     : undefined;
+-  const { data: newListingsData, isLoading: propertiesLoading } = useWebSearch(
++  const { data: newListingsData, isLoading: propertiesLoading, error: propertiesError } = useWebSearch(
+     newListingsFilters ?? { limit: 8, page: 1, sort_by: "newest" as const }
+   );
+-  const { data: recommendedPeers, isLoading: peersLoading } = usePeers(
++  const { data: recommendedPeers, isLoading: peersLoading, error: peersError } = usePeers(
+     profile?.city ? { city: profile.city, limit: 8 } : undefined
+   );
+-  const { data: swipeDeckProfiles, isLoading: swipeLoading } = useSwipeDeck(
++  const { data: swipeDeckProfiles, isLoading: swipeLoading, error: swipeError } = useSwipeDeck(
+     profile?.city ? { city: profile.city, limit: 8 } : undefined
+   );
+@@ -155,7 +155,7 @@
+             )}
+           </FeedSection>
+ 
+           <FeedSection
+             title="New Listings"
+             actionLabel="See all"
+             onAction={() => navigate("/search")}
+           >
+             {listings.length > 0 ? (
+               listings.slice(0, 4).map((property, i) => (
+                 <div key={property.id} className="w-[280px] sm:w-[320px] md:w-[340px] shrink-0 snap-start card-appear"
+                     style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
+                   <ListingCard
+                     listing={propertyToListingCardProps(property as any)}
+                     onOpen={(id) => navigate(`/listing/${id}`)}
+                   />
+                 </div>
+               ))
+             ) : (
+               <EmptyState
+-                title="No new listings"
+-                description="No new listings in your area yet."
++                title={propertiesError ? "API Error" : "No new listings"}
++                description={propertiesError ? propertiesError.toString() : "No new listings in your area yet."}
+               />
+             )}
+           </FeedSection>
+ 
+           <FeedSection
+             title="Nearby Flatmates"
+             actionLabel="See all"
+             onAction={() => navigate("/explore?search_type=profiles")}
+           >
+             {nearbyPeers.length > 0 ? (
+               nearbyPeers.slice(0, 4).map((peer, i) => (
+                 <div key={peer.id} className="w-[180px] sm:w-[200px] md:w-[220px] shrink-0 snap-start card-appear"
+                     style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
+                   <ProfileGridCard
+                     profile={profileToProfileGridCardProps(peer)}
+                     onOpen={(id) => navigate(`/profile/${id}`)}
+                   />
+                 </div>
+               ))
+             ) : (
+               <EmptyState
+-                title="No flatmates nearby"
+-                description="Expand your search area to find more flatmates."
++                title={peersError ? "API Error" : "No flatmates nearby"}
++                description={peersError ? peersError.toString() : "Expand your search area to find more flatmates."}
+               />
+             )}
+           </FeedSection>

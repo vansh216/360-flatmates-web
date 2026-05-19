@@ -20,7 +20,7 @@ import type {
   VisitStatus as ComponentVisitStatus,
   NotificationType
 } from "@/components/molecules";
-import { formatLocation } from "@/lib/utils";
+import { formatLocation, formatRelativeTime, formatMessageTime } from "@/lib/utils";
 
 /** Map API property type to ListingCardData for the ListingCard component */
 export function propertyToListingCardProps(property: Property): ListingCardData {
@@ -75,7 +75,7 @@ export function conversationToConversationRowProps(
     mode: conversation.peer.mode as FlatmatesMode | undefined,
     preview: conversation.last_message_preview ?? "",
     propertyPreview: conversation.context_property?.title,
-    timestamp: conversation.last_message_at ?? "",
+    timestamp: formatRelativeTime(conversation.last_message_at),
     unreadCount: conversation.unread_count,
     highlighted: false
   };
@@ -148,7 +148,7 @@ export function messageToChatBubbleProps(
     id: String(message.id),
     sender: isOwn ? "me" : "them",
     text: message.body ?? "",
-    timestamp: message.created_at,
+    timestamp: formatMessageTime(message.created_at),
     status: isOwn ? (message.read_at ? "read" : "sent") : undefined,
     avatarUrl: undefined, // Avatar comes from conversation peer context
     senderName: undefined

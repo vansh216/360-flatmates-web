@@ -51,6 +51,7 @@ export function useSSE(
           break;
 
         case "message":
+        case "new_message":
           queryClient.invalidateQueries({ queryKey: ["conversations"] });
           if (event.data.conversation_id) {
             queryClient.invalidateQueries({
@@ -72,6 +73,7 @@ export function useSSE(
           break;
 
         case "property_update":
+        case "listing_status_changed":
           queryClient.invalidateQueries({ queryKey: ["properties"] });
           break;
 
@@ -92,23 +94,8 @@ export function useSSE(
           queryClient.invalidateQueries({ queryKey: ["matches"] });
           break;
 
-        case "new_message":
-          queryClient.invalidateQueries({ queryKey: ["conversations"] });
-          queryClient.invalidateQueries({
-            queryKey: [
-              "conversations",
-              event.data.conversation_id,
-              "messages",
-            ],
-          });
-          break;
-
         case "conversation_updated":
           queryClient.invalidateQueries({ queryKey: ["conversations"] });
-          break;
-
-        case "listing_status_changed":
-          queryClient.invalidateQueries({ queryKey: ["properties"] });
           break;
       }
     },

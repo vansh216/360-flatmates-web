@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useStore } from "zustand";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { authStore } from "@/lib/stores/auth-store";
 import type { Session, User } from "@supabase/supabase-js";
 
 interface UseAuthReturn {
@@ -24,55 +26,80 @@ function isTokenExpired(session: Session | null): boolean {
   return session.expires_at - now < TOKEN_EXPIRY_BUFFER_S;
 }
 
+/**
+ * Singleton initializer — runs once to bootstrap auth state and subscribe
+ * to Supabase auth state changes, writing into the centralized authStore.
+ */
+let _initialized = false;
+
+/** @internal — Test-only. Resets the singleton so initAuthSubscription can re-run. */
+export function _resetAuthForTests() {
+  _initialized = false;
+  authStore.setState({
+    user: null,
+    session: null,
+    loading: true,
+    isLoginModalOpen: false,
+    pendingRedirect: null,
+    authError: null,
+  });
+}
+
+function initAuthSubscription() {
+  if (_initialized) return;
+  _initialized = true;
+
+  const supabase = getSupabaseBrowserClient();
+
+  // Safety timeout: force loading to false after 5s even if getSession hangs
+  const timeout = setTimeout(() => {
+    authStore.getState().setLoading(false);
+  }, 5000);
+
+  supabase.auth
+    .getSession()
+    .then(async (result: { data: { session: Session | null } }) => {
+      clearTimeout(timeout);
+      let currentSession = result.data.session;
+
+      if (currentSession && isTokenExpired(currentSession)) {
+        const refreshResult = await supabase.auth.refreshSession();
+        currentSession = refreshResult.data.session ?? currentSession;
+      }
+
+      const testSession =
+        currentSession ??
+        (import.meta.env.DEV ? getPlaywrightSession() : null);
+
+      authStore.getState().setSession(testSession);
+      authStore.getState().setLoading(false);
+    })
+    .catch(() => {
+      clearTimeout(timeout);
+      authStore.getState().setLoading(false);
+    });
+
+  // Subscribe to auth state changes — single subscription for the entire app
+  supabase.auth.onAuthStateChange(
+    (_event: string, newSession: Session | null) => {
+      const currentSession =
+        newSession ?? (import.meta.env.DEV ? getPlaywrightSession() : null);
+      authStore.getState().setSession(currentSession);
+      authStore.getState().setLoading(false);
+    }
+  );
+}
+
 export function useAuth(): UseAuthReturn {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const user = useStore(authStore, (s) => s.user);
+  const session = useStore(authStore, (s) => s.session);
+  const loading = useStore(authStore, (s) => s.loading);
 
+  // Ensure the singleton initializer runs on first mount
   useEffect(() => {
-    // Safety timeout: force loading to false after 5s even if getSession hangs
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 5000);
-
-    supabase.auth
-      .getSession()
-      .then(async (result: { data: { session: Session | null } }) => {
-        clearTimeout(timeout);
-        let currentSession = result.data.session;
-
-        if (currentSession && isTokenExpired(currentSession)) {
-          const refreshResult = await supabase.auth.refreshSession();
-          currentSession = refreshResult.data.session ?? currentSession;
-        }
-
-        const testSession = currentSession ?? (import.meta.env.DEV ? getPlaywrightSession() : null);
-        setSession(testSession);
-        setUser(testSession?.user ?? null);
-        setLoading(false);
-      })
-      .catch(() => {
-        clearTimeout(timeout);
-        setLoading(false);
-      });
-
-    // Subscribe to auth state changes
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange(
-      (_event: string, newSession: Session | null) => {
-        const currentSession = newSession ?? (import.meta.env.DEV ? getPlaywrightSession() : null);
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
+    initAuthSubscription();
+  }, []);
 
   const signInWithPhone = useCallback(
     async (phone: string) => {

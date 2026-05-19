@@ -23,7 +23,10 @@ export function swipeDeckOptions(filters?: SwipeDeckParams) {
 export function useSwipeDeck(filters?: SwipeDeckParams) {
   return useQuery({
     ...swipeDeckOptions(filters),
-    select: (data) => data.profiles
+    select: (data: any) => {
+      console.log("[DEBUG] swipeDeck data:", data);
+      return Array.isArray(data) ? data : (data.profiles ?? data.data ?? data.results ?? [])
+    }
   });
 }
 

@@ -110,8 +110,7 @@ export function ExplorePage() {
 
   // Handle cluster click: zoom into the cluster area
   const handleClusterClick = useCallback(
-    (cluster: MapCluster) => {
-      void cluster;
+    (_cluster: MapCluster) => {
       // Cluster click triggers zoom-in via the map component;
       // the viewport change handler will automatically refetch
       // with updated bounds.

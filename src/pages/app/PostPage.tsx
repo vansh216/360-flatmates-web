@@ -90,14 +90,14 @@ export function PostPage() {
           /* Upload pending images after the property is created */
           const unuploaded = pendingImages.filter((img) => !img.uploaded && !img.uploading);
           if (unuploaded.length > 0 && property.id) {
-            unuploaded.forEach((img) => {
+            unuploaded.forEach((img, imgIndex) => {
               setPendingImages((prev) =>
                 prev.map((i) => (i.id === img.id ? { ...i, uploading: true } : i))
               );
               uploadImage.mutate(
                 {
                   propertyId: property.id,
-                  payload: { image_url: img.preview, is_main: pendingImages.indexOf(img) === 0 }
+                  payload: { image_url: img.preview, is_main: imgIndex === 0 }
                 },
                 {
                   onSuccess: () => {
@@ -430,7 +430,7 @@ export function PostPage() {
           {/* Previews */}
           {pendingImages.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {pendingImages.map((img) => (
+              {pendingImages.map((img, index) => (
                 <div
                   key={img.id}
                   className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-line bg-paper-2"
@@ -447,7 +447,7 @@ export function PostPage() {
                     </div>
                   )}
                   {/* Failed badge */}
-                  {!img.uploading && !img.uploaded && pendingImages.indexOf(img) > 0 && (
+                  {!img.uploading && !img.uploaded && index > 0 && (
                     <div className="absolute bottom-1 right-1 rounded bg-error-soft px-1.5 py-0.5 text-caption text-error">
                       retry
                     </div>
@@ -462,7 +462,7 @@ export function PostPage() {
                     <X aria-hidden="true" className="h-3 w-3" />
                   </button>
                   {/* Main badge */}
-                  {pendingImages.indexOf(img) === 0 && (
+                  {index === 0 && (
                     <span className="absolute bottom-1 left-1 rounded bg-accent px-1.5 py-0.5 text-caption font-semibold text-paper">
                       Main
                     </span>

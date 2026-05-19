@@ -32,12 +32,15 @@ export function profileOptions(id: number) {
 export function peerProfilesOptions(filters?: PeerFilters) {
   return queryOptions({
     queryKey: ["profiles", "peers", filters],
-    queryFn: () =>
-      apiClient.request<FlatmatesPeer[]>({
+    queryFn: async () => {
+      const res = await apiClient.request<any>({
         method: "GET",
         path: "/flatmates/profiles",
         query: (filters ?? {}) as Record<string, QueryValue>
-      })
+      });
+      console.log("[DEBUG] /flatmates/profiles res:", res);
+      return Array.isArray(res) ? res : (res.profiles ?? res.data ?? res.results ?? []);
+    }
   });
 }
 
