@@ -23,8 +23,8 @@ const ROUTE_PREFETCH_MAP: Record<string, PrefetchFn[]> = {
   "/dashboard": [(qc) => qc.prefetchQuery(dashboardOptions), (qc) => qc.prefetchQuery(myProfileOptions)],
   "/manage": [(qc) => qc.prefetchQuery(myPropertiesOptions), (qc) => qc.prefetchQuery(myProfileOptions)],
   "/profile": [(qc) => qc.prefetchQuery(myProfileOptions)],
-  "/saved-searches": [(qc) => qc.prefetchQuery(savedSearchesOptions)],
   "/search": [(qc) => qc.prefetchQuery(catalogsOptions)],
+  "/saved-searches": [(qc) => qc.prefetchQuery(savedSearchesOptions)],
 };
 
 export async function prefetchRouteQueries(

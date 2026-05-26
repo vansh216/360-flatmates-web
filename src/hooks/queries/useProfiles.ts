@@ -3,7 +3,6 @@ import { apiClient } from "@/lib/api";
 import type {
   FlatmatesProfile,
   FlatmatesProfileUpdate,
-  FlatmatesPeer,
   PeerFilters,
   SwipeDeckResponse
 } from "@/lib/api/types";

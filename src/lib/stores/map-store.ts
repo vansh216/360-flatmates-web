@@ -38,6 +38,16 @@ export const DEFAULT_CENTER: MapViewport = { lat: 28.6139, lng: 77.209 }; // New
 const DEFAULT_ZOOM = 12;
 const EMPTY_FILTERS: MapFilters = {};
 
+/** Compare two MapFilters objects without JSON.stringify */
+function mapFiltersEqual(a: MapFilters, b: MapFilters): boolean {
+  if (a.priceMin !== b.priceMin || a.priceMax !== b.priceMax) return false;
+  const aTypes = a.propertyType;
+  const bTypes = b.propertyType;
+  if (aTypes === bTypes) return true;
+  if (!aTypes || !bTypes || aTypes.length !== bTypes.length) return false;
+  return aTypes.every((v, i) => v === bTypes[i]);
+}
+
 export const mapStore = createStore<MapStoreState>()((set) => ({
   center: DEFAULT_CENTER,
   zoom: DEFAULT_ZOOM,
@@ -55,13 +65,12 @@ export const mapStore = createStore<MapStoreState>()((set) => ({
 
   setFilters: (filters) =>
     set((state) => {
-      const next = { ...filters };
-      if (JSON.stringify(next) === JSON.stringify(state.filters)) return state;
-      return { filters: next };
+      if (mapFiltersEqual(filters, state.filters)) return state;
+      return { filters: { ...filters } };
     }),
   clearFilters: () =>
     set((state) => {
-      if (JSON.stringify(state.filters) === JSON.stringify(EMPTY_FILTERS)) return state;
+      if (mapFiltersEqual(state.filters, EMPTY_FILTERS)) return state;
       return { filters: { ...EMPTY_FILTERS } };
     }),
 

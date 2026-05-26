@@ -1,6 +1,7 @@
 import { createStore } from "zustand/vanilla";
 import { persist } from "zustand/middleware";
-import type { SearchFilters, SearchType } from "@/lib/api/types";
+import type { SearchFilters } from "@/lib/api/types";
+import type { SearchType } from "@/lib/data";
 import { createSafeJsonStorage } from "./storage";
 
 export const SEARCH_STORE_KEY = "360-flatmates-search";

@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { cn, toneClasses, type Tone } from "./component-utils";
-import { FLATMATE_MODE_OPTIONS, type FlatmatesMode } from "@/lib/data/domain";
+import { FLATMATE_MODE_OPTIONS, type FlatmatesMode } from "@/lib/data";
 
 export type BadgeVariant = "default" | "mode" | "verified" | "status" | "count";
 export type UserMode = FlatmatesMode;

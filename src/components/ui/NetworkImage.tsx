@@ -21,8 +21,8 @@ function NetworkImageInner({
   fallback,
   className,
   width,
-  quality,
-  format,
+  quality: _quality,
+  format: _format,
   ...props
 }: Omit<NetworkImageProps, "src"> & { src: string }) {
   const [failed, setFailed] = useState(false);

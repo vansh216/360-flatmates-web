@@ -69,7 +69,6 @@ const VerifyPage = lazy(() => import("./pages/app/VerifyPage").then((m) => ({ de
 const HelpPage = lazy(() => import("./pages/app/HelpPage").then((m) => ({ default: m.HelpPage })));
 const AlertsPage = lazy(() => import("./pages/app/AlertsPage").then((m) => ({ default: m.AlertsPage })));
 const SavedSearchesPage = lazy(() => import("./pages/app/SavedSearchesPage").then((m) => ({ default: m.SavedSearchesPage })));
-
 // Admin pages
 const AdminStatsPage = lazy(() => import("./pages/admin/AdminStatsPage").then((m) => ({ default: m.AdminStatsPage })));
 const ModerationListingsPage = lazy(() => import("./pages/admin/ModerationListingsPage").then((m) => ({ default: m.ModerationListingsPage })));
@@ -77,7 +76,7 @@ const ModerationReportsPage = lazy(() => import("./pages/admin/ModerationReports
 const PrescreenPage = lazy(() => import("./pages/admin/PrescreenPage").then((m) => ({ default: m.PrescreenPage })));
 
 // Shared pages
-const NotFoundPage = lazy(() => import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
+const NotFoundPage = lazy(() => import("./pages/public/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
 
 export function App() {
   return (

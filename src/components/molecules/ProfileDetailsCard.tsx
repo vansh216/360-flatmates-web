@@ -5,8 +5,8 @@ import {
   formatMoveInTimeline,
   formatLifestyleLabel
 } from "@/lib/utils";
-import { LIFESTYLE_DIMENSIONS } from "@/lib/data/domain";
-import type { LifestyleDimensionKey } from "@/lib/data/domain";
+import { LIFESTYLE_DIMENSIONS } from "@/lib/data";
+import type { LifestyleDimensionKey } from "@/lib/data";
 
 export interface ProfileDetailsData {
   bio?: string;

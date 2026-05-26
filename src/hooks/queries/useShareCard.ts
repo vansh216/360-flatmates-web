@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { ShareCardResponse, ShareCardFormat } from "@/lib/api/types";
+import type { ShareCardResponse } from "@/lib/api/types";
+import type { ShareCardFormat } from "@/lib/data";
 
 export function useShareCard(
   listingId: number,

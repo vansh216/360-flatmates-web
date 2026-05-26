@@ -14,7 +14,8 @@ import { PageLayout, PageHeader } from "@/components/ui/Layout";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, EmptyState } from "@/components/ui/StateViews";
-import type { ReportAdmin, ReportAction } from "@/lib/api/types";
+import type { ReportAdmin } from "@/lib/api/types";
+import type { ReportAction } from "@/lib/data";
 
 export function ModerationReportsPage() {
   const [search, setSearch] = useState("");

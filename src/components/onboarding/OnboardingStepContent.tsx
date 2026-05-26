@@ -7,13 +7,13 @@ import { useImageUpload } from "@/hooks/useImageUpload";
 import { onboardingStore, ONBOARDING_STEPS, type OnboardingStepKey } from "@/lib/stores/onboarding-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { uiStore } from "@/lib/stores/ui-store";
-import { FLATMATE_MODE_OPTIONS, type FlatmatesMode } from "@/lib/data/domain";
+import { FLATMATE_MODE_OPTIONS, type FlatmatesMode } from "@/lib/data";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Avatar } from "@/components/ui/Avatar";
-import type { SleepSchedule, Cleanliness, FoodHabits, SmokingDrinking, GuestsPolicy, WorkStyle, MoveInTimeline, GenderPreference } from "@/lib/api/types";
+import type { SleepSchedule, Cleanliness, FoodHabits, SmokingDrinking, GuestsPolicy, WorkStyle, MoveInTimeline, GenderPreference } from "@/lib/data";
 import { humanizeSnakeCase } from "@/lib/utils";
 
 interface OnboardingStepContentProps {

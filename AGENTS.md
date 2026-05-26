@@ -5,8 +5,11 @@
 ```
 src/
   components/   # Shared UI components (atomic: ui/, molecules/, organisms/, landing/, onboarding/, page-clients/)
+                # Full-page components (LegalPage, PeopleGridPage) live in organisms/, not molecules/
   hooks/        # Custom React hooks + TanStack Query hooks (queries/)
   lib/          # Utilities, API client, stores, schemas, SSE, compatibility engine, Supabase config
+                # API types split into domain files under lib/api/types/ (common, user, property, conversation, visit, search, match, notification, admin)
+                # lib/api/types.ts re-exports all domain types for backward compatibility
   pages/        # React Router pages organized by domain (app/, auth/, admin/, public/)
 docs/            # OpenAPI spec (flatmates-openapi.yaml)
 plans/           # PRD (prd.md) and UI/UX specification (ui_ux.md)
@@ -120,6 +123,7 @@ Every page that fetches data must handle all three async states: **loading**, **
   - `searchStore` for filter state
   - `swipeStore` for animation direction
   - `mapStore` for viewport state
+  - All stores use **vanilla `createStore()`** pattern (not `create()` with hook wrapper) — this enables React-free consumption in SSE handlers, providers, and tests
 - **Never** mix server state into Zustand stores — let TanStack Query own the cache
 - **Optimistic updates**: use TanStack Query's `onMutate` + `onError` rollback pattern for mutations
 

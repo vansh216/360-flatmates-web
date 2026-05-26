@@ -41,7 +41,9 @@ export function HomePage() {
     profile?.city ? { city: profile.city, limit: 8 } : undefined
   );
 
-  const listings = (newListingsData?.results ?? []) as Property[];
+  const listings = (newListingsData?.results ?? []).filter(
+    (r): r is Property => "monthly_rent" in r
+  );
   const nearbyPeers = recommendedPeers ?? [];
   const recommended = swipeDeckProfiles ?? [];
 

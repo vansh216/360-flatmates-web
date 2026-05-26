@@ -43,7 +43,7 @@ import {
   formatLifestyleLabel,
   formatMoveInTimeline
 } from "@/lib/utils/format";
-import { NON_NEGOTIABLE_OPTIONS } from "@/lib/data/domain";
+import { NON_NEGOTIABLE_OPTIONS } from "@/lib/data";
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */

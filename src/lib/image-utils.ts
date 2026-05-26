@@ -264,7 +264,7 @@ export function convertToWebP(
           // Convert to WebP data URL
           const webpDataUrl = canvas.toDataURL("image/webp", quality);
           resolve(webpDataUrl);
-        } catch (canvasErr) {
+        } catch {
           // Fallback to FileReader on canvas exception
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
@@ -272,7 +272,7 @@ export function convertToWebP(
           reader.readAsDataURL(file);
         }
       };
-      img.onerror = (err) => {
+      img.onerror = () => {
         URL.revokeObjectURL(img.src);
         // Fallback to FileReader on image load error
         const reader = new FileReader();
@@ -280,7 +280,7 @@ export function convertToWebP(
         reader.onerror = reject;
         reader.readAsDataURL(file);
       };
-    } catch (err) {
+    } catch {
       // General fallback
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);

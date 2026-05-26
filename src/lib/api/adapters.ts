@@ -4,11 +4,9 @@ import type {
   ConversationSummary,
   Visit as ApiVisit,
   FlatmatesNotification,
-  MessageOut,
-  VisitContext,
-  VisitStatus as ApiVisitStatus
+  MessageOut
 } from "@/lib/api/types";
-import type { FlatmatesMode } from "@/lib/data";
+import type { FlatmatesMode, VisitContext, VisitStatus as ApiVisitStatus } from "@/lib/data";
 import type {
   ListingCardData,
   ProfileGridCardData,

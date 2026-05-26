@@ -1,7 +1,6 @@
-import type { CompatibilityColor, UserMatchStatus } from "@/lib/data";
+import type { CompatibilityColor, LifestyleDimensionKey, UserMatchStatus } from "@/lib/data";
 import type { FlatmatesPeer } from "./user.types";
 import type { ConversationPropertyContext } from "./conversation.types";
-import type { LifestyleDimensionKey } from "./common.types";
 
 export interface IncomingLikeSummary {
   id: number;

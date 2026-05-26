@@ -10,6 +10,9 @@ import type {
   SleepSchedule,
   SmokingDrinking,
   SocietyTagVoteDirection,
+  UserReportReason,
+  UserReportStatus,
+  UserRole,
   WorkStyle
 } from "@/lib/data";
 import type { JsonObject } from "./common.types";
@@ -19,7 +22,7 @@ export interface User {
   email?: string;
   phone?: string;
   full_name?: string;
-  role?: import("./common.types").UserRole;
+  role?: UserRole;
   is_active?: boolean;
   created_at?: string;
   preferences?: JsonObject;
@@ -123,7 +126,7 @@ export interface ProfileViewEventOut {
 
 export interface ReportCreate {
   reported_user_id?: number;
-  reason: import("./common.types").UserReportReason;
+  reason: UserReportReason;
   conversation_id?: number | null;
   property_id?: number | null;
   notes?: string;
@@ -133,8 +136,8 @@ export interface ReportOut {
   id: number;
   reporter_user_id: number;
   reported_user_id: number;
-  reason: import("./common.types").UserReportReason;
-  status: import("./common.types").UserReportStatus;
+  reason: UserReportReason;
+  status: UserReportStatus;
   notes?: string;
   created_at?: string;
 }

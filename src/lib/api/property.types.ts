@@ -1,7 +1,7 @@
 import type {
+  BoostDuration,
   GenderPreference,
   ListingSharingType,
-  MoveInTimeline,
   PropertyLifecycleStatus,
   PropertyModerationStatus,
   PropertyPurpose,
@@ -125,7 +125,7 @@ export interface PropertyImageUploadResponse {
 }
 
 export interface BoostListingPayload {
-  duration: import("./common.types").BoostDuration;
+  duration: BoostDuration;
 }
 
 export interface BoostListingResponse {
