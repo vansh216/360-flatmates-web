@@ -106,7 +106,7 @@ export function FieldWrapper({
 
 export interface InputProps
   extends FieldChromeProps,
-    Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {}
+  Omit<InputHTMLAttributes<HTMLInputElement>, "size"> { }
 
 const controlClasses =
   "w-full border border-line bg-surface text-body-md text-ink placeholder:text-ink-3 disabled:cursor-not-allowed disabled:bg-paper-4 disabled:text-ink-4";
@@ -156,7 +156,7 @@ export function Input({
 
 export interface TextAreaProps
   extends FieldChromeProps,
-    TextareaHTMLAttributes<HTMLTextAreaElement> {}
+  TextareaHTMLAttributes<HTMLTextAreaElement> { }
 
 export function TextArea({
   label,
@@ -201,7 +201,7 @@ export interface SelectOption {
 
 export interface SelectFieldProps
   extends FieldChromeProps,
-    SelectHTMLAttributes<HTMLSelectElement> {
+  SelectHTMLAttributes<HTMLSelectElement> {
   options: SelectOption[];
   placeholder?: string;
 }

@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 const MODE_ICONS: Record<UserMode, React.ReactNode> = {
   room_poster: <Home aria-hidden="true" className="h-6 w-6" />,
+  seeker: <Search aria-hidden="true" className="h-6 w-6" />,
   co_hunter: <Search aria-hidden="true" className="h-6 w-6" />,
   open_to_both: <Shuffle aria-hidden="true" className="h-6 w-6" />,
 };

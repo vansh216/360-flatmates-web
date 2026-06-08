@@ -92,10 +92,17 @@ export const scoreFoodHabits: DimensionScorer<FoodHabits> = (
     return 70;
   }
 
-  if (userValue === "vegetarian" || peerValue === "vegetarian") {
+  // Strict diets: vegetarian and vegan are compatible with each other
+  const strict = new Set(["vegetarian", "vegan"]);
+  if (strict.has(userValue) && strict.has(peerValue)) {
+    return 100;
+  }
+  // One strict, other not
+  if (strict.has(userValue) || strict.has(peerValue)) {
     return 0;
   }
 
+  // Both non-strict (non_vegetarian, eggetarian)
   return 80;
 };
 
@@ -111,10 +118,17 @@ export const scoreSmokingDrinking: DimensionScorer<SmokingDrinking> = (
     return 100;
   }
 
-  if (userValue === "no_preference" || peerValue === "no_preference") {
+  if (userValue === "both_fine" || peerValue === "both_fine") {
     return 70;
   }
 
+  // Non-smoker set: neither, drink_occasionally
+  const nonSmoker = new Set(["neither", "drink_occasionally"]);
+  if (nonSmoker.has(userValue) && nonSmoker.has(peerValue)) {
+    return 80;
+  }
+
+  // One smokes, other doesn't
   return 30;
 };
 

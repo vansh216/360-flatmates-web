@@ -13,7 +13,7 @@ const baseProfile = {
   food_habits: "vegetarian",
   smoking_drinking: "neither",
   guests_policy: "occasional_ok",
-  work_style: "wfh_mostly"
+  work_style: "wfh"
 } satisfies CompatibilityProfile;
 
 describe("compatibility engine", () => {
@@ -37,7 +37,7 @@ describe("compatibility engine", () => {
       food_habits: "non_vegetarian",
       smoking_drinking: "smoke_outside",
       guests_policy: "open_house",
-      work_style: "office_mostly"
+      work_style: "office"
     });
 
     expect(result.overall_percentage).toBe(32);
@@ -57,7 +57,7 @@ describe("compatibility engine", () => {
         food_habits: "non_vegetarian",
         smoking_drinking: "smoke_outside",
         guests_policy: "open_house",
-        work_style: "office_mostly"
+        work_style: "office"
       },
       {
         id: 5,
@@ -68,7 +68,7 @@ describe("compatibility engine", () => {
         food_habits: "vegetarian",
         smoking_drinking: "neither",
         guests_policy: "occasional_ok",
-        work_style: "wfh_mostly"
+        work_style: "wfh"
       }
     ] as const;
 

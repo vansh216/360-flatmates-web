@@ -294,9 +294,7 @@ export function SwipeDeck({
       }}
       {...props}
     >
-      <div className="text-center text-caption text-ink-3">
-        {profiles.length - currentIndex} of {profiles.length} remaining
-      </div>
+
       {/* Card container fills available viewport: 100dvh minus header(64) + main-pad(48) + page-pad(32/48) + counter(~28) + gaps(40) + action-bar(~60) + bottom-nav(76 mobile) */}
       <div className="relative h-[calc(100dvh-328px)] md:h-[calc(100dvh-268px)]">
         {/* Background card 2 (furthest back) */}

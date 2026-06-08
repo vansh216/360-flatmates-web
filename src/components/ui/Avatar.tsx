@@ -39,10 +39,10 @@ const editButtonSize: Record<AvatarSize, string> = {
 /** Map avatar size to SVG ring dimensions */
 const ringSizeMap: Record<AvatarSize, { box: number; stroke: number; inset: number }> = {
   compact: { box: 44, stroke: 2.5, inset: 5 },
-  sm:      { box: 48, stroke: 2.5, inset: 4 },
-  md:      { box: 62, stroke: 3,   inset: 5 },
-  lg:      { box: 88, stroke: 3.5, inset: 4 },
-  xl:      { box: 130, stroke: 4,  inset: 5 },
+  sm: { box: 48, stroke: 2.5, inset: 4 },
+  md: { box: 62, stroke: 3, inset: 5 },
+  lg: { box: 88, stroke: 3.5, inset: 4 },
+  xl: { box: 130, stroke: 4, inset: 5 },
 };
 
 const avatarWidthMap: Record<AvatarSize, number> = {

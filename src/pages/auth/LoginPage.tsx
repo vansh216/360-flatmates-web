@@ -313,7 +313,7 @@ export function LoginPage() {
 
       <Button
         fullWidth
-        variant="secondary"
+        variant="google"
         className="mt-5"
         aria-label="Continue with Google"
         data-method-highlight={lastMethod?.method === "google" ? "true" : undefined}
@@ -390,7 +390,7 @@ export function LoginPage() {
 
       {/* Step 2b — OTP verification */}
       {step === "otp" && (() => {
-        const expectedOtpLength = channel === "phone" ? 4 : 6;
+        const expectedOtpLength = 6;
         return (
           <>
             <Input

@@ -310,7 +310,7 @@ function MatchCelebration({
             >
               <ProgressRing value={profile.matchScore} size="xl" />
             </motion.div>
-            
+
             {/* Sparkle details */}
             <span className="absolute -top-1 -right-2 text-2xl animate-bounce">✨</span>
             <span className="absolute -bottom-2 -left-2 text-xl animate-bounce delay-150">🎉</span>

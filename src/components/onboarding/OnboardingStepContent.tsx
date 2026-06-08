@@ -296,7 +296,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
       {stepKey === "lifestyle" && (
         <>
           <h2 className="text-h2">Your lifestyle</h2>
-          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4">
             <div>
               <p className="text-label-md text-ink-2 mb-2">Sleep Schedule</p>
               <div className="flex flex-wrap gap-2">
@@ -332,7 +332,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             <div>
               <p className="text-label-md text-ink-2 mb-2">Food Habits</p>
               <div className="flex flex-wrap gap-2">
-                {(["vegetarian", "non_vegetarian", "eggetarian", "no_preference"] as const).map((val) => (
+                {(["vegetarian", "vegan", "non_vegetarian", "eggetarian", "no_preference"] as const).map((val) => (
                   <Chip
                     key={val}
                     selected={draft.lifestyle?.food_habits === val}
@@ -356,7 +356,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             <div>
               <p className="text-label-md text-ink-2 mb-2">Smoking / Drinking</p>
               <div className="flex flex-wrap gap-2">
-                {(["neither", "smoke_outside", "no_preference"] as const).map((val) => (
+                {(["neither", "smoke_outside", "drink_occasionally", "both_fine"] as const).map((val) => (
                   <Chip
                     key={val}
                     selected={draft.lifestyle?.smoking_drinking === val}
@@ -364,7 +364,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
                       patchDraft({ lifestyle: { ...draft.lifestyle, smoking_drinking: val as SmokingDrinking } })
                     }
                   >
-                    {val === "neither" ? "Neither" : val === "smoke_outside" ? "Smoke Outside" : "No Preference"}
+                    {val === "neither" ? "Neither" : val === "smoke_outside" ? "Smoke Outside" : val === "drink_occasionally" ? "Drink Occasionally" : "Both Fine"}
                   </Chip>
                 ))}
               </div>
@@ -372,7 +372,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             <div>
               <p className="text-label-md text-ink-2 mb-2">Guests Policy</p>
               <div className="flex flex-wrap gap-2">
-                {(["no_overnight", "occasional_ok", "open_house"] as const).map((val) => (
+                {(["no_overnight_guests", "occasional_ok", "open_house"] as const).map((val) => (
                   <Chip
                     key={val}
                     selected={draft.lifestyle?.guests_policy === val}
@@ -380,7 +380,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
                       patchDraft({ lifestyle: { ...draft.lifestyle, guests_policy: val as GuestsPolicy } })
                     }
                   >
-                    {val === "no_overnight" ? "No Overnight" : val === "occasional_ok" ? "Occasional OK" : "Open House"}
+                    {val === "no_overnight_guests" ? "No Overnight" : val === "occasional_ok" ? "Occasional OK" : "Open House"}
                   </Chip>
                 ))}
               </div>
@@ -396,7 +396,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             <div>
               <p className="text-label-md text-ink-2 mb-2">Where do you work from?</p>
               <div className="flex flex-wrap gap-2">
-                {(["wfh_mostly", "office_mostly", "mixed"] as const).map((val) => (
+                {(["wfh", "office", "hybrid"] as const).map((val) => (
                   <Chip
                     key={val}
                     selected={draft.lifestyle?.work_style === val}
@@ -404,7 +404,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
                       patchDraft({ lifestyle: { ...draft.lifestyle, work_style: val as WorkStyle } })
                     }
                   >
-                    {val === "wfh_mostly" ? "WFH Mostly" : val === "office_mostly" ? "Office Mostly" : "Mixed / Hybrid"}
+                    {val === "wfh" ? "Work from Home" : val === "office" ? "Office" : "Hybrid"}
                   </Chip>
                 ))}
               </div>

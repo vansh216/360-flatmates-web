@@ -36,11 +36,11 @@ export function Card({
         variantClasses[variant],
         selected && "border-[1.5px] border-accent bg-accent-soft",
         interactive &&
-          cn(
-            "cursor-pointer active:scale-[0.97] hover:-translate-y-px hover:border-accent/40 hover:shadow-hover",
-            interactiveMotion,
-            focusRing
-          ),
+        cn(
+          "cursor-pointer active:scale-[0.97] hover:-translate-y-px hover:border-accent/40 hover:shadow-hover",
+          interactiveMotion,
+          focusRing
+        ),
         className
       )}
       {...props}

@@ -209,7 +209,7 @@ export function ForgotPasswordPage() {
 
       {/* Step 2 — verify OTP (both channels) */}
       {step === "verify" && (() => {
-        const expectedOtpLength = channel === "phone" ? 4 : 6;
+        const expectedOtpLength = 6;
         return (
           <>
             <Input

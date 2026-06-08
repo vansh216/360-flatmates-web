@@ -262,29 +262,39 @@ function ChatMessageSkeleton({ side = "left" }: { side?: "left" | "right" }) {
 /** Matches SwipeDeck card — full-height image with overlay + action buttons */
 function SwipeCardSkeleton() {
   return (
-    <div className="flex flex-col items-center gap-6 p-4">
-      <div className="relative h-[calc(100dvh-328px)] md:h-[calc(100dvh-268px)] w-full max-w-[480px] overflow-hidden rounded-2xl border border-line bg-surface shadow-lg">
-        {/* Full-bleed image area */}
-        <div className={cn("h-full w-full", shimmer)} />
-        {/* Bottom overlay */}
-        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-ink/60 to-transparent p-5 pt-16">
-          <div className={cn("h-6 w-2/5 rounded-md", shimmer)} />
-          <div className="flex items-center gap-1.5">
-            <div className="h-4 w-4 rounded-sm bg-white/20" />
-            <div className={cn("h-3 w-1/4 rounded-sm", shimmer)} />
-          </div>
-          <div className="flex gap-2 pt-1">
-            <div className={cn("h-6 w-14 rounded-full bg-white/20", shimmer)} />
-            <div className={cn("h-6 w-14 rounded-full bg-white/20", shimmer)} />
-            <div className={cn("h-6 w-16 rounded-full bg-white/20", shimmer)} />
+    <div className="flex flex-col items-center gap-6 p-4 w-full">
+      <div className="relative h-[calc(100dvh-328px)] md:h-[calc(100dvh-268px)] w-full max-w-[480px]">
+        {/* Background card 2 (furthest back) */}
+        <div className="absolute inset-x-4 top-4 h-full scale-90 opacity-30 rounded-2xl border border-line bg-surface shadow-sm translate-y-3" />
+        
+        {/* Background card 1 (middle) */}
+        <div className="absolute inset-x-2 top-2 h-full scale-[0.95] opacity-50 rounded-2xl border border-line bg-surface shadow-sm translate-y-[6px]" />
+        
+        {/* Top Card */}
+        <div className="absolute inset-0 overflow-hidden rounded-2xl border border-line bg-surface shadow-lg flex flex-col justify-end p-5">
+          {/* Full-bleed image area */}
+          <div className={cn("absolute inset-0", shimmer)} />
+          
+          {/* Bottom overlay with gradient */}
+          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-ink/80 to-transparent p-5 pt-20">
+            <div className={cn("h-8 w-3/5 rounded-md", shimmer)} />
+            <div className="flex items-center gap-1.5 mt-1">
+              <div className="h-4 w-4 rounded-sm bg-white/20" />
+              <div className={cn("h-4 w-1/3 rounded-sm", shimmer)} />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <div className={cn("h-6 w-16 rounded-full bg-white/20", shimmer)} />
+              <div className={cn("h-6 w-14 rounded-full bg-white/20", shimmer)} />
+              <div className={cn("h-6 w-20 rounded-full bg-white/20", shimmer)} />
+            </div>
           </div>
         </div>
       </div>
       {/* Action buttons */}
       <div className="flex items-center gap-5">
-        <div className="h-[60px] w-[60px] rounded-full border-2 border-error/30" />
-        <div className="h-[50px] w-[50px] rounded-full border-2 border-warning/30" />
-        <div className="h-[60px] w-[60px] rounded-full border-2 border-success/30" />
+        <div className={cn("h-[60px] w-[60px] rounded-full bg-error/10 border-2 border-error/20", shimmer)} />
+        <div className={cn("h-[50px] w-[50px] rounded-full bg-warning/10 border-2 border-warning/20", shimmer)} />
+        <div className={cn("h-[60px] w-[60px] rounded-full bg-success/10 border-2 border-success/20", shimmer)} />
       </div>
     </div>
   );

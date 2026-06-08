@@ -7,7 +7,7 @@ export function AuthLayout() {
       {/* Decorative gradient backgrounds */}
       <div className="absolute top-[-20%] left-[-20%] w-[60%] aspect-square rounded-full bg-accent/5 blur-[100px] pointer-events-none animate-pulse duration-[6000ms]" />
       <div className="absolute bottom-[-20%] right-[-20%] w-[60%] aspect-square rounded-full bg-accent/8 blur-[100px] pointer-events-none animate-pulse duration-[8000ms]" />
-      
+
       {/* Back button at top-left */}
       <div className="absolute top-6 left-6 z-20">
         <Link

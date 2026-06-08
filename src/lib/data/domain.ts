@@ -9,6 +9,7 @@ export interface DomainOption<TValue extends string = string> {
 
 export const FLATMATE_MODE_VALUES = [
   "room_poster",
+  "seeker",
   "co_hunter",
   "open_to_both"
 ] as const;
@@ -20,6 +21,11 @@ export const FLATMATE_MODE_OPTIONS = [
     value: "room_poster",
     label: "Room Poster",
     description: "Has a room and wants to find a compatible flatmate."
+  },
+  {
+    value: "seeker",
+    label: "Room Seeker",
+    description: "Looking for a room in an existing flat."
   },
   {
     value: "co_hunter",
@@ -73,6 +79,7 @@ export type Cleanliness = (typeof CLEANLINESS_VALUES)[number];
 
 export const FOOD_HABITS_VALUES = [
   "vegetarian",
+  "vegan",
   "non_vegetarian",
   "eggetarian",
   "no_preference"
@@ -83,20 +90,21 @@ export type FoodHabits = (typeof FOOD_HABITS_VALUES)[number];
 export const SMOKING_DRINKING_VALUES = [
   "neither",
   "smoke_outside",
-  "no_preference"
+  "drink_occasionally",
+  "both_fine"
 ] as const;
 
 export type SmokingDrinking = (typeof SMOKING_DRINKING_VALUES)[number];
 
 export const GUESTS_POLICY_VALUES = [
-  "no_overnight",
+  "no_overnight_guests",
   "occasional_ok",
   "open_house"
 ] as const;
 
 export type GuestsPolicy = (typeof GUESTS_POLICY_VALUES)[number];
 
-export const WORK_STYLE_VALUES = ["wfh_mostly", "office_mostly", "mixed"] as const;
+export const WORK_STYLE_VALUES = ["wfh", "office", "hybrid"] as const;
 
 export type WorkStyle = (typeof WORK_STYLE_VALUES)[number];
 
@@ -138,6 +146,7 @@ export const LIFESTYLE_DIMENSIONS = [
     weight: 0.15,
     options: [
       { value: "vegetarian", label: "Vegetarian" },
+      { value: "vegan", label: "Vegan" },
       { value: "non_vegetarian", label: "Non-Vegetarian" },
       { value: "eggetarian", label: "Eggetarian" },
       { value: "no_preference", label: "No Preference" }
@@ -150,7 +159,8 @@ export const LIFESTYLE_DIMENSIONS = [
     options: [
       { value: "neither", label: "Neither" },
       { value: "smoke_outside", label: "Smoke Outside" },
-      { value: "no_preference", label: "No Preference" }
+      { value: "drink_occasionally", label: "Drink Occasionally" },
+      { value: "both_fine", label: "Both Fine" }
     ]
   },
   {
@@ -158,7 +168,7 @@ export const LIFESTYLE_DIMENSIONS = [
     label: "Guests Policy",
     weight: 0.15,
     options: [
-      { value: "no_overnight", label: "No Overnight Guests" },
+      { value: "no_overnight_guests", label: "No Overnight Guests" },
       { value: "occasional_ok", label: "Occasional Guests OK" },
       { value: "open_house", label: "Open House" }
     ]
@@ -168,9 +178,9 @@ export const LIFESTYLE_DIMENSIONS = [
     label: "Work Style",
     weight: 0.1,
     options: [
-      { value: "wfh_mostly", label: "WFH Mostly" },
-      { value: "office_mostly", label: "Office Mostly" },
-      { value: "mixed", label: "Mixed" }
+      { value: "wfh", label: "WFH" },
+      { value: "office", label: "Office" },
+      { value: "hybrid", label: "Hybrid" }
     ]
   }
 ] as const;
@@ -190,6 +200,7 @@ export type GenderPreference = (typeof GENDER_PREFERENCE_VALUES)[number];
 
 export const NON_NEGOTIABLE_VALUES = [
   "food_veg_only",
+  "food_vegan_only",
   "no_smoking",
   "no_drinking",
   "no_overnight_guests",
@@ -205,6 +216,7 @@ export type NonNegotiable = (typeof NON_NEGOTIABLE_VALUES)[number];
 
 export const NON_NEGOTIABLE_OPTIONS = [
   { value: "food_veg_only", label: "Veg Only" },
+  { value: "food_vegan_only", label: "Vegan Only" },
   { value: "no_smoking", label: "No Smoking" },
   { value: "no_drinking", label: "No Drinking" },
   { value: "no_overnight_guests", label: "No Overnight Guests" },

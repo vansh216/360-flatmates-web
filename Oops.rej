@@ -1,8 +1,0 @@
-@@ -155,7 +155,7 @@
-             )}
-           </FeedSection>
- 
-           <FeedSection
-             title="New Listings"
-             actionLabel="See all"
-             onAction={() => navigate("/search")}

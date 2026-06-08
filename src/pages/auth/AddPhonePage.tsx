@@ -147,13 +147,13 @@ export function AddPhonePage() {
           />
           <Input
             label="Verification code"
-            placeholder="4-digit code"
+            placeholder="6-digit code"
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
-            maxLength={4}
+            maxLength={6}
             value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
             className="mt-4"
             autoFocus
           />
@@ -172,7 +172,7 @@ export function AddPhonePage() {
             <Button
               className="flex-1"
               loading={submitting}
-              disabled={otp.length < 4}
+              disabled={otp.length < 6}
               onClick={handleVerify}
             >
               Verify

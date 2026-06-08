@@ -164,9 +164,9 @@ export function Drawer({
           side === "right"
             ? cn("bottom-0 right-0 top-0 border-l animate-drawer-in", width === "wide" ? "w-full md:w-[480px]" : "w-full md:w-[400px]")
             : cn(
-                "bottom-0 left-0 right-0 max-h-[85vh] rounded-t-2xl border-t animate-bottom-sheet-in md:left-auto md:top-0 md:max-h-none md:rounded-none md:border-l md:border-t-0 md:animate-drawer-in",
-                width === "wide" ? "md:w-[480px]" : "md:w-[400px]"
-              ),
+              "bottom-0 left-0 right-0 max-h-[85vh] rounded-t-2xl border-t animate-bottom-sheet-in md:left-auto md:top-0 md:max-h-none md:rounded-none md:border-l md:border-t-0 md:animate-drawer-in",
+              width === "wide" ? "md:w-[480px]" : "md:w-[400px]"
+            ),
           className
         )}
         {...props}

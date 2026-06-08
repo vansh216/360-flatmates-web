@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { cn, focusRing, interactiveMotion } from "./component-utils";
 
-export type ButtonVariant = "primary" | "secondary" | "tertiary" | "icon";
+export type ButtonVariant = "primary" | "secondary" | "tertiary" | "icon" | "google";
 export type ButtonSize = "compact" | "default" | "tall" | "icon";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -22,7 +22,9 @@ const variantClasses: Record<ButtonVariant, string> = {
   tertiary:
     "bg-transparent text-accent shadow-none hover:bg-accent-soft hover:underline disabled:bg-transparent disabled:text-ink-3",
   icon:
-    "bg-transparent text-accent hover:bg-accent-soft disabled:bg-paper-4 disabled:text-ink-3"
+    "bg-transparent text-accent hover:bg-accent-soft disabled:bg-paper-4 disabled:text-ink-3",
+  google:
+    "bg-white text-[#3c4043] border border-[#dadce0] shadow-sm hover:bg-[#f8f9fa] hover:shadow-md disabled:bg-paper-4 disabled:text-ink-3 disabled:border-transparent dark:bg-[#131314] dark:text-[#e3e3e3] dark:border-[#8e918f] dark:hover:bg-[#1e1f20]"
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

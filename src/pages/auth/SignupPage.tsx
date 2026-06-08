@@ -139,7 +139,7 @@ export function SignupPage() {
 
       <Button
         fullWidth
-        variant="secondary"
+        variant="google"
         className="mt-5"
         loading={googleLoading}
         onClick={handleGoogleSignUp}
@@ -184,13 +184,13 @@ export function SignupPage() {
           />
           <Input
             label="OTP"
-            placeholder="4-digit code"
+            placeholder="6-digit code"
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
-            maxLength={4}
+            maxLength={6}
             value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
             className="mt-4"
             autoFocus
           />
@@ -246,7 +246,7 @@ export function SignupPage() {
             <Button
               className="flex-1"
               loading={submitting}
-              disabled={!otp || otp.length < 4 || !password || !confirmPassword || !acceptedTerms}
+              disabled={!otp || otp.length < 6 || !password || !confirmPassword || !acceptedTerms}
               onClick={handleVerifyAndSignUp}
             >
               Verify & Sign up

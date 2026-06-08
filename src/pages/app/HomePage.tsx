@@ -67,7 +67,7 @@ export function HomePage() {
       <div className="relative overflow-hidden rounded-2xl border border-line-low bg-surface/50 p-6 md:p-8 shadow-xs">
         <div className="absolute top-[-30%] left-[-20%] w-[50%] aspect-square rounded-full bg-accent/5 blur-[80px] pointer-events-none" />
         <div className="absolute bottom-[-30%] right-[-10%] w-[40%] aspect-square rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
-        
+
         <p className="text-eyebrow text-accent uppercase tracking-[0.16em]">Dashboard</p>
         <h1 className="mt-2 text-display text-3xl md:text-4xl text-ink font-normal leading-tight">
           Welcome back, <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">{profile?.full_name?.split(" ")[0] || "Friend"}</span>
@@ -146,7 +146,7 @@ export function HomePage() {
             {recommended.length > 0 ? (
               recommended.slice(0, 4).map((peer, i) => (
                 <div key={peer.id} className="w-[180px] sm:w-[200px] md:w-[220px] shrink-0 snap-start card-appear"
-                    style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
+                  style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ProfileGridCard
                     profile={profileToProfileGridCardProps(peer)}
                     onOpen={(id) => navigate(`/profile/${id}`)}
@@ -169,7 +169,7 @@ export function HomePage() {
             {listings.length > 0 ? (
               listings.slice(0, 4).map((property, i) => (
                 <div key={property.id} className="w-[280px] sm:w-[320px] md:w-[340px] shrink-0 snap-start card-appear"
-                    style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
+                  style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ListingCard
                     listing={propertyToListingCardProps(property)}
                     onOpen={(id) => navigate(`/listing/${id}`)}
@@ -192,7 +192,7 @@ export function HomePage() {
             {nearbyPeers.length > 0 ? (
               nearbyPeers.slice(0, 4).map((peer, i) => (
                 <div key={peer.id} className="w-[180px] sm:w-[200px] md:w-[220px] shrink-0 snap-start card-appear"
-                    style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
+                  style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ProfileGridCard
                     profile={profileToProfileGridCardProps(peer)}
                     onOpen={(id) => navigate(`/profile/${id}`)}

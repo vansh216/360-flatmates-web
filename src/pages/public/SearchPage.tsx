@@ -75,7 +75,7 @@ export function SearchPage() {
 
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.pages) return [];
-    return searchResults.pages.flatMap((page) =>
+    const allListings = searchResults.pages.flatMap((page) =>
       (page.results || [])
         .filter(
           (r): r is Extract<typeof r, { property_type: unknown }> =>
@@ -87,6 +87,13 @@ export function SearchPage() {
           )
         )
     );
+
+    const seen = new Set<string | number>();
+    return allListings.filter((listing) => {
+      if (seen.has(listing.id)) return false;
+      seen.add(listing.id);
+      return true;
+    });
   }, [searchResults]);
 
   const totalResults = searchResults?.pages[0]?.total ?? listings.length;
@@ -114,16 +121,16 @@ export function SearchPage() {
       },
       ...(amenities
         ? [
-            {
-              id: "amenities",
-              title: "Amenities",
-              options: amenities.slice(0, 10).map((a) => ({
-                value: a.name,
-                label: a.name,
-                selected: params.amenities.includes(a.name),
-              })),
-            },
-          ]
+          {
+            id: "amenities",
+            title: "Amenities",
+            options: amenities.slice(0, 10).map((a) => ({
+              value: a.name,
+              label: a.name,
+              selected: params.amenities.includes(a.name),
+            })),
+          },
+        ]
         : []),
     ],
     [cities, params.city, params.bedrooms, amenities, params.amenities]
@@ -190,7 +197,7 @@ export function SearchPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
         />
       </SeoHelmet>
-      
+
       <main id="main" className="page-fade mx-auto max-w-7xl px-4 py-6 md:px-6">
         {/* Title Header */}
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-6">
@@ -322,7 +329,7 @@ export function SearchPage() {
                 ))}
               </div>
             )}
-            
+
             {/* Infinite Scroll Sentinel */}
             {listings.length > 0 && (
               <div ref={observerTarget} className="mt-8 flex justify-center pb-8 h-20">

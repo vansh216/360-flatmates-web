@@ -104,7 +104,7 @@ export function DiscoverPage() {
         <div className="relative overflow-hidden rounded-2xl border border-line-low bg-surface/50 p-6 md:p-8 mb-8 shadow-xs">
           <div className="absolute top-[-30%] left-[-20%] w-[50%] aspect-square rounded-full bg-accent/5 blur-[80px] pointer-events-none" />
           <div className="absolute bottom-[-30%] right-[-10%] w-[40%] aspect-square rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
-          
+
           <PageHeader
             eyebrow="Public discovery"
             title="Browse Listings"

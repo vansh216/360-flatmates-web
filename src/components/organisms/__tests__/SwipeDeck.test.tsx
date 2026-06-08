@@ -37,11 +37,6 @@ it("renders current profile name", () => {
   expect(names.length).toBeGreaterThanOrEqual(1);
 });
 
-it("shows remaining card count", () => {
-  render(<SwipeDeck profiles={manyProfiles} />);
-  expect(screen.getByText(/3 of 3 remaining/)).toBeInTheDocument();
-});
-
 it("renders empty state when no profiles", () => {
   render(<SwipeDeck profiles={[]} onEmptyAction={vi.fn()} />);
   expect(screen.getByText("No profiles waiting")).toBeInTheDocument();

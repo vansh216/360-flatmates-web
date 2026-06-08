@@ -226,6 +226,7 @@ body::before {
 }
 
 @layer base {
+
   button,
   input,
   textarea,
@@ -425,6 +426,7 @@ svg {
     opacity: 0;
     transform: translateY(6px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -436,6 +438,7 @@ svg {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -450,6 +453,7 @@ svg {
   from {
     transform: scale(1);
   }
+
   to {
     transform: scale(1.05);
   }
@@ -459,6 +463,7 @@ svg {
   from {
     background-position: 220% 0;
   }
+
   to {
     background-position: -220% 0;
   }
@@ -468,6 +473,7 @@ svg {
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -477,6 +483,7 @@ svg {
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
   }
@@ -487,6 +494,7 @@ svg {
     transform: translateY(100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -494,8 +502,13 @@ svg {
 }
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .reveal {
@@ -510,25 +523,60 @@ svg {
   transform: translateY(0);
 }
 
-.stagger-1 { transition-delay: 80ms; }
-.stagger-2 { transition-delay: 160ms; }
-.stagger-3 { transition-delay: 240ms; }
-.stagger-4 { transition-delay: 320ms; }
-.stagger-5 { transition-delay: 400ms; }
-.stagger-6 { transition-delay: 480ms; }
+.stagger-1 {
+  transition-delay: 80ms;
+}
 
-.hero-stagger-1 { animation-delay: 0ms; }
-.hero-stagger-2 { animation-delay: 60ms; }
-.hero-stagger-3 { animation-delay: 120ms; }
-.hero-stagger-4 { animation-delay: 180ms; }
-.hero-stagger-5 { animation-delay: 260ms; }
-.hero-stagger-6 { animation-delay: 340ms; }
+.stagger-2 {
+  transition-delay: 160ms;
+}
+
+.stagger-3 {
+  transition-delay: 240ms;
+}
+
+.stagger-4 {
+  transition-delay: 320ms;
+}
+
+.stagger-5 {
+  transition-delay: 400ms;
+}
+
+.stagger-6 {
+  transition-delay: 480ms;
+}
+
+.hero-stagger-1 {
+  animation-delay: 0ms;
+}
+
+.hero-stagger-2 {
+  animation-delay: 60ms;
+}
+
+.hero-stagger-3 {
+  animation-delay: 120ms;
+}
+
+.hero-stagger-4 {
+  animation-delay: 180ms;
+}
+
+.hero-stagger-5 {
+  animation-delay: 260ms;
+}
+
+.hero-stagger-6 {
+  animation-delay: 340ms;
+}
 
 @keyframes hero-fade-up {
   from {
     opacity: 0;
     transform: translateY(32px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -569,6 +617,7 @@ svg {
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -585,6 +634,7 @@ svg {
     transform: scale(0.8);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -601,6 +651,7 @@ svg {
     opacity: 0;
     transform: scale(0.6);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -608,6 +659,7 @@ svg {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -616,53 +668,65 @@ svg {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+
   .chip-spring {
     transition: none;
   }
+
   .ring-draw {
     transition: none;
   }
+
   .card-appear {
     opacity: 1;
     transform: none;
     animation: none;
   }
+
   .animate-scale-in {
     animation: none;
     opacity: 1;
     transform: none;
   }
+
   .match-celebration {
     animation: none;
     opacity: 1;
     transform: none;
   }
+
   .animate-spin-slow {
     animation: none;
   }
+
   .animate-float-subtle,
   .animate-counter-up,
   .animate-fade-in-up,
   .animate-slide-in-right,
   .animate-gradient-shift,
-  .stagger-reveal > * {
+  .stagger-reveal>* {
     animation: none;
     opacity: 1;
     transform: none;
   }
-  .stagger-cascade > * {
+
+  .stagger-cascade>* {
     animation: none;
     opacity: 1;
   }
+
   .card-glow::after {
     transition: none;
   }
+
   .faq-item-content {
     transition: none;
   }
+
   .faq-chevron {
     transition: none;
   }
+
   .scroll-progress-bar {
     display: none;
   }
@@ -679,56 +743,115 @@ svg {
 
 /* Gentle float animation for hero mockup */
 @keyframes float-subtle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 /* Animated counter for stats */
 @keyframes counter-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Slow atmospheric gradient shift */
 @keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 /* Premium entrance animation */
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(32px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Slide in from right for step cards */
 @keyframes slide-in-right {
-  from { opacity: 0; transform: translateX(32px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* Terracotta glow pulse for CTA hover */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 2px 12px rgba(201,100,66,0.12); }
-  50% { box-shadow: 0 8px 32px rgba(201,100,66,0.2); }
+
+  0%,
+  100% {
+    box-shadow: 0 2px 12px rgba(201, 100, 66, 0.12);
+  }
+
+  50% {
+    box-shadow: 0 8px 32px rgba(201, 100, 66, 0.2);
+  }
 }
 
 /* SVG ring draw animation */
 @keyframes draw-ring {
-  from { stroke-dashoffset: var(--ring-circumference); }
-  to { stroke-dashoffset: var(--ring-offset); }
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+
+  to {
+    stroke-dashoffset: var(--ring-offset);
+  }
 }
 
 /* Cascade-in entrance with subtle scale */
 @keyframes cascade-in {
-  from { opacity: 0; transform: translateY(24px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Accordion content fade */
 @keyframes accordion-content {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Animation Utility Classes ── */
@@ -762,19 +885,19 @@ svg {
 /* ── Stagger Reveal Utility ── */
 
 /* Stagger delay using CSS custom property --i */
-.stagger-reveal > * {
+.stagger-reveal>* {
   opacity: 0;
   animation: fade-in-up 300ms cubic-bezier(0, 0, 0.2, 1) both;
   animation-delay: calc(var(--i, 0) * 60ms);
 }
 
-.stagger-reveal.in-view > * {
+.stagger-reveal.in-view>* {
   opacity: 1;
 }
 
 /* ── Cascade Stagger Utility ── */
 
-.stagger-cascade > * {
+.stagger-cascade>* {
   opacity: 0;
   animation: cascade-in 300ms cubic-bezier(0, 0, 0.2, 1) both;
   animation-delay: calc(var(--i, 0) * 60ms);
@@ -824,6 +947,7 @@ svg {
 .card-glow {
   position: relative;
 }
+
 .card-glow::after {
   content: '';
   position: absolute;
@@ -835,6 +959,7 @@ svg {
   pointer-events: none;
   z-index: 1;
 }
+
 .card-glow:hover::after,
 .card-glow:focus-within::after {
   opacity: 1;
@@ -847,15 +972,19 @@ svg {
   grid-template-rows: 0fr;
   transition: grid-template-rows 250ms cubic-bezier(0, 0, 0.2, 1);
 }
+
 .faq-item[open] .faq-item-content {
   grid-template-rows: 1fr;
 }
-.faq-item-content > div {
+
+.faq-item-content>div {
   overflow: hidden;
 }
+
 .faq-chevron {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
+
 .faq-item[open] .faq-chevron {
   transform: rotate(180deg);
 }
@@ -871,7 +1000,8 @@ svg {
   z-index: 0;
   border-radius: inherit;
 }
-.noise-texture > * {
+
+.noise-texture>* {
   position: relative;
   z-index: 1;
 }
@@ -896,9 +1026,11 @@ svg {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
+
 .testimonial-carousel::-webkit-scrollbar {
   display: none;
 }
+
 .testimonial-card {
   scroll-snap-align: center;
   flex-shrink: 0;
