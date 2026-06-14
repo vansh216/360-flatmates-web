@@ -21,7 +21,7 @@ export function profileOptions(id: number) {
   return queryOptions({
     queryKey: ["profiles", id],
     queryFn: () =>
-      apiClient.request<FlatmatesProfile>({
+      apiClient.request<FlatmatesPeer>({
         method: "GET",
         path: `/flatmates/profiles/${id}`
       }),
@@ -83,6 +83,23 @@ export function useCreateProfile() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", "me"] });
+    }
+  });
+}
+
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      apiClient.request<{ message: string }>({
+        method: "DELETE",
+        path: "/users/me"
+      }),
+    onSuccess: () => {
+      // The whole session is gone — drop all cached queries rather than
+      // invalidating a single one. The caller handles sign-out + redirect.
+      queryClient.clear();
     }
   });
 }

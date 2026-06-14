@@ -13,7 +13,7 @@ import {
   Smartphone,
   Check,
 } from "lucide-react";
-import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
+import { useMyProfile, useUpdateProfile, useDeleteAccount } from "@/hooks/queries";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import { useAuth } from "@/hooks/useAuth";
 import { uiStore } from "@/lib/stores/ui-store";
@@ -22,6 +22,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -36,13 +37,17 @@ export function ProfilePage() {
   const { signOut } = useAuth();
   const { data: profile, isLoading, refetch } = useMyProfile();
   const updateProfile = useUpdateProfile();
+  const deleteAccount = useDeleteAccount();
   const { upload: uploadImage } = useImageUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const [showPWAInstructions, setShowPWAInstructions] = useState(false);
+  const deleteEnabled = deleteConfirmText.trim().toUpperCase() === "DELETE";
   const { isInstallable, isInstalled, isIOS, installApp } = usePWA();
 
   async function handleSignOut() {
@@ -59,6 +64,31 @@ export function ProfilePage() {
     } finally {
       setSigningOut(false);
       setShowSignOutDialog(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    try {
+      await deleteAccount.mutateAsync();
+      // The backend hard-deletes the Supabase user, so the local sign-out is
+      // best-effort — don't fail the flow if the session is already gone.
+      try {
+        await signOut();
+      } catch {
+        /* user already removed from Supabase */
+      }
+      navigate("/login");
+    } catch {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: "Failed to delete account",
+        description: "Please try again or contact support.",
+      });
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+      setDeleteConfirmText("");
     }
   }
 
@@ -351,14 +381,30 @@ export function ProfilePage() {
       <Modal
         open={showDeleteDialog}
         title="Delete Account"
-        onClose={() => setShowDeleteDialog(false)}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setDeleteConfirmText("");
+        }}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowDeleteDialog(false)} className="w-full md:w-auto">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setDeleteConfirmText("");
+              }}
+              className="w-full md:w-auto"
+            >
               Cancel
             </Button>
-            <Button variant="primary" onClick={() => setShowDeleteDialog(false)} className="w-full bg-error text-white hover:bg-error/95 md:w-auto">
-              Contact Support
+            <Button
+              variant="primary"
+              onClick={handleDeleteAccount}
+              disabled={!deleteEnabled || deleting}
+              loading={deleting}
+              className="w-full bg-error text-white hover:bg-error/95 md:w-auto"
+            >
+              Delete Account
             </Button>
           </>
         }
@@ -374,9 +420,13 @@ export function ProfilePage() {
               </p>
             </div>
           </div>
-          <p className="text-body-md text-ink-2">
-            Account deletion requires verification by our support team. Please contact us to proceed.
-          </p>
+          <Input
+            label="Type DELETE to confirm"
+            placeholder="DELETE"
+            autoComplete="off"
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+          />
         </div>
       </Modal>
 

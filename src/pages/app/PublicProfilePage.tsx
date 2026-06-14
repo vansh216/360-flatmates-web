@@ -11,7 +11,7 @@ import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
 import { TrustBadge } from "@/components/ui/TrustBadge";
-import { ProfileDetailsCard } from "@/components/molecules/ProfileDetailsCard";
+import { FlatmateProfileDetail } from "@/components/molecules/FlatmateProfileDetail";
 import { humanizeSnakeCase } from "@/lib/utils";
 
 const breadcrumb = [{ name: "Profile", item: `${SITE_URL}/profile` }];
@@ -107,7 +107,7 @@ export function PublicProfilePage() {
           )}
         </Card>
 
-        <ProfileDetailsCard profile={profile} />
+        <FlatmateProfileDetail profile={profile} />
 
         {compatibility && compatibility.dimensions.length > 0 && (
           <Card

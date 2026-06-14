@@ -83,6 +83,30 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+    delete:
+      tags: [Auth]
+      summary: Delete my account
+      description: >-
+        Permanently delete the authenticated user's account. Hard-deletes the
+        Supabase auth user and soft-deletes the local row (preserving referential
+        integrity with listings/visits/conversations). This action is irreversible.
+      operationId: deleteCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Account deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Account deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /users/location:
     get:
       tags: [Auth]
@@ -176,27 +200,6 @@ paths:
                 $ref: '#/components/schemas/FlatmatesProfile'
         '400':
           $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-    delete:
-      tags: [Profiles]
-      summary: Delete my account
-      description: Permanently delete the authenticated user's flatmate profile and all associated data. This action is irreversible.
-      operationId: deleteMyFlatmatesProfile
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: Account deleted
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Account deleted successfully
         '401':
           $ref: '#/components/responses/Unauthorized'
 

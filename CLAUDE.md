@@ -122,6 +122,7 @@ Every page that fetches data must handle all three async states: **loading**, **
   - `mapStore` for viewport state
 - **Never** mix server state into Zustand stores — let TanStack Query own the cache
 - **Optimistic updates**: use TanStack Query's `onMutate` + `onError` rollback pattern for mutations
+- **Account deletion**: `useDeleteAccount` (`src/hooks/queries/useProfiles.ts`) calls `DELETE /users/me` and clears the entire query cache (`queryClient.clear()`) on success. The Profile page handler then best-effort `signOut()`s (the backend already hard-deletes the Supabase user) and navigates to `/login`. The confirm modal requires typing `DELETE` exactly before the destructive button enables (see ui_ux.md §7.19).
 
 ## Documentation Maintenance
 

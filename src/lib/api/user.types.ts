@@ -106,6 +106,36 @@ export interface FlatmatesPeer {
   party_habit?: string;
   match_percentage?: number;
   phone_number?: string;
+  /** Listing context — present only when the peer has an active flatmate/PG listing. */
+  property_id?: number;
+  property_title?: string;
+  main_image_url?: string;
+  image_urls?: string[];
+  video_tour_url?: string;
+  monthly_rent?: number | null;
+  security_deposit?: number | null;
+  maintenance_charges?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  sub_locality?: string;
+  landmark?: string;
+  features?: string[];
+  amenities?: string[];
+  bedrooms?: number | null;
+  floor_number?: number | null;
+  total_floors?: number | null;
+  area_sqft?: number | null;
+  listing_preferences?: JsonObject;
+  /** UI-facing aliases emitted alongside the columns above. */
+  maintenance?: number | null;
+  floor?: string | null;
+  flat_config?: string | null;
+  furnishing?: string[];
+  flat_amenities?: string[];
+  society_amenities?: string[];
+  room_type?: string | null;
+  society_name?: string | null;
+  available_from?: string | null;
 }
 
 export interface FlatmatesBootstrap {

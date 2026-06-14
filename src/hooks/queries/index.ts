@@ -7,7 +7,8 @@ export {
   useProfile,
   usePeers,
   useUpdateProfile,
-  useCreateProfile
+  useCreateProfile,
+  useDeleteAccount
 } from "./useProfiles";
 
 export {
