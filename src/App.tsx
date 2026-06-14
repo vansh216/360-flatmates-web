@@ -24,6 +24,7 @@ const SearchPage = lazy(() => import("./pages/public/SearchPage").then((m) => ({
 const SemanticSearchPage = lazy(() => import("./pages/public/SemanticSearchPage").then((m) => ({ default: m.SemanticSearchPage })));
 const SharePage = lazy(() => import("./pages/public/SharePage").then((m) => ({ default: m.SharePage })));
 const CityPage = lazy(() => import("./pages/public/CityPage").then((m) => ({ default: m.CityPage })));
+const NeighborhoodPage = lazy(() => import("./pages/public/NeighborhoodPage").then((m) => ({ default: m.NeighborhoodPage })));
 const BlogPage = lazy(() => import("./pages/public/BlogPage").then((m) => ({ default: m.BlogPage })));
 const BlogPostPage = lazy(() => import("./pages/public/BlogPostPage").then((m) => ({ default: m.BlogPostPage })));
 const ComparisonPage = lazy(() => import("./pages/public/ComparisonPage").then((m) => ({ default: m.ComparisonPage })));
@@ -91,6 +92,7 @@ export function App() {
               <Route path="discover" element={<DiscoverPage />} />
               <Route path="discover/:id" element={<ListingDetailPage />} />
               <Route path="cities/:slug" element={<CityPage />} />
+              <Route path="cities/:slug/:neighborhood" element={<NeighborhoodPage />} />
               <Route path="blog" element={<BlogPage />} />
               <Route path="blog/:slug" element={<BlogPostPage />} />
               <Route path="compare/:slug" element={<ComparisonPage />} />

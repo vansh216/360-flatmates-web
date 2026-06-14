@@ -8,7 +8,6 @@ const mockOnAuthStateChange = vi.fn();
 const mockSignInWithOtp = vi.fn();
 const mockVerifyOtp = vi.fn();
 const mockSignInWithPassword = vi.fn();
-const mockSignUp = vi.fn();
 const mockSignOut = vi.fn();
 const mockUpdateUser = vi.fn();
 
@@ -18,7 +17,6 @@ const mockSupabaseAuth = {
   signInWithOtp: mockSignInWithOtp,
   verifyOtp: mockVerifyOtp,
   signInWithPassword: mockSignInWithPassword,
-  signUp: mockSignUp,
   signOut: mockSignOut,
   updateUser: mockUpdateUser
 };
@@ -172,19 +170,6 @@ describe("useAuth", () => {
       await result.current.signInWithPassword("+919876543210", "secret");
     });
     expect(mockSignInWithPassword).toHaveBeenCalledWith({
-      phone: "+919876543210",
-      password: "secret"
-    });
-  });
-
-  it("calls signUp with phone and password", async () => {
-    mockSignUp.mockResolvedValue({ error: null });
-    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
-
-    await act(async () => {
-      await result.current.signUp("+919876543210", "secret");
-    });
-    expect(mockSignUp).toHaveBeenCalledWith({
       phone: "+919876543210",
       password: "secret"
     });

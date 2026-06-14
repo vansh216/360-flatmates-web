@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { MapPin, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { MapPin, ShieldCheck, Sparkles, Target } from "lucide-react";
 
 import { useCountUp } from "@/hooks/useCountUp";
 
@@ -47,18 +47,18 @@ export function TrustStrip() {
       <div className="mx-auto max-w-7xl px-5 py-6 md:px-12 md:py-8">
         <div className="grid grid-cols-2 gap-y-2 md:flex md:items-center md:divide-x md:divide-line-low/60">
           <TrustItem
-            icon={Star}
-            value={<>4.9<span className="text-ink-3 text-xl md:text-2xl">/5</span></>}
-            label="Flatmate rating"
+            icon={Target}
+            value={<>86<span className="text-ink-3 text-xl md:text-2xl">%</span></>}
+            label="Avg. match score"
           />
           <TrustItem
             icon={Sparkles}
-            value={<CountStat target={10000} format={(v) => `${Math.round(v / 1000)}K+`} />}
+            value={<CountStat target={8600} format={(v) => `${Math.round(v).toLocaleString()}+`} />}
             label="Matches made"
           />
           <TrustItem
             icon={ShieldCheck}
-            value={<CountStat target={5000} format={(v) => `${Math.round(v / 1000)}K+`} />}
+            value={<CountStat target={1800} format={(v) => `${Math.round(v).toLocaleString()}+`} />}
             label="Verified rooms"
           />
           <TrustItem
@@ -70,9 +70,9 @@ export function TrustStrip() {
       </div>
 
       <ul className="sr-only">
-        <li>4.9 out of 5 flatmate rating</li>
-        <li>10,000+ matches made</li>
-        <li>5,000+ verified rooms</li>
+        <li>86 percent average match score</li>
+        <li>8,600+ matches made</li>
+        <li>1,800+ verified rooms</li>
         <li>2 cities live</li>
       </ul>
     </section>

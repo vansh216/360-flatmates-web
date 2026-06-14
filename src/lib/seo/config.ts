@@ -3,7 +3,7 @@ export const SITE_NAME = "360 Flatmates";
 export const SITE_TAGLINE = "Find Your Flatmate, Find Your Vibe";
 export const DEFAULT_DESCRIPTION =
   "Find compatible flatmates and verified rental listings across India. Compatibility scores, society vibe tags, and visit scheduling built in.";
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.svg`;
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
 export const TWITTER_HANDLE = "@360ghar";
 export const SUPPORT_EMAIL = "hello@360ghar.com";
 

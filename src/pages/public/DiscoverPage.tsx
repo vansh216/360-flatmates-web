@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useQueryStates } from "nuqs";
-import { SeoHelmet, SITE_URL, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
+import { SeoHelmet, SITE_URL, buildCollectionPageSchema } from "@/lib/seo";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useCities } from "@/hooks/queries/useCatalogs";
@@ -36,10 +36,14 @@ const QUICK_FILTER_MAP: Record<string, Partial<SearchFilters>> = {
   "Pet friendly": { features: ["pets_allowed"] },
 };
 
-const breadcrumbLd = buildBreadcrumbJsonLd([
-  homeBreadcrumb(),
-  { name: "Discover Listings", item: `${SITE_URL}/discover` },
-]);
+const breadcrumb = [{ name: "Discover Listings", item: `${SITE_URL}/discover` }];
+
+const collectionLd = buildCollectionPageSchema({
+  name: "Discover Verified Rooms & Flatmates",
+  description: "Browse verified room and flatmate listings across Indian cities with compatibility scores, society vibe tags, and visit scheduling.",
+  url: `${SITE_URL}/discover`,
+  breadcrumb,
+});
 
 export function DiscoverPage() {
   const navigate = useNavigate();
@@ -93,12 +97,9 @@ export function DiscoverPage() {
         title="Discover Verified Rooms & Flatmates"
         description="Browse verified room and flatmate listings across Indian cities with compatibility scores, society vibe tags, and visit scheduling."
         canonicalUrl={`${SITE_URL}/discover`}
-      >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
-        />
-      </SeoHelmet>
+        breadcrumb={breadcrumb}
+        jsonLd={collectionLd}
+      />
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
         {/* Editorial introductory header with ambient glows */}
         <div className="relative overflow-hidden rounded-2xl border border-line-low bg-surface/50 p-6 md:p-8 mb-8 shadow-xs">

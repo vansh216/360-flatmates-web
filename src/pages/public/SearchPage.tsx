@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useQueryStates } from "nuqs";
-import { SeoHelmet, SITE_URL, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
+import { SeoHelmet, SITE_URL } from "@/lib/seo";
 import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
 
 import { useInfiniteWebSearch } from "@/hooks/queries/useSearch";
@@ -18,10 +18,7 @@ import { Input, SelectField } from "@/components/ui/Input";
 import { EmptyState } from "@/components/ui/StateViews";
 import { BottomSheet } from "@/components/ui/Modal";
 
-const breadcrumbLd = buildBreadcrumbJsonLd([
-  homeBreadcrumb(),
-  { name: "Search", item: `${SITE_URL}/search` },
-]);
+const breadcrumb = [{ name: "Search", item: `${SITE_URL}/search` }];
 
 export function SearchPage() {
   const navigate = useNavigate();
@@ -191,12 +188,8 @@ export function SearchPage() {
         title="Search Flatmates & Rooms"
         description="Search for compatible flatmates and verified rental listings across Indian cities by budget, location, amenities, and lifestyle preferences."
         canonicalUrl={`${SITE_URL}/search`}
-      >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
-        />
-      </SeoHelmet>
+        breadcrumb={breadcrumb}
+      />
 
       <main id="main" className="page-fade mx-auto max-w-7xl px-4 py-6 md:px-6">
         {/* Title Header */}

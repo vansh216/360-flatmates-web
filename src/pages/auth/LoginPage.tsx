@@ -204,20 +204,33 @@ export function LoginPage() {
   const handlePasswordLogin = useCallback(async () => {
     setError(null);
     setSubmitting(true);
+
+    // Core operation — must succeed. On success the session is live.
     try {
       if (channel === "phone") {
         await signInWithPassword(resolvedIdentifier, password);
-        await recordAuthSuccess("phone_password", resolvedIdentifier);
       } else {
         await signInWithEmailPassword(resolvedIdentifier, password);
-        await recordAuthSuccess("email_password", resolvedIdentifier);
       }
-      navigate("/home");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Invalid credentials. Please try again.");
-    } finally {
       setSubmitting(false);
+      return;
     }
+
+    // Recording the auth method is best-effort: the sign-in already succeeded,
+    // so a backend hiccup here must not strand the user with a misleading error.
+    try {
+      await recordAuthSuccess(
+        channel === "phone" ? "phone_password" : "email_password",
+        resolvedIdentifier
+      );
+    } catch {
+      // Non-fatal — proceed into the app with the live session.
+    }
+
+    navigate("/home");
+    setSubmitting(false);
   }, [
     channel,
     signInWithPassword,
@@ -231,31 +244,41 @@ export function LoginPage() {
   const handleVerifyOtp = useCallback(async () => {
     setError(null);
     setSubmitting(true);
+
+    // Core operation — must succeed. On success the session is live.
     try {
       if (channel === "phone") {
         await verifyOtp(resolvedIdentifier, otp);
       } else {
         await verifyEmailOtp(resolvedIdentifier, otp);
       }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to verify. Please try again.");
+      setSubmitting(false);
+      return;
+    }
 
-      // Account has no password ⇒ force the mandatory set-password step before
-      // completing login. Do NOT record the OTP method yet — login is not done
-      // until a password is set.
-      if (mustSetPassword) {
-        setStep("set-password");
-        return;
-      }
+    // Account has no password ⇒ force the mandatory set-password step before
+    // completing login. Do NOT record the OTP method yet — login is not done
+    // until a password is set.
+    if (mustSetPassword) {
+      setStep("set-password");
+      setSubmitting(false);
+      return;
+    }
 
+    // Recording the OTP method is best-effort: the session is already live.
+    try {
       await recordAuthSuccess(
         channel === "phone" ? "phone_otp" : "email_otp",
         resolvedIdentifier
       );
-      navigate("/home");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to verify. Please try again.");
-    } finally {
-      setSubmitting(false);
+    } catch {
+      // Non-fatal — proceed into the app with the live session.
     }
+
+    navigate("/home");
+    setSubmitting(false);
   }, [
     mustSetPassword,
     channel,
@@ -281,19 +304,30 @@ export function LoginPage() {
     }
 
     setSubmitting(true);
+
+    // Core operation — must succeed. The session already exists (OTP verified);
+    // on success the account is password-backed.
     try {
       await updateUser(password);
-      // Now the account is password-backed → record the password method.
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to set password. Please try again.");
+      setSubmitting(false);
+      return;
+    }
+
+    // Recording the password method is best-effort: the password is set and the
+    // session is live, so a backend hiccup must not strand the user.
+    try {
       await recordAuthSuccess(
         channel === "phone" ? "phone_password" : "email_password",
         resolvedIdentifier
       );
-      navigate("/home");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to set password. Please try again.");
-    } finally {
-      setSubmitting(false);
+    } catch {
+      // Non-fatal — proceed into the app with the live session.
     }
+
+    navigate("/home");
+    setSubmitting(false);
   }, [
     password,
     confirmPassword,

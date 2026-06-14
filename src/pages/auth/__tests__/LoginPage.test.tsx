@@ -86,7 +86,7 @@ describe("LoginPage — set-password after OTP (requirement 6)", () => {
 
     // OTP step
     const otp = await screen.findByLabelText(/verification code/i);
-    fireEvent.change(otp, { target: { value: "1234" } });
+    fireEvent.change(otp, { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: /verify & continue/i }));
 
     // OTP verified, but login must NOT complete yet — set-password is forced.
@@ -151,7 +151,7 @@ describe("LoginPage — set-password after OTP (requirement 6)", () => {
     typeIdentifierAndContinue("9876543210");
 
     const otp = await screen.findByLabelText(/verification code/i);
-    fireEvent.change(otp, { target: { value: "1234" } });
+    fireEvent.change(otp, { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: /^verify$/i }));
 
     await waitFor(() =>
@@ -175,7 +175,7 @@ describe("LoginPage — set-password after OTP (requirement 6)", () => {
     typeIdentifierAndContinue("9876543210");
 
     fireEvent.change(await screen.findByLabelText(/verification code/i), {
-      target: { value: "1234" },
+      target: { value: "123456" },
     });
     fireEvent.click(screen.getByRole("button", { name: /verify & continue/i }));
 
@@ -191,5 +191,95 @@ describe("LoginPage — set-password after OTP (requirement 6)", () => {
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(mockUpdateUser).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});
+
+describe("LoginPage — recording the auth method is best-effort", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockVerifyOtp.mockResolvedValue(undefined);
+    mockVerifyEmailOtp.mockResolvedValue(undefined);
+    mockSignInWithPhone.mockResolvedValue(undefined);
+    mockSignInWithPassword.mockResolvedValue(undefined);
+    mockUpdateUser.mockResolvedValue(undefined);
+    // Recording the method fails on every flow — the must-not-strand path.
+    mockRecordAuthSuccess.mockRejectedValue(new Error("network down"));
+  });
+
+  it("completes password login even when recording fails", async () => {
+    mockCheckIdentifierStatus.mockResolvedValue({
+      exists: true,
+      verified: true,
+      has_password: true,
+      channel: "phone",
+      next_step: "password",
+    });
+
+    render(<LoginPage />);
+    typeIdentifierAndContinue("9876543210");
+
+    fireEvent.change(await screen.findByLabelText(/^password$/i), {
+      target: { value: VALID_PASSWORD },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() =>
+      expect(mockSignInWithPassword).toHaveBeenCalledWith("+919876543210", VALID_PASSWORD)
+    );
+    // Recording threw, yet login completes — navigate to /home with no error.
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/home"));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("completes OTP login even when recording fails (password-backed account)", async () => {
+    mockCheckIdentifierStatus.mockResolvedValue({
+      exists: true,
+      verified: true,
+      has_password: true,
+      channel: "phone",
+      next_step: "otp",
+    });
+
+    render(<LoginPage />);
+    typeIdentifierAndContinue("9876543210");
+
+    fireEvent.change(await screen.findByLabelText(/verification code/i), {
+      target: { value: "123456" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^verify$/i }));
+
+    await waitFor(() => expect(mockVerifyOtp).toHaveBeenCalled());
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/home"));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("completes the mandatory set-password step even when recording fails", async () => {
+    mockCheckIdentifierStatus.mockResolvedValue({
+      exists: true,
+      verified: false,
+      has_password: false,
+      channel: "phone",
+      next_step: "otp",
+    });
+
+    render(<LoginPage />);
+    typeIdentifierAndContinue("9876543210");
+
+    fireEvent.change(await screen.findByLabelText(/verification code/i), {
+      target: { value: "123456" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /verify & continue/i }));
+
+    fireEvent.change(await screen.findByLabelText(/create password/i), {
+      target: { value: VALID_PASSWORD },
+    });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), {
+      target: { value: VALID_PASSWORD },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /set password & continue/i }));
+
+    await waitFor(() => expect(mockUpdateUser).toHaveBeenCalledWith(VALID_PASSWORD));
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/home"));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

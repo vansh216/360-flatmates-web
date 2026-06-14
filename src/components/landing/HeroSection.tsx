@@ -28,6 +28,8 @@ function HeroMiniCards() {
               loading="eager"
               fetchPriority="high"
               decoding="async"
+              width={500}
+              height={320}
             />
             <button
               className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-xs text-accent transition-all duration-200 hover:bg-accent hover:text-white shadow-xs"
@@ -86,8 +88,10 @@ function HeroMiniCards() {
               src="/avatars/rohan.png"
               alt="Chat partner avatar"
               className="h-full w-full object-cover"
-              loading="eager"
+              loading="lazy"
               decoding="async"
+              width={40}
+              height={40}
             />
           </div>
           <div className="flex-1 min-w-0">
@@ -111,8 +115,10 @@ function HeroMiniCards() {
               src="/avatars/anya.png"
               alt="Verified user profile avatar"
               className="h-full w-full object-cover"
-              loading="eager"
+              loading="lazy"
               decoding="async"
+              width={44}
+              height={44}
             />
             <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-surface" />
           </div>
@@ -215,7 +221,7 @@ export function HeroSection() {
               <span className="text-serif-italic text-accent italic inline-block leading-[1.1] pb-1 text-5xl sm:text-6xl lg:text-[4.75rem]">not a nightmare</span>
             </h1>
 
-            <div className="hero-animate hero-stagger-3 mt-6 max-w-[46ch] text-body-lg text-ink-2 lg:mx-0 mx-auto leading-relaxed">
+            <div data-hero-summary className="hero-animate hero-stagger-3 mt-6 max-w-[46ch] text-body-lg text-ink-2 lg:mx-0 mx-auto leading-relaxed">
               6-dimension lifestyle matching and 100% verified rooms. Move in with someone whose vibe actually fits yours.
             </div>
 

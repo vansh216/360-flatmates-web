@@ -1,0 +1,68 @@
+# 360 Flatmates
+
+> Find compatible flatmates and verified rental rooms across India — matching on lifestyle, not just location. Free to search and match.
+
+360 Flatmates is a free, India-focused flatmate-finder and room-rental platform available on web (https://360ghar.com), Android, and iOS. It connects people who have a spare room (Room Posters) with people looking for a place (Co-Hunters), and ranks matches using a lifestyle-based compatibility score rather than only budget and locality. It is currently live in Bangalore and Gurugram, with additional Indian cities planned. Searching, matching, browsing listings, and in-app chat are free.
+
+The product positions itself against alternatives like NoBroker and informal Facebook/WhatsApp groups by combining (a) reviewed listings with verified photos, rent, and availability, (b) a lifestyle compatibility engine, and (c) built-in visit scheduling and contextual chat — so the whole flatmate-search flow happens inside one product instead of across multiple apps.
+
+## Features
+
+- **Lifestyle compatibility matching.** A compatibility score compares people across six dimensions — sleep schedule, cleanliness, food habits (e.g. vegetarian-only households), guest policy, work style, and Lifestyle (smoking & drinking preferences) — alongside budget and location. The goal is matching people who can actually live together, not just who have a spare room.
+- **Reviewed, verified listings.** Listings are reviewed before going live, with real photos, stated rent, and stated availability. The product explicitly markets "no fake listings."
+- **Vibe tags.** Listings and profiles surface practical living preferences such as veg-only, pet-friendly, quiet weekdays, and social weekends, so expectations are visible upfront.
+- **In-app visit scheduling.** Users can book a flat/room visit directly from a listing ("pick a slot, show up"), avoiding back-and-forth on WhatsApp.
+- **Contextual in-app chat.** Chats between matched users carry the listing, the match score, and visit context, rather than starting as cold messages from strangers.
+- **Safety features.** Phone OTP login, profile checks, and in-app problem reporting. Contact details are not shared without user action, and lifestyle preferences are used for matching only.
+- **Availability.** Progressive Web App with offline support, plus native Android and iOS apps.
+
+## How it works
+
+1. **Tell us your vibe.** A user enters budget, preferred location/city, and lifestyle preferences (sleep schedule, cleanliness, food, guests, work style, smoking & drinking).
+2. **Get matched.** The matching engine ranks rooms and flatmates by compatibility score — how well two people can actually co-live — combined with budget and location fit.
+3. **Book and chat.** The user books a visit from the listing and chats with the flatmate/owner, with listing and match context carried into the conversation.
+4. **Move in.** After the visit, the user proceeds to move in. If a living situation doesn't work out, in-app reporting and re-matching are available.
+
+Users pick one of three modes: **Room Poster** (has a room/flat to fill), **Co-Hunter** (looking for a place or a flatmate), or **Open to Both**.
+
+## Key pages
+
+- [Home](https://360ghar.com/): Overview of the product, compatibility matching, supported cities, and how it works.
+- [Discover listings](https://360ghar.com/discover): Browse verified rooms and flats available across supported cities.
+- [Bangalore flatmates & rooms](https://360ghar.com/cities/bangalore): Listings and neighborhoods in Bangalore (e.g. Koramangala, Indiranagar, Whitefield, HSR Layout, Electronic City, Marathahalli).
+- [Gurugram flatmates & rooms](https://360ghar.com/cities/gurugram): Listings and neighborhoods in Gurugram (e.g. DLF phases, Golf Course Road, Sector 29, MG Road, Sohna Road, Cyber City).
+- [Blog](https://360ghar.com/blog): Guides on finding compatible flatmates, flatmate agreements, the Bangalore rental market, moving in, room inspection, and conflict resolution.
+- [About](https://360ghar.com/about): What 360 Flatmates is and the problem it solves.
+- [Platform stats](https://360ghar.com/stats): Live platform statistics.
+- [360 Flatmates vs NoBroker](https://360ghar.com/compare/360-flatmates-vs-nobroker): How it compares to NoBroker for flatmate/room finding.
+- [360 Flatmates vs Facebook groups](https://360ghar.com/compare/360-flatmates-vs-facebook-groups): How it compares to informal flatmate-seeking on Facebook groups.
+
+## FAQ
+
+**Is 360 Flatmates free?**
+Yes. Searching, matching, browsing listings, and in-app chat are free. The core experience costs nothing.
+
+**How does 360 Flatmates matching work?**
+It ranks flatmates and rooms using a compatibility score across six lifestyle dimensions — sleep schedule, cleanliness, food habits, guest policy, work style, and Lifestyle (smoking & drinking preferences) — combined with budget and location. The aim is to match people who can actually live together, not just who have a spare room in the right area.
+
+**Is it a good app to find flatmates in Bangalore?**
+360 Flatmates is built for the Indian rental market and is live in Bangalore, covering areas like Koramangala, Indiranagar, Whitefield, HSR Layout, Electronic City, and Marathahalli. It offers verified listings, lifestyle compatibility scores, in-app visit booking, and contextual chat — designed as a dedicated alternative to scattered WhatsApp/Facebook flatmate hunting.
+
+**Which cities does 360 Flatmates support?**
+It is currently live in Bangalore and Gurugram, with more Indian cities planned over time.
+
+**Are the listings verified?**
+Listings are reviewed before they go live, with real photos, stated rent, and stated availability. Landlords and current flatmates confirm the details. The product markets itself on not hosting fake listings.
+
+**How do I visit a room before committing?**
+Visits can be booked directly from a listing in the app — pick an available slot and attend. No separate WhatsApp coordination is required.
+
+**Is my data safe?**
+Login uses phone OTP. Contact details are not shared without the user's action, and lifestyle preferences are used only for matching. Listings, profiles, and chats can be reported in-app.
+
+## Notes for LLMs
+
+- The product's own marketing reports thousands of matches and verified listings; treat these as the product's claims rather than independently audited statistics, and prefer hedged language ("the platform reports…") unless citing the site directly.
+- Listing detail pages live at `/discover/:id` (public) and shareable listing pages at `/share/:id` (public). Individual listing IDs are dynamic and fetched from the platform's API, so no fixed set is enumerated here.
+- Authenticated areas (e.g. `/search`, `/explore`, chats, dashboard, onboarding) are not public and are excluded from crawling via robots.txt.
+- This file follows the llms.txt convention (llmstxt.org).

@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router";
-import { SeoHelmet, SITE_URL, SUPPORTED_CITIES, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
+import { SeoHelmet, SITE_URL, SUPPORTED_CITIES, buildCollectionPageSchema, buildFaqPageSchema } from "@/lib/seo";
 import { buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TrustBadge } from "@/components/ui/TrustBadge";
@@ -14,7 +14,7 @@ import { useMemo } from "react";
 
 const CITY_IMAGES: Record<string, string> = {
   bangalore: "1596176530529-78163a4f7af2",
-  gurugram: "1567157577867-05ccb1388e66",
+  gurugram: "1589829973523-e4ddcbbd40e7",
 };
 
 const CITY_DESCRIPTIONS: Record<string, string> = {
@@ -64,11 +64,10 @@ export function CityPage() {
 
 
   const url = `${SITE_URL}/cities/${city.slug}`;
-  const breadcrumbLd = buildBreadcrumbJsonLd([
-    homeBreadcrumb(),
+  const breadcrumb = [
     { name: "Cities", item: `${SITE_URL}/discover` },
     { name: city.name, item: url },
-  ]);
+  ];
 
   const cityLd = {
     "@context": "https://schema.org",
@@ -78,22 +77,41 @@ export function CityPage() {
     url,
   };
 
+  const collectionLd = buildCollectionPageSchema({
+    name: `Flatmates & Rooms in ${city.name}`,
+    description: `Find compatible flatmates and verified rental listings in ${city.name}.`,
+    url,
+    breadcrumb,
+  });
+
+  const faqLd = buildFaqPageSchema([
+    {
+      question: `How do I find a flatmate in ${city.name}?`,
+      answer: `Create a free profile on 360 Flatmates, set your budget and preferred ${city.name} neighbourhoods, and our 6-dimension compatibility engine matches you with flatmates who fit your lifestyle. You can then book a visit to the room directly in the app.`,
+    },
+    {
+      question: `Are the listings in ${city.name} verified?`,
+      answer: `Yes. Every listing is reviewed before it goes live — real photos, real rent, real availability. Landlords and current flatmates confirm the details directly.`,
+    },
+    {
+      question: `Is 360 Flatmates free to use in ${city.name}?`,
+      answer: `Searching, matching, and visit scheduling are 100% free. Optional paid plans exist for features like priority listings, but the core experience costs nothing.`,
+    },
+    {
+      question: `Which ${city.name} neighbourhoods are popular for flatmates?`,
+      answer: `Popular areas include ${CITY_NEIGHBORHOODS[city.slug]?.slice(0, 3).join(", ") || "several central neighbourhoods"}, each with active verified listings.`,
+    },
+  ]);
+
   return (
     <>
       <SeoHelmet
         title={`Find Flatmates & Rooms in ${city.name}`}
         description={`Find compatible flatmates and verified rental listings in ${city.name}. ${CITY_DESCRIPTIONS[city.slug]}`}
         canonicalUrl={url}
-      >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(cityLd) }}
-        />
-      </SeoHelmet>
+        breadcrumb={breadcrumb}
+        jsonLd={[cityLd, collectionLd, faqLd]}
+      />
 
       <main id="main" className="page-fade">
         {/* Hero */}

@@ -7,99 +7,79 @@ import { expect, test } from "@playwright/test";
  * Since there is no real test backend, actual Supabase auth calls will
  * fail — tests verify form elements exist and are interactive, and
  * skip assertions that require a working backend.
+ *
+ * The login page is the single unified entry point (it doubles as signup
+ * for unknown identifiers): identifier → password OR OTP → mandatory
+ * set-password for passwordless accounts.
  */
 
-test.describe("Login page", () => {
+test.describe("Login page (unified sign-in / sign-up)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/login");
   });
 
-  test("renders the sign-in heading and description", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
+  test("renders the unified heading and description", async ({ page }) => {
     await expect(
-      page.getByText(/enter your phone number and verify with otp/i)
+      page.getByRole("heading", { name: /sign in or sign up/i })
+    ).toBeVisible();
+    await expect(
+      page.getByText(/we'll create an account if you're new/i)
     ).toBeVisible();
   });
 
-  test("shows OTP and Password tabs via SegmentedControl", async ({ page }) => {
-    const otpTab = page.getByRole("tab", { name: /phone otp/i });
-    const passwordTab = page.getByRole("tab", { name: /password/i });
-
-    await expect(otpTab).toBeVisible();
-    await expect(passwordTab).toBeVisible();
+  test("shows the Google sign-in button", async ({ page }) => {
+    await expect(
+      page.getByRole("button", { name: /continue with google/i })
+    ).toBeVisible();
   });
 
-  test("OTP mode shows phone input and Send OTP button", async ({ page }) => {
-    // OTP mode should be the default
-    await expect(page.getByLabel(/phone number/i)).toBeVisible();
-    await expect(page.getByRole("button", { name: /send otp/i })).toBeVisible();
+  test("shows a single identifier input for email or phone", async ({ page }) => {
+    await expect(page.getByLabel(/email or phone/i)).toBeVisible();
   });
 
-  test("Password mode shows phone and password inputs with sign-in button", async ({ page }) => {
-    await page.getByRole("tab", { name: /password/i }).click();
-
-    await expect(page.getByLabel(/phone number/i)).toBeVisible();
-    await expect(page.getByLabel(/password/i)).toBeVisible();
-    await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();
+  test("Continue button is disabled when the identifier is empty", async ({ page }) => {
+    await expect(page.getByRole("button", { name: /^continue$/i })).toBeDisabled();
   });
 
-  test("Send OTP button is disabled when phone field is empty", async ({ page }) => {
-    const sendOtpButton = page.getByRole("button", { name: /send otp/i });
-    await expect(sendOtpButton).toBeDisabled();
+  test("Continue button becomes enabled when an identifier is filled", async ({ page }) => {
+    await page.getByLabel(/email or phone/i).fill("9876543210");
+    await expect(page.getByRole("button", { name: /^continue$/i })).toBeEnabled();
   });
 
-  test("Send OTP button becomes enabled when phone is filled", async ({ page }) => {
-    await page.getByLabel(/phone number/i).fill("+91 9876543210");
-    const sendOtpButton = page.getByRole("button", { name: /send otp/i });
-    await expect(sendOtpButton).toBeEnabled();
+  test("shows the terms consent line with links", async ({ page }) => {
+    await expect(page.getByText(/by continuing, you agree to/i)).toBeVisible();
+    await expect(page.getByRole("link", { name: /terms of service/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /privacy policy/i })).toBeVisible();
   });
 
-  test("Password sign-in button is disabled when fields are empty", async ({ page }) => {
-    await page.getByRole("tab", { name: /password/i }).click();
+  test("clicking Continue shows loading or an error (no backend)", async ({ page }) => {
+    await page.getByLabel(/email or phone/i).fill("9876543210");
+    await page.getByRole("button", { name: /^continue$/i }).click();
 
-    const signInButton = page.getByRole("button", { name: /sign in/i });
-    await expect(signInButton).toBeDisabled();
+    // The identifier-status call has no backend, so the UI must react — either
+    // the button enters a loading state or an error alert appears. Poll for one
+    // rather than sleeping a fixed duration.
+    await expect.poll(
+      async () => {
+        const hasError = await page.getByRole("alert").isVisible().catch(() => false);
+        const isLoading =
+          (await page
+            .getByRole("button", { name: /^continue$/i })
+            .getAttribute("data-loading")) === "true";
+        return hasError || isLoading;
+      },
+      { timeout: 5000, message: "Continue should show loading or an error" }
+    ).toBeTruthy();
   });
+});
 
-  test("Password sign-in button becomes enabled when both fields are filled", async ({ page }) => {
-    await page.getByRole("tab", { name: /password/i }).click();
-
-    await page.getByLabel(/phone number/i).fill("+91 9876543210");
-    await page.getByLabel(/password/i).fill("testpassword123");
-
-    const signInButton = page.getByRole("button", { name: /sign in/i });
-    await expect(signInButton).toBeEnabled();
-  });
-
-  test("Forgot password link navigates to the reset page", async ({ page }) => {
-    await page.getByRole("tab", { name: /password/i }).click();
-    await page.getByRole("link", { name: /forgot password/i }).click();
-    await expect(page).toHaveURL(/\/forgot-password/);
-  });
-
-  test("clicking Send OTP shows loading state (no backend)", async ({ page }) => {
-    await page.getByLabel(/phone number/i).fill("+91 9876543210");
-    await page.getByRole("button", { name: /send otp/i }).click();
-
-    // The button should show a loading state or an error should appear
-    // since there is no backend. Either outcome is acceptable.
-    const errorAlert = page.getByRole("alert");
-    const loadingButton = page.getByRole("button", { name: /send otp/i });
-
-    // Wait a brief moment for async operation
-    await page.waitForTimeout(2000);
-
-    // One of these should be true: button is in loading state, or error appeared
-    const hasError = await errorAlert.isVisible().catch(() => false);
-    const isLoading = await loadingButton.getAttribute("data-loading").then((v) => v === "true").catch(() => false);
-    // No hard assertion — just verify the UI responded to the click
-    expect(hasError || isLoading || true).toBeTruthy();
-  });
-
-  test("OTP step progress indicator is visible", async ({ page }) => {
-    // Step progress should show "Enter phone" as step 1
-    await expect(page.getByText(/enter phone/i)).toBeVisible();
-    await expect(page.getByText(/verify otp/i)).toBeVisible();
+test.describe("Signup route (unified into login)", () => {
+  test("/signup redirects to /login", async ({ page }) => {
+    await page.goto("/signup");
+    await expect(page).toHaveURL(/\/login/);
+    await expect(
+      page.getByRole("heading", { name: /sign in or sign up/i })
+    ).toBeVisible();
   });
 });
 
@@ -113,19 +93,18 @@ test.describe("Forgot password page", () => {
   });
 
   test("shows the 3-step progress indicator", async ({ page }) => {
-    await expect(page.getByText(/verify phone/i)).toBeVisible();
+    await expect(page.getByText(/enter identifier/i)).toBeVisible();
     await expect(page.getByText(/enter otp/i)).toBeVisible();
-    await expect(page.getByText(/set password/i)).toBeVisible();
+    await expect(page.getByText(/new password/i)).toBeVisible();
   });
 
-  test("phone step shows phone input and Send OTP button", async ({ page }) => {
-    await expect(page.getByLabel(/phone number/i)).toBeVisible();
+  test("request step shows the identifier input and Send OTP button", async ({ page }) => {
+    await expect(page.getByLabel(/phone or email/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /send otp/i })).toBeVisible();
   });
 
-  test("Send OTP button is disabled when phone is empty", async ({ page }) => {
-    const sendOtpButton = page.getByRole("button", { name: /send otp/i });
-    await expect(sendOtpButton).toBeDisabled();
+  test("Send OTP button is disabled when the identifier is empty", async ({ page }) => {
+    await expect(page.getByRole("button", { name: /send otp/i })).toBeDisabled();
   });
 
   test("Back to Login link is present", async ({ page }) => {

@@ -1,11 +1,11 @@
-import { useState, useCallback } from "react";
-import { Link } from "react-router";
+import { useState, useCallback, useEffect } from "react";
+import { Link, useNavigate } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useResendTimer } from "@/hooks/useResendTimer";
 import { useWebOtp } from "@/hooks/useWebOtp";
-import { Button, buttonClasses } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { formatFullPhone } from "@/components/ui/PhoneInput";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -13,6 +13,8 @@ import { ResendOtp } from "@/components/ui/ResendOtp";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { PASSWORD_REGEX } from "@/lib/schemas/common";
 import { maskIdentifier } from "@/lib/lastAuthMethod";
+import { authStore } from "@/lib/stores/auth-store";
+import { uiStore } from "@/lib/stores/ui-store";
 
 /**
  * Password reset — 6-digit OTP for BOTH channels (decision 1).
@@ -23,6 +25,10 @@ import { maskIdentifier } from "@/lib/lastAuthMethod";
  * Email: `signInWithEmailOtp` → `verifyOtp({ type: 'email' })`.
  * Both then call `updateUser({ password })`. The OTP send uses
  * `shouldCreateUser: false` so reset never silently creates an account.
+ *
+ * The OTP verify already proved identity and created a session, so a
+ * successful reset keeps the user signed in and continues into the app —
+ * no second login with the new password.
  *
  * Reference app — no magic-link / `resetPasswordForEmail`; both channels are
  * unified through the same verify + set-password steps.
@@ -38,7 +44,15 @@ function detectChannel(value: string): Channel {
 }
 
 export function ForgotPasswordPage() {
-  const { signInWithPhone, signInWithEmailOtp, verifyOtp, verifyEmailOtp, updateUser } = useAuth();
+  const navigate = useNavigate();
+  const {
+    signInWithPhone,
+    signInWithEmailOtp,
+    verifyOtp,
+    verifyEmailOtp,
+    updateUser,
+    recordAuthSuccess,
+  } = useAuth();
 
   const [step, setStep] = useState<ResetStep>("request");
   /** Raw value from the single identifier field (email or phone). */
@@ -49,7 +63,6 @@ export function ForgotPasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
 
@@ -60,6 +73,13 @@ export function ForgotPasswordPage() {
 
   // SMS OTP autofill (Android Chrome) — only on the verify step for phone.
   useWebOtp(step === "verify" && channel === "phone", setOtp);
+
+  // The OTP verify signs the user in before the new password is set. Hold
+  // AuthRedirectGuard so it cannot bounce the user to /home mid-flow.
+  useEffect(() => {
+    authStore.getState().setMidAuthFlow(step === "verify" || step === "new-password");
+    return () => authStore.getState().setMidAuthFlow(false);
+  }, [step]);
 
   const currentStepIndex = step === "request" ? 0 : step === "verify" ? 1 : 2;
 
@@ -134,30 +154,37 @@ export function ForgotPasswordPage() {
     }
 
     setSubmitting(true);
+
+    // Core operation — must succeed. The OTP verify already created a session,
+    // so on success the user stays signed in with the new password.
     try {
       await updateUser(newPassword);
-      setSuccess(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to reset password. Please try again.");
-    } finally {
       setSubmitting(false);
+      return;
     }
-  }, [updateUser, newPassword, confirmPassword]);
 
-  if (success) {
-    return (
-      <>
-        <SeoHelmet title="Password Reset" description="Reset your 360 Flatmates password." canonicalUrl={`${SITE_URL}/forgot-password`} noindex />
-        <h1 className="text-display text-3xl md:text-4xl text-ink font-normal tracking-tight">Password reset</h1>
-        <p className="mt-3 text-body-md text-ink-2">
-          Your password has been updated successfully. You can now sign in with your new credentials.
-        </p>
-        <Link to="/login" className={buttonClasses("primary", "default", true) + " mt-6"}>
-          Back to Login
-        </Link>
-      </>
-    );
-  }
+    // Recording the auth method is best-effort: by now the password is reset
+    // and the session is live, so a backend hiccup here must not strand the
+    // user with a misleading "failed to reset" error.
+    try {
+      await recordAuthSuccess(
+        channel === "phone" ? "phone_password" : "email_password",
+        identifier
+      );
+    } catch {
+      // Non-fatal — proceed into the app with the live session.
+    }
+
+    uiStore.getState().pushToast({
+      type: "success",
+      title: "Password updated",
+      description: "You're signed in with your new password."
+    });
+    navigate("/home", { replace: true });
+    setSubmitting(false);
+  }, [updateUser, recordAuthSuccess, channel, identifier, newPassword, confirmPassword, navigate]);
 
   return (
     <>

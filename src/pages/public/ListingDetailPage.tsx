@@ -1,5 +1,5 @@
 import { useParams } from "react-router";
-import { SeoHelmet, SITE_URL, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
+import { SeoHelmet, SITE_URL, buildResidenceSchema } from "@/lib/seo";
 
 import ListingDetailClient from "@/components/page-clients/ListingDetailClient";
 import { useProperty } from "@/hooks/queries";
@@ -26,33 +26,23 @@ export function ListingDetailPage() {
         .join(" — ") + ". Verified listing on 360 Flatmates."
     : "View verified room and flatmate listings on 360 Flatmates with compatibility scores, society vibe tags, and visit scheduling.";
 
-  const breadcrumbLd = buildBreadcrumbJsonLd([
-    homeBreadcrumb(),
+  const breadcrumb = [
     { name: "Discover", item: `${SITE_URL}/discover` },
     { name: property?.title ?? "Listing", item: url },
-  ]);
+  ];
 
   const listingLd = property
-    ? {
-        "@context": "https://schema.org",
-        "@type": "RealEstateListing",
+    ? buildResidenceSchema({
         name: property.title,
         description: property.description ?? `Verified listing in ${property.locality}, ${property.city}`,
         url,
-        ...(property.main_image_url ? { image: property.main_image_url } : {}),
-        offers: {
-          "@type": "Offer",
-          price: property.monthly_rent,
-          priceCurrency: "INR",
-          availability: "https://schema.org/InStock",
-        },
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: property.locality,
-          addressRegion: property.city,
-          addressCountry: "IN",
-        },
-      }
+        image: property.main_image_url,
+        monthlyRent: property.monthly_rent,
+        locality: property.locality,
+        city: property.city,
+        bedrooms: property.bedrooms,
+        areaSqft: property.area_sqft,
+      })
     : null;
 
   return (
@@ -62,22 +52,9 @@ export function ListingDetailPage() {
         description={metaDescription}
         canonicalUrl={url}
         ogImage={property?.main_image_url}
-      >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(breadcrumbLd),
-          }}
-        />
-        {listingLd && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(listingLd),
-            }}
-          />
-        )}
-      </SeoHelmet>
+        breadcrumb={breadcrumb}
+        jsonLd={listingLd ?? undefined}
+      />
       <ListingDetailClient />
     </>
   );

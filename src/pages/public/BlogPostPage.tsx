@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router";
-import { SeoHelmet, SITE_URL } from "@/lib/seo";
+import { SeoHelmet, SITE_URL, buildArticleSchema, buildHowToSchema, buildSpeakableSchema } from "@/lib/seo";
 
 const BLOG_CONTENT: Record<string, { title: string; excerpt: string; date: string; publishDate: string; readTime: string; category: string; image: string; content: string }> = {
   "how-to-find-compatible-flatmates": {
@@ -248,26 +248,44 @@ export function BlogPostPage() {
 
   const url = `${SITE_URL}/blog/${slug}`;
 
-  const articleLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
+  const articleLd = buildArticleSchema({
     headline: post.title,
     description: post.excerpt,
     image: post.image,
     datePublished: post.publishDate,
-    author: {
-      "@type": "Organization",
-      name: "360 Flatmates",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "360 Flatmates",
-      logo: {
-        "@type": "ImageObject",
-        url: `${SITE_URL}/favicon.svg`,
-      },
-    },
-  };
+    url,
+  });
+
+  // HowTo schema for genuinely instructional posts.
+  const howToLd = slug === "how-to-find-compatible-flatmates"
+    ? buildHowToSchema({
+        name: "How to Find Compatible Flatmates",
+        description: "A structured process for evaluating flatmate compatibility before moving in together.",
+        totalTime: "P1D",
+        steps: [
+          { name: "Understand your own preferences", text: "Reflect on your sleep schedule, cleanliness standards, food habits, guest policy, work style, and lifestyle preferences before evaluating others." },
+          { name: "Use a structured questionnaire", text: "Ask specific questions about each of the 6 compatibility dimensions rather than relying on vibes alone." },
+          { name: "Schedule a visit", text: "Meet in person at the property to assess the actual living conditions and the potential flatmate." },
+          { name: "Check references", text: "Where possible, talk to their previous flatmates to validate what you've been told." },
+          { name: "Start with a trial period", text: "Agree a month-to-month arrangement first so you can test compatibility before a long-term commitment." },
+        ],
+      })
+    : slug === "room-inspection-checklist"
+      ? buildHowToSchema({
+          name: "How to Inspect a Room Before Renting",
+          description: "A step-by-step inspection process to catch hidden issues before you sign a rental agreement.",
+          totalTime: "PT1H",
+          steps: [
+            { name: "Check plumbing and water pressure", text: "Turn on taps and showers, verify geyser functionality, and look for leakage or dampness stains on walls and under sinks." },
+            { name: "Test electrical outlets and appliances", text: "Verify power sockets near the bed and desk work, confirm society power backup, and test shared appliances like the fridge and washing machine." },
+            { name: "Check mobile network and internet", text: "Walk around the room checking signal strength and ask which ISPs and fiber connections are available in the building." },
+            { name: "Inspect security and locks", text: "Test door locks, window latches, and confirm whether CCTV and a security guard are present at the society gate." },
+            { name: "Review the agreement and deposit terms", text: "Read the rental agreement carefully, confirm the deposit split, notice period, and what is included in the rent." },
+          ],
+        })
+      : null;
+
+  const speakableLd = buildSpeakableSchema(["article h1", "article .excerpt"], url);
 
   const renderContent = (content: string) => {
     return content.split("\n").filter(Boolean).map((line, i) => {
@@ -313,12 +331,10 @@ export function BlogPostPage() {
         description={post.excerpt}
         canonicalUrl={url}
         ogImage={post.image}
-      >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
-        />
-      </SeoHelmet>
+        ogType="article"
+        breadcrumb={[{ name: "Blog", item: `${SITE_URL}/blog` }, { name: post.title, item: url }]}
+        jsonLd={howToLd ? [articleLd, howToLd, speakableLd] : [articleLd, speakableLd]}
+      />
 
       <main id="main" className="page-fade bg-paper">
         <article className="mx-auto max-w-3xl px-5 py-16 md:px-6">
@@ -332,6 +348,9 @@ export function BlogPostPage() {
               <span>•</span>
               <span>{post.readTime}</span>
             </div>
+            <p className="excerpt mt-6 text-body-lg text-ink-2 leading-relaxed max-w-2xl mx-auto">
+              {post.excerpt}
+            </p>
           </div>
 
           <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden mb-12 shadow-sm">

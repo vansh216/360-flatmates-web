@@ -164,8 +164,8 @@ export const STEPS: StepItem[] = [
 ];
 
 export const STATS: StatItem[] = [
-  { display: "10K+", label: "Matches made", numericValue: 10000 },
-  { display: "5K+", label: "Verified rooms", numericValue: 5000 },
+  { display: "8,600+", label: "Matches made", numericValue: 8600 },
+  { display: "1,800+", label: "Verified rooms", numericValue: 1800 },
   { display: "86%", label: "Avg. match score", numericValue: 86 },
   { display: "2", label: "Cities live", numericValue: 2 },
 ];
@@ -231,7 +231,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "How do I report someone?",
     answer:
-      "Hit the report button on any listing or profile. Our team reviews it within 24 hours. For urgent stuff, there's an emergency button in every chat.",
+      "Hit the report button on any listing or profile. Our team reviews it within 24 hours.",
   },
 ];
 

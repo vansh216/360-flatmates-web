@@ -259,39 +259,96 @@ function ChatMessageSkeleton({ side = "left" }: { side?: "left" | "right" }) {
   );
 }
 
-/** Matches SwipeDeck card — full-height image with overlay + action buttons */
+/**
+ * Matches SwipeDeck card — responsive to mirror the real deck:
+ *  - mobile (< md): collapsed full-bleed portrait card (with stacked background cards)
+ *  - md+: expanded side-by-side card (photo pane + details pane), like SwipeDeck's
+ *    expanded view which is the default on viewports ≥768px.
+ * Followed by the SwipeActionBar row in both cases.
+ */
 function SwipeCardSkeleton() {
   return (
-    <div className="flex flex-col items-center gap-6 p-4 w-full">
-      <div className="relative h-[calc(100dvh-328px)] md:h-[calc(100dvh-268px)] w-full max-w-[480px]">
-        {/* Background card 2 (furthest back) */}
-        <div className="absolute inset-x-4 top-4 h-full scale-90 opacity-30 rounded-2xl border border-line bg-surface shadow-sm translate-y-3" />
-        
-        {/* Background card 1 (middle) */}
-        <div className="absolute inset-x-2 top-2 h-full scale-[0.95] opacity-50 rounded-2xl border border-line bg-surface shadow-sm translate-y-[6px]" />
-        
-        {/* Top Card */}
-        <div className="absolute inset-0 overflow-hidden rounded-2xl border border-line bg-surface shadow-lg flex flex-col justify-end p-5">
-          {/* Full-bleed image area */}
-          <div className={cn("absolute inset-0", shimmer)} />
-          
-          {/* Bottom overlay with gradient */}
-          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-ink/80 to-transparent p-5 pt-20">
-            <div className={cn("h-8 w-3/5 rounded-md", shimmer)} />
-            <div className="flex items-center gap-1.5 mt-1">
-              <div className="h-4 w-4 rounded-sm bg-white/20" />
-              <div className={cn("h-4 w-1/3 rounded-sm", shimmer)} />
+    <div className="mx-auto flex w-full max-w-[480px] flex-col gap-5 md:max-w-3xl lg:max-w-4xl">
+      <div className="relative h-[calc(100dvh-328px)] md:h-[calc(100dvh-268px)]">
+        {/* ── Mobile: collapsed full-bleed portrait card ── */}
+        <div className="md:hidden">
+          {/* Background card 2 (furthest back) */}
+          <div className="absolute inset-x-4 top-4 h-full scale-90 opacity-30 rounded-2xl border border-line bg-surface shadow-sm translate-y-3" />
+
+          {/* Background card 1 (middle) */}
+          <div className="absolute inset-x-2 top-2 h-full scale-[0.95] opacity-50 rounded-2xl border border-line bg-surface shadow-sm translate-y-[6px]" />
+
+          {/* Top Card */}
+          <div className="absolute inset-0 overflow-hidden rounded-2xl border border-line bg-surface shadow-lg">
+            {/* Full-bleed image area */}
+            <div className={cn("absolute inset-0", shimmer)} />
+
+            {/* Bottom overlay with gradient */}
+            <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-ink/80 to-transparent p-5 pt-20">
+              <div className={cn("h-8 w-3/5 rounded-md", shimmer)} />
+              <div className="flex items-center gap-1.5 mt-1">
+                <div className="h-4 w-4 rounded-sm bg-white/20" />
+                <div className={cn("h-4 w-1/3 rounded-sm", shimmer)} />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <div className={cn("h-6 w-16 rounded-full bg-white/20", shimmer)} />
+                <div className={cn("h-6 w-14 rounded-full bg-white/20", shimmer)} />
+                <div className={cn("h-6 w-20 rounded-full bg-white/20", shimmer)} />
+              </div>
             </div>
-            <div className="flex gap-2 pt-2">
-              <div className={cn("h-6 w-16 rounded-full bg-white/20", shimmer)} />
-              <div className={cn("h-6 w-14 rounded-full bg-white/20", shimmer)} />
-              <div className={cn("h-6 w-20 rounded-full bg-white/20", shimmer)} />
+          </div>
+        </div>
+
+        {/* ── md+: expanded side-by-side card ── */}
+        <div className="absolute inset-0 hidden overflow-hidden rounded-2xl border border-line bg-surface shadow-lg md:flex">
+          {/* Left: photo pane */}
+          <div className={cn("relative h-full w-[40%] shrink-0 lg:w-[45%]", shimmer)}>
+            {/* Title block over photo */}
+            <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-ink/80 to-transparent p-4 pt-20">
+              <div className={cn("h-7 w-3/5 rounded-md", shimmer)} />
+              <div className="flex items-center gap-1.5">
+                <div className="h-4 w-4 rounded-sm bg-white/20" />
+                <div className={cn("h-4 w-1/2 rounded-sm", shimmer)} />
+              </div>
+            </div>
+          </div>
+
+          {/* Right: details pane */}
+          <div className="flex flex-1 flex-col px-5 py-4 space-y-6">
+            {/* Specs grid */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 border-b border-line/45 pb-5">
+              {Array.from({ length: 4 }, (_, i) => (
+                <div key={i} className="flex flex-col gap-1.5">
+                  <div className={cn("h-3 w-1/2 rounded-sm", shimmer)} />
+                  <div className={cn("h-4 w-3/4 rounded-sm", shimmer)} />
+                </div>
+              ))}
+            </div>
+
+            {/* About section */}
+            <div className="space-y-2">
+              <div className={cn("h-5 w-24 rounded-md", shimmer)} />
+              <div className={cn("h-4 w-full rounded-sm", shimmer)} />
+              <div className={cn("h-4 w-11/12 rounded-sm", shimmer)} />
+              <div className={cn("h-4 w-4/5 rounded-sm", shimmer)} />
+            </div>
+
+            {/* Chip rows */}
+            <div className="space-y-2">
+              <div className={cn("h-5 w-20 rounded-md", shimmer)} />
+              <div className="flex flex-wrap gap-2">
+                <div className={cn("h-7 w-24 rounded-full", shimmer)} />
+                <div className={cn("h-7 w-20 rounded-full", shimmer)} />
+                <div className={cn("h-7 w-28 rounded-full", shimmer)} />
+                <div className={cn("h-7 w-16 rounded-full", shimmer)} />
+              </div>
             </div>
           </div>
         </div>
       </div>
+
       {/* Action buttons */}
-      <div className="flex items-center gap-5">
+      <div className="flex items-center justify-center gap-5">
         <div className={cn("h-[60px] w-[60px] rounded-full bg-error/10 border-2 border-error/20", shimmer)} />
         <div className={cn("h-[50px] w-[50px] rounded-full bg-warning/10 border-2 border-warning/20", shimmer)} />
         <div className={cn("h-[60px] w-[60px] rounded-full bg-success/10 border-2 border-success/20", shimmer)} />

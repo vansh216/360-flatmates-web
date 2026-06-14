@@ -1,302 +1,168 @@
+# ============================================================================
+# 360 Flatmates — robots.txt
+# Site: https://360ghar.com
+#
+# Policy: public marketing + discovery content is fully crawlable for both
+# classic search engines AND AI / LLM crawlers (training + answer-engine
+# citation). Private, user-specific, or authenticated areas are disallowed.
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# 1) Default group — applies to every crawler not listed below.
+#    Allow public paths; disallow app / admin / auth / private / dynamic
+#    user-generated routes.
+# ---------------------------------------------------------------------------
 User-agent: *
+
+# Public, indexable surfaces (allowed by default via "Allow: /"; listed
+# explicitly for clarity and to document intent). The rule list below is
+# intentionally identical to the AI/LLM group further down — keep them in
+# sync if you edit either.
 Allow: /
 Allow: /discover
-Allow: /search
+Allow: /discover/
+Allow: /share/
+Allow: /cities/
+Allow: /blog
+Allow: /blog/
+Allow: /compare/
 Allow: /stats
 Allow: /about
 Allow: /terms
 Allow: /privacy
-Allow: /share
-Allow: /cities/
-Allow: /blog
-Allow: /compare
+
+# Authenticated / private / dynamic-UGC — never index.
+Disallow: /search
+Disallow: /search/
+Disallow: /explore
+Disallow: /listing/
+Disallow: /profile/
+Disallow: /post
+Disallow: /post/
+Disallow: /manage
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /swipe
+Disallow: /likes
+Disallow: /matches
+Disallow: /chats
+Disallow: /chats/
+Disallow: /visits
+Disallow: /visits/
+Disallow: /onboarding
+Disallow: /onboarding/
+Disallow: /choose-role
+Disallow: /location
+Disallow: /verify
+Disallow: /help
+Disallow: /alerts
+Disallow: /saved-searches
+Disallow: /notifications
+Disallow: /add-phone
+
+# App + admin shells + auth flows.
 Disallow: /app/
 Disallow: /admin/
-Disallow: /chats/
-Disallow: /settings/
-Disallow: /swipe/
-Disallow: /visits/
-Disallow: /likes/
-Disallow: /post/
-Disallow: /onboarding/
-Disallow: /notifications/
-Disallow: /alerts/
-Disallow: /saved-searches/
-Disallow: /dashboard/
+Disallow: /auth/
 Disallow: /login
 Disallow: /signup
 Disallow: /forgot-password
-Disallow: /auth/
 
-# Explicitly allow AI Scrapers & Large Language Model Crawlers for Search & Training
+# System / error routes — not for indexing.
+Disallow: /maintenance
+Disallow: /error
+
+# ---------------------------------------------------------------------------
+# 2) AI / LLM / answer-engine crawler group.
+#    These bots get the SAME rules as the default group: full access to
+#    public content for BOTH model training and answer-engine citation.
+#    Listed explicitly so the permissive policy is unambiguous to each bot
+#    (some only honor rules addressed to them by name).
+#
+#    Critical: OAI-SearchBot is allowed (powers ChatGPT search citations).
+# ---------------------------------------------------------------------------
 User-agent: GPTBot
-Allow: /
-Allow: /discover
-Allow: /search
-Allow: /stats
-Allow: /about
-Allow: /terms
-Allow: /privacy
-Allow: /share
-Allow: /cities/
-Allow: /blog
-Allow: /compare
-Disallow: /app/
-Disallow: /admin/
-Disallow: /chats/
-Disallow: /settings/
-Disallow: /swipe/
-Disallow: /visits/
-Disallow: /likes/
-Disallow: /post/
-Disallow: /onboarding/
-Disallow: /notifications/
-Disallow: /alerts/
-Disallow: /saved-searches/
-Disallow: /dashboard/
-Disallow: /login
-Disallow: /signup
-Disallow: /forgot-password
-Disallow: /auth/
-
 User-agent: ChatGPT-User
-Allow: /
-Allow: /discover
-Allow: /search
-Allow: /stats
-Allow: /about
-Allow: /terms
-Allow: /privacy
-Allow: /share
-Allow: /cities/
-Allow: /blog
-Allow: /compare
-Disallow: /app/
-Disallow: /admin/
-Disallow: /chats/
-Disallow: /settings/
-Disallow: /swipe/
-Disallow: /visits/
-Disallow: /likes/
-Disallow: /post/
-Disallow: /onboarding/
-Disallow: /notifications/
-Disallow: /alerts/
-Disallow: /saved-searches/
-Disallow: /dashboard/
-Disallow: /login
-Disallow: /signup
-Disallow: /forgot-password
-Disallow: /auth/
-
+User-agent: OAI-SearchBot
 User-agent: Google-Extended
-Allow: /
-Allow: /discover
-Allow: /search
-Allow: /stats
-Allow: /about
-Allow: /terms
-Allow: /privacy
-Allow: /share
-Allow: /cities/
-Allow: /blog
-Allow: /compare
-Disallow: /app/
-Disallow: /admin/
-Disallow: /chats/
-Disallow: /settings/
-Disallow: /swipe/
-Disallow: /visits/
-Disallow: /likes/
-Disallow: /post/
-Disallow: /onboarding/
-Disallow: /notifications/
-Disallow: /alerts/
-Disallow: /saved-searches/
-Disallow: /dashboard/
-Disallow: /login
-Disallow: /signup
-Disallow: /forgot-password
-Disallow: /auth/
-
 User-agent: Anthropic-AI
-Allow: /
-Allow: /discover
-Allow: /search
-Allow: /stats
-Allow: /about
-Allow: /terms
-Allow: /privacy
-Allow: /share
-Allow: /cities/
-Allow: /blog
-Allow: /compare
-Disallow: /app/
-Disallow: /admin/
-Disallow: /chats/
-Disallow: /settings/
-Disallow: /swipe/
-Disallow: /visits/
-Disallow: /likes/
-Disallow: /post/
-Disallow: /onboarding/
-Disallow: /notifications/
-Disallow: /alerts/
-Disallow: /saved-searches/
-Disallow: /dashboard/
-Disallow: /login
-Disallow: /signup
-Disallow: /forgot-password
-Disallow: /auth/
-
-User-agent: Claude-Web
-Allow: /
-Allow: /discover
-Allow: /search
-Allow: /stats
-Allow: /about
-Allow: /terms
-Allow: /privacy
-Allow: /share
-Allow: /cities/
-Allow: /blog
-Allow: /compare
-Disallow: /app/
-Disallow: /admin/
-Disallow: /chats/
-Disallow: /settings/
-Disallow: /swipe/
-Disallow: /visits/
-Disallow: /likes/
-Disallow: /post/
-Disallow: /onboarding/
-Disallow: /notifications/
-Disallow: /alerts/
-Disallow: /saved-searches/
-Disallow: /dashboard/
-Disallow: /login
-Disallow: /signup
-Disallow: /forgot-password
-Disallow: /auth/
-
 User-agent: ClaudeBot
-Allow: /
-Allow: /discover
-Allow: /search
-Allow: /stats
-Allow: /about
-Allow: /terms
-Allow: /privacy
-Allow: /share
-Allow: /cities/
-Allow: /blog
-Allow: /compare
-Disallow: /app/
-Disallow: /admin/
-Disallow: /chats/
-Disallow: /settings/
-Disallow: /swipe/
-Disallow: /visits/
-Disallow: /likes/
-Disallow: /post/
-Disallow: /onboarding/
-Disallow: /notifications/
-Disallow: /alerts/
-Disallow: /saved-searches/
-Disallow: /dashboard/
-Disallow: /login
-Disallow: /signup
-Disallow: /forgot-password
-Disallow: /auth/
-
+User-agent: Claude-Web
 User-agent: PerplexityBot
-Allow: /
-Allow: /discover
-Allow: /search
-Allow: /stats
-Allow: /about
-Allow: /terms
-Allow: /privacy
-Allow: /share
-Allow: /cities/
-Allow: /blog
-Allow: /compare
-Disallow: /app/
-Disallow: /admin/
-Disallow: /chats/
-Disallow: /settings/
-Disallow: /swipe/
-Disallow: /visits/
-Disallow: /likes/
-Disallow: /post/
-Disallow: /onboarding/
-Disallow: /notifications/
-Disallow: /alerts/
-Disallow: /saved-searches/
-Disallow: /dashboard/
-Disallow: /login
-Disallow: /signup
-Disallow: /forgot-password
-Disallow: /auth/
-
-User-agent: cohere-ai
-Allow: /
-Allow: /discover
-Allow: /search
-Allow: /stats
-Allow: /about
-Allow: /terms
-Allow: /privacy
-Allow: /share
-Allow: /cities/
-Allow: /blog
-Allow: /compare
-Disallow: /app/
-Disallow: /admin/
-Disallow: /chats/
-Disallow: /settings/
-Disallow: /swipe/
-Disallow: /visits/
-Disallow: /likes/
-Disallow: /post/
-Disallow: /onboarding/
-Disallow: /notifications/
-Disallow: /alerts/
-Disallow: /saved-searches/
-Disallow: /dashboard/
-Disallow: /login
-Disallow: /signup
-Disallow: /forgot-password
-Disallow: /auth/
-
+User-agent: Perplexity-User
+User-agent: CCBot
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: Meta-ExternalFetcher
 User-agent: FacebookBot
+User-agent: cohere-ai
+User-agent: YouBot
+User-agent: Amazonbot
+User-agent: Diffbot
+User-agent: Bytespider
+User-agent: ImagesiftBot
+User-agent: Omgili
+User-agent: Omgilibot
+User-agent: PiplBot
+User-agent: GoogleOther
+User-agent: BraveBot
+User-agent: DuckAssistBot
+User-agent: MistralAI-User
+
 Allow: /
 Allow: /discover
-Allow: /search
+Allow: /discover/
+Allow: /share/
+Allow: /cities/
+Allow: /blog
+Allow: /blog/
+Allow: /compare/
 Allow: /stats
 Allow: /about
 Allow: /terms
 Allow: /privacy
-Allow: /share
-Allow: /cities/
-Allow: /blog
-Allow: /compare
+
+Disallow: /search
+Disallow: /search/
+Disallow: /explore
+Disallow: /listing/
+Disallow: /profile/
+Disallow: /post
+Disallow: /post/
+Disallow: /manage
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /swipe
+Disallow: /likes
+Disallow: /matches
+Disallow: /chats
+Disallow: /chats/
+Disallow: /visits
+Disallow: /visits/
+Disallow: /onboarding
+Disallow: /onboarding/
+Disallow: /choose-role
+Disallow: /location
+Disallow: /verify
+Disallow: /help
+Disallow: /alerts
+Disallow: /saved-searches
+Disallow: /notifications
+Disallow: /add-phone
 Disallow: /app/
 Disallow: /admin/
-Disallow: /chats/
-Disallow: /settings/
-Disallow: /swipe/
-Disallow: /visits/
-Disallow: /likes/
-Disallow: /post/
-Disallow: /onboarding/
-Disallow: /notifications/
-Disallow: /alerts/
-Disallow: /saved-searches/
-Disallow: /dashboard/
+Disallow: /auth/
 Disallow: /login
 Disallow: /signup
 Disallow: /forgot-password
-Disallow: /auth/
+Disallow: /maintenance
+Disallow: /error
 
+# ---------------------------------------------------------------------------
+# 3) Site discovery signals.
+#    No Crawl-delay: it is ignored by Google and would only throttle LLM
+#    discovery. Left intentionally unset.
+# ---------------------------------------------------------------------------
+Host: https://360ghar.com
 Sitemap: https://360ghar.com/sitemap.xml

@@ -161,7 +161,7 @@ export function SwipePage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center gap-6 p-4">
+      <div className="py-2 md:py-4">
         <Skeleton variant="swipeCard" />
       </div>
     );

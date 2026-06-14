@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useParams, useNavigate } from "react-router";
-import { SeoHelmet, SITE_URL, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
+import { SeoHelmet, SITE_URL } from "@/lib/seo";
 import { useProfile, useCompatibility, useCreateConversation } from "@/hooks/queries";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Avatar } from "@/components/ui/Avatar";
@@ -14,10 +14,7 @@ import { TrustBadge } from "@/components/ui/TrustBadge";
 import { ProfileDetailsCard } from "@/components/molecules/ProfileDetailsCard";
 import { humanizeSnakeCase } from "@/lib/utils";
 
-const breadcrumbLd = buildBreadcrumbJsonLd([
-  homeBreadcrumb(),
-  { name: "Profile" },
-]);
+const breadcrumb = [{ name: "Profile", item: `${SITE_URL}/profile` }];
 
 export function PublicProfilePage() {
   const { id } = useParams();
@@ -65,14 +62,8 @@ export function PublicProfilePage() {
         description={profile ? `View ${profile.full_name}'s flatmate profile on 360 Flatmates. ${profile.profession ? `${profile.profession} looking for flatmates. ` : ""}Compatibility scores, lifestyle preferences, and verified user information.` : "View flatmate profiles on 360 Flatmates."}
         canonicalUrl={url}
         ogType="profile"
-      >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(breadcrumbLd),
-          }}
-        />
-      </SeoHelmet>
+        breadcrumb={[...breadcrumb, { name: profile?.full_name ?? "Profile" }]}
+      />
 
       <div className="flex flex-col gap-5 p-4 md:p-6 max-w-lg mx-auto">
         {error || !profile ? (

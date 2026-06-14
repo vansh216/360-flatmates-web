@@ -4,7 +4,7 @@ import { CITIES } from "./landing-data";
 import { NetworkImage } from "../ui/NetworkImage";
 
 const CITY_IMAGES: Record<string, string> = {
-  Gurugram: "1567157577867-05ccb1388e66",
+  Gurugram: "1589829973523-e4ddcbbd40e7",
   Bangalore: "1596176530529-78163a4f7af2",
 };
 

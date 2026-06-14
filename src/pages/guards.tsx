@@ -4,7 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { authStore } from "@/lib/stores/auth-store";
 import { PageSpinner } from "@/components/ui/Spinner";
 
-const AUTH_ROUTES = new Set(["/login", "/signup", "/forgot-password"]);
+// /signup intentionally omitted: it's a <Navigate to="/login">, never guarded
+// content — a signed-in user is bounced to /home via the /login entry anyway.
+const AUTH_ROUTES = new Set(["/login", "/forgot-password"]);
 
 /** Routes that are part of the gate flow (not bounced by the auth-state guard). */
 const GATE_ROUTES = new Set([

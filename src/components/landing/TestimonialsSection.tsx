@@ -1,10 +1,15 @@
 import { RevealSection } from "@/components/ui/RevealSection";
 import { TESTIMONIALS } from "./landing-data";
 
-const AVATAR_MAP: Record<string, string> = {
-  "Priya M.": "/avatars/priya.png",
-  "Rohan K.": "/avatars/rohan.png",
-};
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((part) => part.charAt(0))
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export function TestimonialsSection() {
   return (
@@ -12,7 +17,7 @@ export function TestimonialsSection() {
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <RevealSection className="mb-14 text-center">
           <h2 id="testimonials-heading" className="text-display text-4xl md:text-5xl text-ink">
-            10,000 people stopped settling.
+            8,600 people stopped settling.
           </h2>
         </RevealSection>
 
@@ -28,16 +33,11 @@ export function TestimonialsSection() {
 
               <div className="mt-10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-11 w-11 rounded-full overflow-hidden border border-line shadow-sm bg-paper-2">
-                    <img
-                      src={AVATAR_MAP[testimonial.name] ?? "/avatars/anya.png"}
-                      alt={testimonial.name}
-                      width={44}
-                      height={44}
-                      className="object-cover h-full w-full"
-                      loading="lazy"
-                      decoding="async"
-                    />
+                  <div
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-line shadow-sm bg-accent-soft text-accent font-semibold text-label-lg select-none"
+                    aria-hidden="true"
+                  >
+                    {getInitials(testimonial.name)}
                   </div>
                   <div>
                     <p className="text-h3 text-ink font-semibold">{testimonial.name}</p>

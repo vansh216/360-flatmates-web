@@ -16,6 +16,10 @@ export default defineConfig({
         "favicon-512.png",
         "favicon-192-maskable.png",
         "favicon-512-maskable.png",
+        "og-image.png",
+        "logo.png",
+        "favicon.ico",
+        "llms.txt",
       ],
       manifest: {
         name: "360 Flatmates",

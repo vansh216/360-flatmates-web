@@ -18,7 +18,24 @@ export function getSupabaseBrowserClient() {
   const env = getEnv();
   browserClient = createClient(
     env.VITE_SUPABASE_URL,
-    env.VITE_SUPABASE_PUBLISHABLE_KEY
+    env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        // PKCE flow: OAuth providers (Google/Apple) redirect back with a
+        // `?code=` param that AuthCallbackPage exchanges via
+        // `exchangeCodeForSession`. The supabase-js default is `implicit`,
+        // which instead returns tokens in the URL hash and would make the
+        // callback's `searchParams.get("code")` always null — silently
+        // breaking Google sign-in.
+        flowType: "pkce",
+        // The callback page exchanges the code explicitly, so disable the
+        // automatic URL detection to avoid a double-exchange race that
+        // consumes the single-use code before our handler runs.
+        detectSessionInUrl: false,
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    }
   );
 
   return browserClient;

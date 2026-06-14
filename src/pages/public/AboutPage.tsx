@@ -39,6 +39,7 @@ export function AboutPage() {
         title="About Us"
         description="Learn about 360 Flatmates, our mission to make flatmate matching smarter through compatibility scores, verified listings, and safety-first workflows across India."
         canonicalUrl={`${SITE_URL}/about`}
+        breadcrumb={[{ name: "About", item: `${SITE_URL}/about` }]}
       />
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-16 md:px-12">
         <div className="text-center mb-16">

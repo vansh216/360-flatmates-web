@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { SeoHelmet, SITE_URL, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
+import { SeoHelmet, SITE_URL, buildCollectionPageSchema } from "@/lib/seo";
 import { Card } from "@/components/ui/Card";
 import { ArrowRight, Calendar, Clock } from "lucide-react";
 
@@ -66,10 +66,15 @@ const CATEGORIES = ["All", "Guide", "Market Insights", "Community"];
 export function BlogPage() {
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const breadcrumbLd = buildBreadcrumbJsonLd([
-    homeBreadcrumb(),
-    { name: "Blog", item: `${SITE_URL}/blog` },
-  ]);
+  const breadcrumb = [{ name: "Blog", item: `${SITE_URL}/blog` }];
+
+  const collectionLd = buildCollectionPageSchema({
+    name: "Flatmate Living Guides & Tips",
+    description:
+      "Expert guides on finding compatible flatmates, navigating rental markets, and building harmonious shared living spaces across India.",
+    url: `${SITE_URL}/blog`,
+    breadcrumb,
+  });
 
   const filteredPosts = activeCategory === "All"
     ? BLOG_POSTS
@@ -81,12 +86,9 @@ export function BlogPage() {
         title="Flatmate Living Guides & Tips"
         description="Expert guides on finding compatible flatmates, navigating rental markets, and building harmonious shared living spaces across India."
         canonicalUrl={`${SITE_URL}/blog`}
-      >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
-        />
-      </SeoHelmet>
+        breadcrumb={breadcrumb}
+        jsonLd={collectionLd}
+      />
 
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-16 md:px-12">
         <div className="text-center mb-16">

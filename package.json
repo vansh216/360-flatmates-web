@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && npx tsx scripts/generate-pwa-icons.ts && npx tsx scripts/generate-sitemap.ts && vite build",
+    "build": "tsc --noEmit && npx tsx scripts/generate-pwa-icons.ts && npx tsx scripts/generate-og-image.ts && npx tsx scripts/generate-favicon-ico.ts && npx tsx scripts/generate-sitemap.ts && vite build && npx tsx scripts/prerender.ts",
+    "prerender": "npx tsx scripts/prerender.ts",
     "preview": "vite preview",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
