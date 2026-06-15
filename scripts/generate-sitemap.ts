@@ -12,7 +12,7 @@
  *  - Neighborhood URLs (`/cities/:slug/:neighborhood`) — the route exists in
  *    App.tsx and the data lives in `src/lib/seo/neighborhoods.ts`.
  *  - Blog posts and comparison pages (static slugs maintained here).
- *  - Dynamic listing pages (`/discover/:id` + `/share/:id`) — IDs + images
+ *  - Dynamic listing pages (`/discover/:id`) — IDs + images
  *    fetched at build time from the public `/properties` API (shared with
  *    prerender via `scripts/lib/listings.ts`, so the two never drift).
  *  - Image-sitemap entries (`<image:image>`) for pages with a stable
@@ -211,7 +211,7 @@ async function generateSitemap(): Promise<void> {
     }
   }
 
-  // 6) Dynamic listing URLs (`/discover/:id`, `/share/:id`). IDs + images come
+  // 6) Dynamic listing URLs (`/discover/:id`). IDs + images come
   //    from the shared build-time fetch (scripts/lib/listings.ts) so prerender
   //    renders exactly the set the sitemap advertises.
   const { listings: dynamicListings, ok: listingsOk } = await fetchDiscoverableListings();
@@ -235,13 +235,6 @@ async function generateSitemap(): Promise<void> {
       lastmod: listing.lastmod ?? lastmod,
       changefreq: "daily",
       priority: "0.7",
-      images: listingImages,
-    });
-    entries.push({
-      loc: `${SITE_URL}/share/${listing.id}`,
-      lastmod: listing.lastmod ?? lastmod,
-      changefreq: "weekly",
-      priority: "0.5",
       images: listingImages,
     });
   }

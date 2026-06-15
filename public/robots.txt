@@ -21,7 +21,6 @@ User-agent: *
 Allow: /
 Allow: /discover
 Allow: /discover/
-Allow: /share/
 Allow: /cities/
 Allow: /blog
 Allow: /blog/
@@ -113,7 +112,6 @@ User-agent: MistralAI-User
 Allow: /
 Allow: /discover
 Allow: /discover/
-Allow: /share/
 Allow: /cities/
 Allow: /blog
 Allow: /blog/

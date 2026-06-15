@@ -9,7 +9,6 @@ const expectedRoutes = [
   "/search",
   "/search/semantic",
   "/stats",
-  "/share/koramangala-studio",
   "/login",
   "/signup",
   "/forgot-password",

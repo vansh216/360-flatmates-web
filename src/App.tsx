@@ -22,7 +22,6 @@ const DiscoverPage = lazy(() => import("./pages/public/DiscoverPage").then((m) =
 const ListingDetailPage = lazy(() => import("./pages/public/ListingDetailPage").then((m) => ({ default: m.ListingDetailPage })));
 const SearchPage = lazy(() => import("./pages/public/SearchPage").then((m) => ({ default: m.SearchPage })));
 const SemanticSearchPage = lazy(() => import("./pages/public/SemanticSearchPage").then((m) => ({ default: m.SemanticSearchPage })));
-const SharePage = lazy(() => import("./pages/public/SharePage").then((m) => ({ default: m.SharePage })));
 const CityPage = lazy(() => import("./pages/public/CityPage").then((m) => ({ default: m.CityPage })));
 const NeighborhoodPage = lazy(() => import("./pages/public/NeighborhoodPage").then((m) => ({ default: m.NeighborhoodPage })));
 const BlogPage = lazy(() => import("./pages/public/BlogPage").then((m) => ({ default: m.BlogPage })));
@@ -100,7 +99,6 @@ export function App() {
               <Route path="terms" element={<TermsPage />} />
               <Route path="privacy" element={<PrivacyPage />} />
               <Route path="stats" element={<StatsPage />} />
-              <Route path="share/:id" element={<SharePage />} />
               <Route path="maintenance" element={<MaintenancePage />} />
               <Route path="error" element={<ErrorPage />} />
             </Route>

@@ -13,7 +13,7 @@
  *
  * Route coverage mirrors `scripts/generate-sitemap.ts` exactly: static public
  * routes, every supported city, every neighborhood, and every discoverable
- * listing page (`/discover/:id`, `/share/:id`) from the shared build-time fetch
+ * listing page (`/discover/:id`) from the shared build-time fetch
  * in `scripts/lib/listings.ts`. Sharing that fetch guarantees the sitemap never
  * advertises a URL that this step has not rendered.
  *
@@ -50,7 +50,7 @@ const PREVIEW_PORT = Number(process.env.PRERENDER_PORT ?? 4178);
 const PREVIEW_HOST = "127.0.0.1";
 const BASE_URL = `http://${PREVIEW_HOST}:${PREVIEW_PORT}`;
 /** Max simultaneous Chromium tabs while capturing. Listing pages are the volume driver. */
-const CONCURRENCY = Math.max(1, Number(process.env.PRERENDER_CONCURRENCY ?? 4));
+const CONCURRENCY = Math.max(1, Number(process.env.PRERENDER_CONCURRENCY ?? 20));
 /** Set PRERENDER_LISTINGS=0 to skip per-listing pages (e.g. for a fast smoke build). */
 const PRERENDER_LISTINGS = process.env.PRERENDER_LISTINGS !== "0";
 
@@ -103,7 +103,7 @@ function buildNeighborhoodRoutes(): string[] {
 }
 
 /**
- * Per-listing routes (`/discover/:id` + `/share/:id`) from the same shared
+ * Per-listing routes (`/discover/:id`) from the same shared
  * build-time fetch the sitemap uses, so the two never advertise different sets.
  */
 async function buildListingRoutes(): Promise<string[]> {
@@ -112,7 +112,6 @@ async function buildListingRoutes(): Promise<string[]> {
   const routes: string[] = [];
   for (const l of listings) {
     routes.push(`/discover/${l.id}`);
-    routes.push(`/share/${l.id}`);
   }
   return routes;
 }

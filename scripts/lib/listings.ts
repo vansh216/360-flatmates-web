@@ -2,7 +2,7 @@
  * Shared build-time listing discovery for generate-sitemap.ts and prerender.ts.
  *
  * Both scripts need the SAME set of discoverable listing IDs — the sitemap
- * emits `/discover/:id` + `/share/:id` URLs, and prerender renders those exact
+ * emits `/discover/:id` URLs, and prerender renders those exact
  * pages — so the fetch lives here once and the two consumers cannot drift out
  * of sync (which previously left sitemap URLs unrendered for JS-less crawlers).
  *

@@ -12,7 +12,6 @@ export const routeInventory = [
   "/search",
   "/search/semantic",
   "/stats",
-  "/share/koramangala-studio",
   "/login",
   "/signup",
   "/forgot-password",
