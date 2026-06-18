@@ -20,6 +20,7 @@ export interface ListingBuilderProps extends HTMLAttributes<HTMLElement> {
   onSaveDraft?: () => void;
   nextLabel?: string;
   submitting?: boolean;
+  nextDisabled?: boolean;
 }
 
 export function ListingBuilder({
@@ -31,6 +32,7 @@ export function ListingBuilder({
   onSaveDraft,
   nextLabel,
   submitting = false,
+  nextDisabled = false,
   className,
   ...props
 }: ListingBuilderProps) {
@@ -58,7 +60,7 @@ export function ListingBuilder({
         <Button variant="tertiary" onClick={onBack}>
           Back
         </Button>
-        <Button loading={submitting} onClick={onNext}>
+        <Button loading={submitting} disabled={nextDisabled} onClick={onNext}>
           {nextLabel ?? (finalStep ? "Publish Listing" : "Next")}
         </Button>
       </BottomActionBar>

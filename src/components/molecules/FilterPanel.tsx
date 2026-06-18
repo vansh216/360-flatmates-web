@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { Button } from "../ui/Button";
-import { Chip } from "../ui/Chip";
+import { Chip, type ChipVariant } from "../ui/Chip";
 import { SearchBar } from "../ui/SearchBar";
 import { cn } from "../ui/component-utils";
 
@@ -17,6 +17,8 @@ export interface FilterSection {
   title: string;
   hint?: string;
   options: FilterOption[];
+  /** Chip variant for this section. Use "choice" for single-select (radio) semantics. */
+  variant?: ChipVariant;
 }
 
 export interface FilterPanelProps extends HTMLAttributes<HTMLElement> {
@@ -44,6 +46,7 @@ export function FilterPanel({
         value={searchValue}
         onChange={(event) => onSearchChange?.(event.target.value)}
         placeholder="Search locality or society"
+        aria-label="Search locality or society"
       />
       <div className="flex flex-col gap-5">
         {sections.map((section) => (
@@ -57,6 +60,7 @@ export function FilterPanel({
               {section.options.map((option) => (
                 <Chip
                   key={option.value}
+                  variant={section.variant}
                   selected={option.selected}
                   disabled={option.disabled}
                   onClick={() => onFilterToggle?.(section.id, option.value)}

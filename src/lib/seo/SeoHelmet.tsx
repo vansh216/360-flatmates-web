@@ -77,7 +77,7 @@ export function SeoHelmet({
   breadcrumb,
   children,
 }: SeoHelmetProps) {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — ${SITE_TAGLINE}`;
+  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME}: ${SITE_TAGLINE}`;
   const metaDescription = description ?? DEFAULT_DESCRIPTION;
   const canonical = canonicalUrl ?? SITE_URL;
   const image = ogImage ?? DEFAULT_OG_IMAGE;

@@ -11,6 +11,7 @@ import type { Neighborhood } from "@/lib/seo/neighborhoods";
 import { buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/StateViews";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSearch } from "@/hooks/queries/useSearch";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
@@ -36,7 +37,7 @@ export function NeighborhoodPage() {
     limit: 12,
   };
 
-  const { data: searchResults, isLoading } = useWebSearch(filters);
+  const { data: searchResults, isLoading, isError, refetch } = useWebSearch(filters);
 
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.results) return [];
@@ -50,15 +51,23 @@ export function NeighborhoodPage() {
 
   if (!city || !hood) {
     return (
-      <div className="mx-auto max-w-7xl px-5 py-20 text-center">
-        <h1 className="text-h1">Neighborhood not found</h1>
-        <p className="mt-4 text-body-lg text-ink-2">
-          We don't have listings for this area yet.{" "}
-          <Link to="/discover" className="text-accent hover:underline">
-            Browse all listings
-          </Link>
-        </p>
-      </div>
+      <>
+        <SeoHelmet
+          title="Neighborhood Not Found"
+          description="We don't have listings for this area yet. Browse all verified rooms and compatible flatmates on 360 Flatmates."
+          canonicalUrl={`${SITE_URL}/cities/${slug ?? ""}/${neighborhood ?? ""}`}
+          noindex
+        />
+        <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-20 text-center">
+          <h1 className="text-h1">Neighborhood not found</h1>
+          <p className="mt-4 text-body-lg text-ink-2">
+            We don't have listings for this area yet.{" "}
+            <Link to="/discover" className="text-accent hover:underline">
+              Browse all listings
+            </Link>
+          </p>
+        </main>
+      </>
     );
   }
 
@@ -89,7 +98,7 @@ export function NeighborhoodPage() {
     },
     {
       question: `Are rooms in ${hood.name} verified on 360 Flatmates?`,
-      answer: `Yes. Every listing in ${hood.name} is reviewed before it goes live — real photos, real rent, real availability. Landlords and current flatmates confirm the details directly.`,
+      answer: `Yes. Every listing in ${hood.name} is reviewed before it goes live: real photos, real rent, real availability. Landlords and current flatmates confirm the details directly.`,
     },
     {
       question: `Which other ${city.name} neighborhoods are near ${hood.name}?`,
@@ -162,6 +171,14 @@ export function NeighborhoodPage() {
                 <Skeleton key={i} variant="listingCard" />
               ))}
             </div>
+          ) : isError ? (
+            <Card className="flex items-center justify-center p-8">
+              <ErrorState
+                title={`Couldn't load listings in ${hood.name}`}
+                description="Please check your connection and try again."
+                onRetry={() => refetch()}
+              />
+            </Card>
           ) : listings.length > 0 ? (
             <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
               {listings.map((listing) => (

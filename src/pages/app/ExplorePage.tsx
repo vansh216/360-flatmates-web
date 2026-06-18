@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { useMapView, useProperty } from "@/hooks/queries";
 import { searchStore } from "@/lib/stores/search-store";
+import { mapStore } from "@/lib/stores/map-store";
 import type { MapCluster, MapViewFilters, SearchFilters, MapPin as MapPinType } from "@/lib/api/types";
 import {
   LISTING_SHARING_TYPE_OPTIONS,
@@ -29,10 +30,6 @@ const MapViewFallback = () => (
   </div>
 );
 
-// Default center: Gurgaon (intentionally different from map-store's New Delhi default)
-const DEFAULT_CENTER: [number, number] = [28.4595, 77.0266];
-const DEFAULT_ZOOM = 12;
-
 export function ExplorePage() {
   const navigate = useNavigate();
   const filters = useStore(searchStore, (s) => s.filters);
@@ -49,27 +46,34 @@ export function ExplorePage() {
   // Fetch full details of the selected property
   const { data: fullProperty, isLoading: isPropertyLoading } = useProperty(selectedPin?.id ?? 0);
 
-  // Map state
-  const [mapCenter, setMapCenter] = useState<[number, number]>(DEFAULT_CENTER);
-  const [mapZoom, setMapZoom] = useState(DEFAULT_ZOOM);
+  // Map state (persisted in mapStore so viewport survives navigation)
+  const mapCenter = useStore(mapStore, (s) => s.center);
+  const mapZoom = useStore(mapStore, (s) => s.zoom);
+  const setMapCenter = useStore(mapStore, (s) => s.setCenter);
+  const setMapZoom = useStore(mapStore, (s) => s.setZoom);
+  const setMapBounds = useStore(mapStore, (s) => s.setBounds);
+
+  // Derive [lat, lng] tuple for MapView
+  const centerTuple: [number, number] = [mapCenter.lat, mapCenter.lng];
 
   // Map API query
   const mapFilters: MapViewFilters = useMemo(
     () => ({
-      lat: mapCenter[0],
-      lng: mapCenter[1],
+      lat: mapCenter.lat,
+      lng: mapCenter.lng,
       zoom_level: mapZoom,
       radius: 5,
       price_min: filters.price_min,
       price_max: filters.price_max,
       sharing_type: filters.sharing_type
     }),
-    [mapCenter, mapZoom, filters.price_min, filters.price_max, filters.sharing_type]
+    [mapCenter.lat, mapCenter.lng, mapZoom, filters.price_min, filters.price_max, filters.sharing_type]
   );
 
   const {
     data: mapData,
     isLoading,
+    isFetching,
     error,
     refetch,
   } = useMapView(mapFilters);
@@ -87,13 +91,13 @@ export function ExplorePage() {
 
   // Handle map viewport changes (pan/zoom)
   const handleViewportChange = useCallback((bounds: MapBounds, zoom: number) => {
-    const newCenter: [number, number] = [
-      (bounds.north + bounds.south) / 2,
-      (bounds.east + bounds.west) / 2
-    ];
-    setMapCenter(newCenter);
+    setMapCenter({
+      lat: (bounds.north + bounds.south) / 2,
+      lng: (bounds.east + bounds.west) / 2,
+    });
     setMapZoom(zoom);
-  }, []);
+    setMapBounds(bounds);
+  }, [setMapCenter, setMapZoom, setMapBounds]);
 
   // Handle pin selection: toggle selected pin for inline card
   const handlePinSelect = useCallback(
@@ -117,14 +121,14 @@ export function ExplorePage() {
   const handleLocate = useCallback(() => {
     navigator.geolocation?.getCurrentPosition(
       (position) => {
-        setMapCenter([position.coords.latitude, position.coords.longitude]);
+        setMapCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
         setMapZoom(14);
       },
       () => {
         // On error, stay at default center
       }
     );
-  }, []);
+  }, [setMapCenter, setMapZoom]);
 
   // Build filter sections for FilterPanel
   const filterSections: FilterSection[] = useMemo(
@@ -258,8 +262,9 @@ export function ExplorePage() {
             clusters={mapData?.clusters ?? []}
             pins={mapData?.pins ?? []}
             filters={activeFilters}
-            center={mapCenter}
+            center={centerTuple}
             zoom={mapZoom}
+            isFetching={isFetching}
             onPinClick={() => {}}
             onPinSelect={handlePinSelect}
             onClusterClick={handleClusterClick}

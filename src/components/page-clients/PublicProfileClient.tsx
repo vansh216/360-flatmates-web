@@ -73,7 +73,7 @@ export default function PublicProfileClient() {
           />
           {matchScore > 0 && (
             <div className="absolute -right-2 -top-2">
-              <ProgressRing size="sm" value={matchScore} />
+              <ProgressRing size="sm" value={matchScore} label="Compatibility score" />
             </div>
           )}
         </div>

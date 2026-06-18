@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useBlocker, type BlockerFunction } from "react-router";
 import { ArrowLeft } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
@@ -34,6 +34,7 @@ import { Card } from "@/components/ui/Card";
 import { Input, TextArea, SelectField } from "@/components/ui/Input";
 import { ErrorState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Modal } from "@/components/ui/Modal";
 
 /* ── Zod schema ──────────────────────────────────────────── */
 
@@ -44,8 +45,8 @@ const profileSchema = z.object({
   age: z.number().min(18, "Must be at least 18").max(120).optional(),
   city: z.string().max(60).optional(),
   locality: z.string().max(80).optional(),
-  budget_min: z.number().min(0).optional(),
-  budget_max: z.number().min(0).optional(),
+  budget_min: z.number().min(0, "Cannot be negative").optional(),
+  budget_max: z.number().min(0, "Cannot be negative").optional(),
   move_in_timeline: moveInTimelineSchema.optional(),
   sleep_schedule: sleepScheduleSchema.optional(),
   cleanliness: cleanlinessSchema.optional(),
@@ -58,9 +59,28 @@ const profileSchema = z.object({
   mode: flatmatesModeSchema.optional(),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
   phone: z.string().optional().or(z.literal(""))
-});
+}).refine(
+  (data) =>
+    data.budget_min === undefined ||
+    data.budget_max === undefined ||
+    Number.isNaN(data.budget_min) ||
+    Number.isNaN(data.budget_max) ||
+    data.budget_max >= data.budget_min,
+  {
+    message: "Maximum budget must be greater than or equal to minimum",
+    path: ["budget_max"]
+  }
+);
 
 type ProfileFormData = z.infer<typeof profileSchema>;
+
+/** Coerce a numeric input to a number, mapping empty/NaN to undefined so a
+ *  cleared field neither trips min/max validation nor gets sent to the API. */
+function optionalNumberValue(raw: string): number | undefined {
+  if (raw.trim() === "") return undefined;
+  const n = Number(raw);
+  return Number.isNaN(n) ? undefined : n;
+}
 
 /* ── Select option helpers ───────────────────────────────── */
 
@@ -95,6 +115,7 @@ export function ProfileEditPage() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isDirty }
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -121,6 +142,8 @@ export function ProfileEditPage() {
       phone: ""
     }
   });
+
+  const bioValue = useWatch({ control, name: "bio" }) ?? "";
 
   /* Populate form when profile data arrives */
   useEffect(() => {
@@ -171,6 +194,9 @@ export function ProfileEditPage() {
 
     updateProfile.mutate(payload, {
       onSuccess: () => {
+        // Reset the form to the submitted values so isDirty clears (this also
+        // stops the unsaved-changes guard from firing on the post-save nav).
+        reset(data, { keepValues: true });
         uiStore.getState().pushToast({
           type: "success",
           title: "Profile updated",
@@ -183,6 +209,28 @@ export function ProfileEditPage() {
       }
     });
   }
+
+  /* Unsaved-changes guard: block in-app navigation while the form is dirty and
+     not in the middle of saving; surface a confirmation modal. */
+  const hasUnsavedChanges = isDirty && !updateProfile.isPending;
+  const blocker = useBlocker(
+    useCallback<BlockerFunction>(
+      ({ currentLocation, nextLocation }) =>
+        hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname,
+      [hasUnsavedChanges]
+    )
+  );
+
+  /* Warn on browser tab close / reload when there are unsaved edits. */
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasUnsavedChanges]);
 
   if (isLoading) {
     return (
@@ -284,6 +332,8 @@ export function ProfileEditPage() {
           <TextArea
             label="Bio"
             error={errors.bio?.message}
+            helperText={`${bioValue.length}/500`}
+            maxLength={500}
             placeholder="Tell flatmates about yourself..."
             {...register("bio")}
           />
@@ -299,7 +349,7 @@ export function ProfileEditPage() {
               type="number"
               error={errors.age?.message}
               placeholder="25"
-              {...register("age", { valueAsNumber: true })}
+              {...register("age", { setValueAs: optionalNumberValue })}
             />
             <SelectField
               label="Mode"
@@ -332,14 +382,14 @@ export function ProfileEditPage() {
               type="number"
               error={errors.budget_min?.message}
               placeholder="10000"
-              {...register("budget_min", { valueAsNumber: true })}
+              {...register("budget_min", { setValueAs: optionalNumberValue })}
             />
             <Input
               label="Budget Max"
               type="number"
               error={errors.budget_max?.message}
               placeholder="20000"
-              {...register("budget_max", { valueAsNumber: true })}
+              {...register("budget_max", { setValueAs: optionalNumberValue })}
             />
           </div>
           <SelectField
@@ -426,6 +476,32 @@ export function ProfileEditPage() {
         </div>
       </form>
       )}
+
+      {/* Unsaved-changes confirmation */}
+      <Modal
+        open={blocker.state === "blocked"}
+        title="Discard unsaved changes?"
+        description="You have edits that haven't been saved. Leaving now will discard them."
+        onClose={() => blocker.reset?.()}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => blocker.reset?.()}
+              className="w-full md:w-auto"
+            >
+              Keep editing
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => blocker.proceed?.()}
+              className="w-full bg-error text-white hover:bg-error/95 md:w-auto"
+            >
+              Discard changes
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }

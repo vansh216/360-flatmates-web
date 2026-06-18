@@ -4,21 +4,23 @@ import type { IncomingLikeSummary, MatchSummary } from "@/lib/api/types";
 
 export const matchesOptions = queryOptions({
   queryKey: ["matches"],
-  queryFn: () =>
+  queryFn: ({ signal }) =>
     apiClient.request<MatchSummary[]>({
       method: "GET",
-      path: "/flatmates/matches"
+      path: "/flatmates/matches",
+      signal
     })
 });
 
 export function incomingLikesOptions(limit = 20, offset = 0) {
   return queryOptions({
     queryKey: ["incoming-likes", limit, offset],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       apiClient.request<IncomingLikeSummary[]>({
         method: "GET",
         path: "/flatmates/likes",
-        query: { limit, offset }
+        query: { limit, offset },
+        signal
       })
   });
 }

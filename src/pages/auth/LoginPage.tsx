@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { Link } from "react-router";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -16,6 +16,7 @@ import { detectIdentifierChannel } from "@/lib/api/auth";
 import { authStore } from "@/lib/stores/auth-store";
 import { getLastAuthMethod, maskIdentifier } from "@/lib/lastAuthMethod";
 import { PASSWORD_REGEX } from "@/lib/schemas/common";
+import { resolveRedirect, normalizePhone } from "@/lib/redirect";
 
 /**
  * Login state-machine:
@@ -36,16 +37,9 @@ import { PASSWORD_REGEX } from "@/lib/schemas/common";
  */
 type LoginStep = "identifier" | "password" | "otp" | "set-password";
 
-const COUNTRY_CODE = "+91";
-
-/** Normalize a raw phone (digits, possibly with +91) to E.164 `+91XXXXXXXXXX`. */
-function normalizePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "").replace(/^91/, "").slice(-10);
-  return `${COUNTRY_CODE}${digits}`;
-}
-
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const {
     checkIdentifierStatus,
     signInWithPassword,
@@ -75,7 +69,12 @@ export function LoginPage() {
    * identifier). Tracked so resend reuses the same create-vs-login decision.
    */
   const [otpAllowsCreate, setOtpAllowsCreate] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Surface the OAuth-callback failure (`/login?error=auth`) inline on first render.
+  const [error, setError] = useState<string | null>(() =>
+    searchParams.get("error") === "auth"
+      ? "We couldn't complete that sign-in. Please try again."
+      : null
+  );
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -95,6 +94,13 @@ export function LoginPage() {
   }, []);
 
   const resendTimer = useResendTimer(30);
+
+  // Honor the deep-link target captured by AuthGuard (`/login?redirect=...`);
+  // default to /home for a plain sign-in.
+  const redirectTo = useMemo(
+    () => resolveRedirect(searchParams.get("redirect")),
+    [searchParams]
+  );
 
   const channel = useMemo(
     () => detectIdentifierChannel(identifier),
@@ -229,7 +235,7 @@ export function LoginPage() {
       // Non-fatal — proceed into the app with the live session.
     }
 
-    navigate("/home");
+    navigate(redirectTo);
     setSubmitting(false);
   }, [
     channel,
@@ -239,6 +245,7 @@ export function LoginPage() {
     password,
     recordAuthSuccess,
     navigate,
+    redirectTo,
   ]);
 
   const handleVerifyOtp = useCallback(async () => {
@@ -277,7 +284,7 @@ export function LoginPage() {
       // Non-fatal — proceed into the app with the live session.
     }
 
-    navigate("/home");
+    navigate(redirectTo);
     setSubmitting(false);
   }, [
     mustSetPassword,
@@ -288,6 +295,7 @@ export function LoginPage() {
     otp,
     recordAuthSuccess,
     navigate,
+    redirectTo,
   ]);
 
   // Mandatory, non-skippable: the session already exists (OTP verified), but
@@ -326,7 +334,7 @@ export function LoginPage() {
       // Non-fatal — proceed into the app with the live session.
     }
 
-    navigate("/home");
+    navigate(redirectTo);
     setSubmitting(false);
   }, [
     password,
@@ -336,6 +344,7 @@ export function LoginPage() {
     recordAuthSuccess,
     resolvedIdentifier,
     navigate,
+    redirectTo,
   ]);
 
   const goBackToIdentifier = useCallback(() => {
@@ -352,9 +361,13 @@ export function LoginPage() {
   const handleIdentifierChange = useCallback(
     (value: string) => {
       setIdentifier(value);
+      setError(null);
       if (step !== "identifier") {
         setStep("identifier");
         setMustSetPassword(false);
+        setPassword("");
+        setConfirmPassword("");
+        setOtp("");
       }
     },
     [step]
@@ -362,10 +375,10 @@ export function LoginPage() {
 
   return (
     <>
-      <SeoHelmet title="Sign In or Sign Up" description="Sign in to your 360 Flatmates account — or create one — to access compatible flatmate matches, verified listings, and in-app chat." canonicalUrl={`${SITE_URL}/login`} noindex />
+      <SeoHelmet title="Sign In or Sign Up" description="Sign in to your 360 Flatmates account (or create one) to access compatible flatmate matches, verified listings, and in-app chat." canonicalUrl={`${SITE_URL}/login`} noindex />
       <h1 className="text-display text-3xl md:text-4xl text-ink font-normal tracking-tight">Sign in or sign up</h1>
       <p className="mt-2 text-body-md text-ink-2">
-        Enter your email or phone to find your <span className="text-serif-italic text-accent italic font-normal text-[18px]">vibe match</span> — we&apos;ll create an account if you&apos;re new.
+        Enter your email or phone to find your <span className="text-serif-italic text-accent italic font-normal text-[18px]">vibe match</span>. We&apos;ll create an account if you&apos;re new.
       </p>
 
       {lastMethod && step === "identifier" && (
@@ -419,32 +432,44 @@ export function LoginPage() {
       <OrDivider className="my-5" />
 
       {/* Step 1 — identifier */}
-      <Input
-        label="Email or phone"
-        type={channel === "phone" ? "tel" : "text"}
-        inputMode={channel === "phone" ? "tel" : undefined}
-        autoComplete="username"
-        placeholder="you@example.com or 98765 43210"
-        value={identifier}
-        onChange={(e) => handleIdentifierChange(e.target.value)}
-        autoFocus
-      />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleContinue();
+        }}
+      >
+        <Input
+          label="Email or phone"
+          type={channel === "phone" ? "tel" : "text"}
+          inputMode={channel === "phone" ? "tel" : undefined}
+          autoComplete="username"
+          placeholder="you@example.com or 98765 43210"
+          value={identifier}
+          onChange={(e) => handleIdentifierChange(e.target.value)}
+          autoFocus
+        />
 
-      {step === "identifier" && (
-        <Button
-          fullWidth
-          className="mt-4"
-          loading={submitting}
-          disabled={identifier.trim().length < 3}
-          onClick={handleContinue}
-        >
-          Continue
-        </Button>
-      )}
+        {step === "identifier" && (
+          <Button
+            type="submit"
+            fullWidth
+            className="mt-4"
+            loading={submitting}
+            disabled={identifier.trim().length < 3}
+          >
+            Continue
+          </Button>
+        )}
+      </form>
 
       {/* Step 2a — password */}
       {step === "password" && (
-        <>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handlePasswordLogin();
+          }}
+        >
           <PasswordInput
             label="Password"
             placeholder="Enter password"
@@ -463,26 +488,31 @@ export function LoginPage() {
             </Link>
           </div>
           <div className="mt-4 flex gap-3">
-            <Button variant="secondary" onClick={goBackToIdentifier}>
+            <Button type="button" variant="secondary" onClick={goBackToIdentifier}>
               Back
             </Button>
             <Button
+              type="submit"
               fullWidth
               loading={submitting}
               disabled={!password}
-              onClick={handlePasswordLogin}
             >
               Sign in
             </Button>
           </div>
-        </>
+        </form>
       )}
 
       {/* Step 2b — OTP verification */}
       {step === "otp" && (() => {
         const expectedOtpLength = 6;
         return (
-          <>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleVerifyOtp();
+            }}
+          >
             <Input
               label="Verification code"
               placeholder={`${expectedOtpLength}-digit code`}
@@ -497,20 +527,20 @@ export function LoginPage() {
               helperText={`Sent to ${channel === "phone" ? resolvedIdentifier : identifier.trim()}`}
             />
             <div className="mt-4 flex gap-3">
-              <Button variant="secondary" onClick={goBackToIdentifier}>
+              <Button type="button" variant="secondary" onClick={goBackToIdentifier}>
                 Back
               </Button>
               <Button
+                type="submit"
                 className="flex-1"
                 loading={submitting}
                 disabled={otp.length < expectedOtpLength}
-                onClick={handleVerifyOtp}
               >
                 {mustSetPassword ? "Verify & continue" : "Verify"}
               </Button>
             </div>
             <ResendOtp timer={resendTimer} onResend={handleResendOtp} loading={resending} />
-          </>
+          </form>
         );
       })()}
 
@@ -519,7 +549,12 @@ export function LoginPage() {
           account. The session already exists, so login completes only once a
           valid password is set. */}
       {step === "set-password" && (
-        <>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSetPassword();
+          }}
+        >
           <p className="mt-2 text-body-md text-ink-2">
             Set a password to secure your account and finish signing in.
           </p>
@@ -547,15 +582,15 @@ export function LoginPage() {
             Min 8 chars, 1 uppercase, 1 number, 1 special character.
           </div>
           <Button
+            type="submit"
             fullWidth
             className="mt-5"
             loading={submitting}
             disabled={!password || !confirmPassword}
-            onClick={handleSetPassword}
           >
             Set password &amp; continue
           </Button>
-        </>
+        </form>
       )}
 
       <p className="mt-6 text-center text-caption text-ink-3">

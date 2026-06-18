@@ -176,7 +176,7 @@ function NotificationCardSkeleton() {
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1.5">
         <div className={cn("h-3 w-10 rounded-sm", shimmer)} />
-        <div className="h-2.5 w-2.5 rounded-full bg-accent" />
+        <div className={cn("h-2.5 w-2.5 rounded-full", shimmer)} />
       </div>
     </div>
   );
@@ -512,7 +512,7 @@ export function Skeleton({ variant = "block", count = 1, className, side, ...pro
 
   if (variant === "feed") {
     return (
-      <div className={cn("flex flex-col gap-3", className)} {...props}>
+      <div aria-hidden="true" className={cn("flex flex-col gap-3", className)} {...props}>
         {items.map((item) => (
           <ListingCardSkeleton key={item} />
         ))}
@@ -522,7 +522,7 @@ export function Skeleton({ variant = "block", count = 1, className, side, ...pro
 
   if (variant === "filterChips") {
     return (
-      <div className={className} {...props}>
+      <div aria-hidden="true" className={className} {...props}>
         <FilterChipsSkeleton count={count} />
       </div>
     );
@@ -530,7 +530,7 @@ export function Skeleton({ variant = "block", count = 1, className, side, ...pro
 
   if (variant === "searchResults") {
     return (
-      <div className={className} {...props}>
+      <div aria-hidden="true" className={className} {...props}>
         <SearchResultsSkeleton />
       </div>
     );
@@ -538,14 +538,14 @@ export function Skeleton({ variant = "block", count = 1, className, side, ...pro
 
   if (variant === "listingDetail") {
     return (
-      <div className={className} {...props}>
+      <div aria-hidden="true" className={className} {...props}>
         <ListingDetailSkeleton />
       </div>
     );
   }
 
   return (
-    <div className={className} {...props}>
+    <div aria-hidden="true" className={className} {...props}>
       {items.map((item) => {
         switch (variant) {
           case "card":

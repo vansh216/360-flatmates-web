@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { MapPin, Crosshair, Loader2 } from "lucide-react";
 import { useMyProfile, useUpdateProfile, useReverseGeocode } from "@/hooks/queries";
@@ -17,6 +17,24 @@ export function LocationPage() {
   const [city, setCity] = useState(profile?.city ?? "");
   const [submitting, setSubmitting] = useState(false);
   const { geocode, geoLoading } = useReverseGeocode();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // Seed the field from the saved profile once it loads. The useState
+  // initializer ran before `profile` resolved, so it would otherwise stay
+  // empty for a returning user. Don't overwrite an in-progress edit.
+  const syncedFromProfile = useRef(false);
+  useEffect(() => {
+    if (profile?.city && !syncedFromProfile.current) {
+      syncedFromProfile.current = true;
+      setCity((prev) => (prev.trim() ? prev : profile.city ?? ""));
+    }
+  }, [profile?.city]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      headingRef.current?.focus();
+    }
+  }, [isLoading]);
 
   function handleUseMyLocation() {
     if (!navigator.geolocation) {
@@ -66,8 +84,9 @@ export function LocationPage() {
     );
   }
 
-  async function handleContinue() {
-    if (!city.trim()) return;
+  async function handleContinue(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!city.trim() || submitting) return;
     setSubmitting(true);
     try {
       await updateProfile.mutateAsync({ city: city.trim() });
@@ -110,9 +129,11 @@ export function LocationPage() {
   }
 
   return (
-    <div className="flex flex-col gap-5 page-fade mx-auto max-w-lg">
+    <form className="flex flex-col gap-5 page-fade mx-auto max-w-lg" onSubmit={handleContinue}>
       <div>
-        <h1 className="text-h1">Where are you looking?</h1>
+        <h1 ref={headingRef} tabIndex={-1} className="text-h1 outline-none">
+          Where are you looking?
+        </h1>
         <p className="mt-2 text-body-md text-ink-2">
           Select your city to see relevant listings and flatmates nearby.
         </p>
@@ -157,13 +178,13 @@ export function LocationPage() {
       </Button>
 
       <Button
+        type="submit"
         fullWidth
         disabled={!city.trim()}
         loading={submitting}
-        onClick={handleContinue}
       >
         Continue
       </Button>
-    </div>
+    </form>
   );
 }

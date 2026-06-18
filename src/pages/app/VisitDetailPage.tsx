@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import { Star } from "lucide-react";
 import { useVisit, useCancelVisit, useUpdateVisit } from "@/hooks/queries";
 import { visitToVisitCardProps } from "@/lib/api/adapters";
+import { uiStore } from "@/lib/stores/ui-store";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -22,6 +23,20 @@ const VISIT_STATUS_BADGE: Record<string, StatusTone> = {
   cancelled: "cancelled",
   completed: "completed",
 };
+
+const VISIT_STATUS_LABEL: Record<string, string> = {
+  requested: "Pending",
+  confirmed: "Confirmed",
+  reschedule_suggested: "Reschedule suggested",
+  cancelled: "Cancelled",
+  completed: "Completed",
+};
+
+/** Today as a YYYY-MM-DD string in the user's local timezone (for date-input min). */
+function todayLocalISODate(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
 
 const VISIT_CONTEXT_CONFIG: Record<string, { tone: Tone; label: string }> = {
   property_tour: { tone: "teal", label: "Property Tour" },
@@ -87,11 +102,18 @@ export function VisitDetailPage() {
   // Reschedule state
   const [showReschedule, setShowReschedule] = useState(false);
   const [newDate, setNewDate] = useState("");
+  const minDate = todayLocalISODate();
+  const rescheduleInvalid = newDate !== "" && newDate < minDate;
+
+  // Cancel-confirmation state
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Feedback state
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackComment, setFeedbackComment] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
+  const isMutating = cancelVisit.isPending || updateVisit.isPending;
 
   if (isLoading) {
     return (
@@ -119,31 +141,72 @@ export function VisitDetailPage() {
   }
 
   function handleCancel() {
+    if (cancelVisit.isPending) return;
     cancelVisit.mutate(undefined, {
-      onSuccess: () => navigate("/visits"),
+      onSuccess: () => {
+        setShowCancelConfirm(false);
+        uiStore.getState().pushToast({
+          type: "success",
+          title: "Visit cancelled",
+          description: "We let the other party know.",
+        });
+        navigate("/visits");
+      },
+      onError: () => {
+        uiStore.getState().pushToast({
+          type: "error",
+          title: "Couldn't cancel visit",
+          description: "Something went wrong. Please try again.",
+        });
+      },
     });
   }
 
   function handleConfirm() {
-    updateVisit.mutate({ status: "confirmed" }, { onSuccess: () => refetch() });
+    if (updateVisit.isPending) return;
+    updateVisit.mutate(
+      { status: "confirmed" },
+      {
+        onSuccess: () =>
+          uiStore.getState().pushToast({
+            type: "success",
+            title: "Visit confirmed",
+          }),
+        onError: () =>
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Couldn't confirm visit",
+            description: "Something went wrong. Please try again.",
+          }),
+      }
+    );
   }
 
   function handleReschedule() {
-    if (!newDate) return;
+    if (!newDate || rescheduleInvalid || isMutating) return;
     updateVisit.mutate(
       { scheduled_date: newDate },
       {
         onSuccess: () => {
           setShowReschedule(false);
           setNewDate("");
-          refetch();
+          uiStore.getState().pushToast({
+            type: "success",
+            title: "Visit rescheduled",
+          });
         },
+        onError: () =>
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Couldn't reschedule visit",
+            description: "Something went wrong. Please try again.",
+          }),
       }
     );
   }
 
   function handleFeedbackSubmit() {
-    if (feedbackRating === 0) return;
+    if (feedbackRating === 0 || updateVisit.isPending) return;
     updateVisit.mutate(
       {
         visitor_feedback: feedbackComment,
@@ -153,6 +216,12 @@ export function VisitDetailPage() {
         onSuccess: () => {
           setFeedbackSubmitted(true);
         },
+        onError: () =>
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Couldn't submit feedback",
+            description: "Something went wrong. Please try again.",
+          }),
       }
     );
   }
@@ -185,8 +254,10 @@ export function VisitDetailPage() {
       <VisitCard
         visit={visitToVisitCardProps(visit)}
         canConfirm={visit.status === "requested"}
+        busy={isMutating}
         onConfirm={() => handleConfirm()}
-        onCancel={() => handleCancel()}
+        onReschedule={() => setShowReschedule(true)}
+        onCancel={() => setShowCancelConfirm(true)}
       />
 
       <Card className="p-4 flex flex-col gap-3">
@@ -201,7 +272,9 @@ export function VisitDetailPage() {
           <Badge
             variant="status"
             status={VISIT_STATUS_BADGE[visit.status] ?? "pending"}
-          />
+          >
+            {VISIT_STATUS_LABEL[visit.status] ?? visit.status.replace(/_/g, " ")}
+          </Badge>
         </div>
         {visit.special_requirements && (
           <div className="border-t border-line pt-3">
@@ -220,26 +293,33 @@ export function VisitDetailPage() {
       {/* Action buttons */}
       <div className="flex flex-col sm:flex-row gap-3">
         {visit.status === "requested" && (
-          <>
-            <Button variant="primary" fullWidth onClick={handleConfirm} loading={updateVisit.isPending}>
-              Confirm Visit
-            </Button>
-            <Button variant="secondary" fullWidth onClick={handleCancel} loading={cancelVisit.isPending}>
-              Cancel
-            </Button>
-          </>
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={handleConfirm}
+            loading={updateVisit.isPending}
+            disabled={isMutating}
+          >
+            Confirm Visit
+          </Button>
         )}
         {isUpcoming && (
           <Button
             variant="secondary"
             fullWidth
             onClick={() => setShowReschedule(true)}
+            disabled={isMutating}
           >
             Reschedule
           </Button>
         )}
-        {visit.status === "confirmed" && (
-          <Button variant="secondary" fullWidth onClick={handleCancel} loading={cancelVisit.isPending}>
+        {isUpcoming && (
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={() => setShowCancelConfirm(true)}
+            disabled={isMutating}
+          >
             Cancel Visit
           </Button>
         )}
@@ -289,10 +369,10 @@ export function VisitDetailPage() {
         footer={
           <>
             <Button variant="secondary" onClick={() => setShowReschedule(false)}>
-              Cancel
+              Keep current date
             </Button>
             <Button
-              disabled={!newDate}
+              disabled={!newDate || rescheduleInvalid || isMutating}
               loading={updateVisit.isPending}
               onClick={handleReschedule}
             >
@@ -301,20 +381,53 @@ export function VisitDetailPage() {
           </>
         }
       >
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <label htmlFor="reschedule-date" className="text-label-md text-ink-2">
             New Date
           </label>
           <input
             id="reschedule-date"
             type="date"
-            className="h-12 w-full rounded-[9px] border border-line bg-surface px-3 text-body-md text-ink focus:border-accent focus:shadow-focus focus:outline-none"
+            className={cn(
+              "h-12 w-full rounded-[9px] border bg-surface px-3 text-body-md text-ink focus:shadow-focus focus:outline-none",
+              rescheduleInvalid ? "border-error focus:border-error" : "border-line focus:border-accent"
+            )}
             value={newDate}
-            min={new Date().toISOString().split("T")[0]}
+            min={minDate}
+            aria-invalid={rescheduleInvalid}
+            aria-describedby={rescheduleInvalid ? "reschedule-date-error" : undefined}
             onChange={(e) => setNewDate(e.target.value)}
           />
+          {rescheduleInvalid ? (
+            <p id="reschedule-date-error" className="text-caption text-error">
+              Pick a date today or later.
+            </p>
+          ) : null}
         </div>
       </Modal>
+
+      {/* Cancel-confirmation Modal */}
+      <Modal
+        open={showCancelConfirm}
+        title="Cancel this visit?"
+        description="This lets the other party know the visit is off. You can always schedule a new one."
+        onClose={() => setShowCancelConfirm(false)}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowCancelConfirm(false)}>
+              Keep visit
+            </Button>
+            <Button
+              variant="primary"
+              className="bg-error text-white shadow-none hover:bg-error/90"
+              loading={cancelVisit.isPending}
+              onClick={handleCancel}
+            >
+              Cancel visit
+            </Button>
+          </>
+        }
+      />
       </>
       )}
     </div>

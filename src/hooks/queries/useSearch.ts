@@ -1,4 +1,4 @@
-import { queryOptions, infiniteQueryOptions, useMutation, useQuery, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, infiniteQueryOptions, keepPreviousData, useMutation, useQuery, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
   PaginatedPropertyResponse,
@@ -7,18 +7,20 @@ import type {
   SavedSearch,
   SavedSearchCreate,
   SearchAlert,
-  SearchAlertCreate
+  SearchAlertCreate,
+  SearchAlertUpdate
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
 export function webSearchOptions(filters: SearchFilters) {
   return queryOptions({
     queryKey: ["search", "web", filters],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response = await apiClient.request<PaginatedPropertyResponse>({
         method: "GET",
         path: "/properties",
         auth: false,
+        signal,
         query: {
           q: filters.q,
           lat: filters.lat,
@@ -57,6 +59,10 @@ export function webSearchOptions(filters: SearchFilters) {
         search_center: response.search_center,
       } satisfies WebSearchResponse;
     },
+    // Keep showing prior results while the next query loads so filter
+    // changes do not blank the grid (see CLAUDE.md async-state rules).
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
     enabled: Object.values(filters).some(
       (value) => value !== undefined && value !== null && value !== ""
     )
@@ -70,11 +76,12 @@ export function useWebSearch(filters: SearchFilters) {
 export function infiniteWebSearchOptions(filters: Omit<SearchFilters, "page">) {
   return infiniteQueryOptions({
     queryKey: ["search", "web", "infinite", filters],
-    queryFn: async ({ pageParam = 1 }) => {
+    queryFn: async ({ pageParam = 1, signal }) => {
       const response = await apiClient.request<PaginatedPropertyResponse>({
         method: "GET",
         path: "/properties",
         auth: false,
+        signal,
         query: {
           q: filters.q,
           lat: filters.lat,
@@ -120,6 +127,9 @@ export function infiniteWebSearchOptions(filters: Omit<SearchFilters, "page">) {
       }
       return undefined;
     },
+    // Keep the existing pages visible while a new filter set loads.
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
     enabled: Object.values(filters).some(
       (value) => value !== undefined && value !== null && value !== ""
     )
@@ -132,10 +142,11 @@ export function useInfiniteWebSearch(filters: Omit<SearchFilters, "page">) {
 
 export const savedSearchesOptions = queryOptions({
   queryKey: ["search", "saved"],
-  queryFn: () =>
+  queryFn: ({ signal }) =>
     apiClient.request<SavedSearch[]>({
       method: "GET",
-      path: "/flatmates/web/saved-searches"
+      path: "/flatmates/web/saved-searches",
+      signal
     })
 });
 
@@ -176,10 +187,11 @@ export function useDeleteSavedSearch() {
 
 export const searchAlertsOptions = queryOptions({
   queryKey: ["search", "alerts"],
-  queryFn: () =>
+  queryFn: ({ signal }) =>
     apiClient.request<SearchAlert[]>({
       method: "GET",
-      path: "/flatmates/web/alerts"
+      path: "/flatmates/web/alerts",
+      signal
     })
 });
 
@@ -196,6 +208,37 @@ export function useCreateSearchAlert() {
         method: "POST",
         path: "/flatmates/web/alerts",
         body: payload
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["search", "alerts"] });
+    }
+  });
+}
+
+export function useUpdateSearchAlert() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: SearchAlertUpdate }) =>
+      apiClient.request<SearchAlert>({
+        method: "PUT",
+        path: `/flatmates/web/alerts/${id}`,
+        body: payload
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["search", "alerts"] });
+    }
+  });
+}
+
+export function useDeleteSearchAlert() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) =>
+      apiClient.request<{ message: string }>({
+        method: "DELETE",
+        path: `/flatmates/web/alerts/${id}`
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["search", "alerts"] });

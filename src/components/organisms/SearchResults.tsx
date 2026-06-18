@@ -83,7 +83,13 @@ export function SearchResults({
       />
       <div className="min-w-0">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-eyebrow uppercase tracking-[0.16em] text-ink-3">{resultCount} results</p>
+          <p
+            className="text-eyebrow uppercase tracking-[0.16em] text-ink-3"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {resultCount} results
+          </p>
           <div className="flex items-center gap-2">
             <Button
               className="lg:hidden"
@@ -109,7 +115,7 @@ export function SearchResults({
             {listings.map((listing, index) => (
               <div
                 key={listing.id}
-                className="card-appear"
+                className="card-appear motion-reduce:animate-none"
                 style={{ animationDelay: `${Math.min(index, 5) * 50}ms` }}
               >
                 <ListingCard listing={listing} ctaLabel="View Details" onOpen={onListingOpen} />

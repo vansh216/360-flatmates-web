@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { PhoneInput, formatFullPhone } from "@/components/ui/PhoneInput";
 import { ResendOtp } from "@/components/ui/ResendOtp";
 import { StepProgress } from "@/components/ui/StepProgress";
+import { focusRing } from "@/components/ui/component-utils";
 
 /**
  * Post-Google add-phone interstitial (skippable).
@@ -116,7 +117,12 @@ export function AddPhonePage() {
       )}
 
       {step === "phone" && (
-        <>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendOtp();
+          }}
+        >
           <PhoneInput
             label="Phone number"
             value={phone}
@@ -125,19 +131,24 @@ export function AddPhonePage() {
             autoFocus
           />
           <Button
+            type="submit"
             fullWidth
             className="mt-5"
             loading={submitting}
             disabled={phone.length < 10}
-            onClick={handleSendOtp}
           >
             Send OTP
           </Button>
-        </>
+        </form>
       )}
 
       {step === "verify" && (
-        <>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleVerify();
+          }}
+        >
           <PhoneInput
             label="Phone number"
             value={phone}
@@ -160,6 +171,7 @@ export function AddPhonePage() {
           <ResendOtp timer={resendTimer} onResend={handleResendOtp} loading={resending} />
           <div className="mt-5 flex gap-3">
             <Button
+              type="button"
               variant="secondary"
               onClick={() => {
                 setStep("phone");
@@ -170,21 +182,21 @@ export function AddPhonePage() {
               Back
             </Button>
             <Button
+              type="submit"
               className="flex-1"
               loading={submitting}
               disabled={otp.length < 6}
-              onClick={handleVerify}
             >
               Verify
             </Button>
           </div>
-        </>
+        </form>
       )}
 
       <button
         type="button"
         onClick={handleSkip}
-        className="mt-6 w-full text-center text-body-md text-ink-3 hover:text-accent transition-colors"
+        className={`mt-6 w-full rounded-[9px] py-2 text-center text-body-md text-ink-3 hover:text-accent transition-colors ${focusRing}`}
       >
         Skip for now
       </button>

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { useMyProfile } from "@/hooks/queries";
@@ -14,13 +14,23 @@ export function OnboardingPage() {
 
   const currentStep = useStore(onboardingStore, (s) => s.currentStep);
   const stepKey = ONBOARDING_STEPS[currentStep];
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  // Redirect to the step URL for deep linking
+  // The wizard advances by mutating the store (not the URL), so this route
+  // stays at /onboarding. The /onboarding/:step route is the deep-link entry
+  // that syncs the URL back into the store.
   useEffect(() => {
     if (profile?.onboarding_completed) {
       navigate("/home", { replace: true });
     }
   }, [profile, navigate]);
+
+  // Move focus to the step content when the step changes so keyboard and
+  // screen-reader users land on the new question instead of staying on the
+  // navigation button they just activated.
+  useEffect(() => {
+    contentRef.current?.focus();
+  }, [currentStep]);
 
   return (
     <div className="flex items-center justify-center p-4 md:p-6 min-h-[80vh]">
@@ -31,7 +41,7 @@ export function OnboardingPage() {
           variant="linear"
           labels={ONBOARDING_STEPS.map(humanizeSnakeCase)}
         />
-        <div className="mt-6">
+        <div ref={contentRef} tabIndex={-1} className="mt-6 outline-none">
           <OnboardingStepContent stepKey={stepKey} />
         </div>
       </Card>

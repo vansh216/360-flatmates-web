@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 import { SeoHelmet, SITE_URL, buildFaqPageSchema } from "@/lib/seo";
 import { buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -189,8 +189,30 @@ const COMPARISONS: Record<string, ComparisonData> = {
 };
 
 export function ComparisonPage() {
-  const slug = window.location.pathname.split("/").pop();
-  const comparison = COMPARISONS[slug || ""] || COMPARISONS["360-flatmates-vs-nobroker"];
+  const { slug } = useParams<{ slug: string }>();
+  const comparison = COMPARISONS[slug ?? ""];
+
+  if (!comparison) {
+    return (
+      <>
+        <SeoHelmet
+          title="Comparison Not Found"
+          description="This comparison page does not exist. Browse 360 Flatmates to find compatible flatmates and verified rooms across India."
+          canonicalUrl={`${SITE_URL}/compare/${slug ?? ""}`}
+          noindex
+        />
+        <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-20 text-center">
+          <h1 className="text-h1">Comparison not found</h1>
+          <p className="mt-4 text-body-lg text-ink-2">
+            We don't have this comparison yet.{" "}
+            <Link to="/discover" className="text-accent hover:underline">
+              Browse all listings
+            </Link>
+          </p>
+        </main>
+      </>
+    );
+  }
 
   const url = `${SITE_URL}/compare/${comparison.slug}`;
 

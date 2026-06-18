@@ -1,12 +1,39 @@
 import { useSearchParams } from "react-router";
-import { useListingAnalytics } from "@/hooks/queries";
+import { useListingAnalytics, type AnalyticsPeriod } from "@/hooks/queries";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState, EmptyState } from "@/components/ui/StateViews";
 import { PageHeader } from "@/components/ui/Layout";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { StatCard } from "@/components/molecules/StatCard";
+import { formatDate } from "@/lib/utils/format";
 
-function DailyStatsTable({ dailyStats }: { dailyStats: Array<{ date: string; views: number; likes: number; shares: number }> }) {
+const NUMBER_FORMATTER = new Intl.NumberFormat("en-IN");
+
+function formatCount(value: number): string {
+  return NUMBER_FORMATTER.format(value);
+}
+
+const PERIOD_OPTIONS: Array<{ value: AnalyticsPeriod; label: string }> = [
+  { value: "7d", label: "7 days" },
+  { value: "30d", label: "30 days" },
+  { value: "all", label: "All time" }
+];
+
+const PERIOD_VALUES: readonly AnalyticsPeriod[] = ["7d", "30d", "all"];
+
+function isAnalyticsPeriod(value: string | null): value is AnalyticsPeriod {
+  return value !== null && (PERIOD_VALUES as readonly string[]).includes(value);
+}
+
+interface DailyStat {
+  date: string;
+  views: number;
+  likes: number;
+  shares: number;
+}
+
+function DailyStatsTable({ dailyStats }: { dailyStats: DailyStat[] }) {
   return (
     <Card className="overflow-hidden p-0">
       <div className="border-b border-line px-4 py-3">
@@ -14,21 +41,22 @@ function DailyStatsTable({ dailyStats }: { dailyStats: Array<{ date: string; vie
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-body-md">
+          <caption className="sr-only">Daily views, likes, and shares for the selected period</caption>
           <thead>
             <tr className="border-b border-line bg-paper-2">
-              <th className="px-4 py-2 text-left text-label-md text-ink-3">Date</th>
-              <th className="px-4 py-2 text-right text-label-md text-ink-3">Views</th>
-              <th className="px-4 py-2 text-right text-label-md text-ink-3">Likes</th>
-              <th className="px-4 py-2 text-right text-label-md text-ink-3">Shares</th>
+              <th className="px-4 py-2 text-left text-label-md text-ink-3" scope="col">Date</th>
+              <th className="px-4 py-2 text-right text-label-md text-ink-3" scope="col">Views</th>
+              <th className="px-4 py-2 text-right text-label-md text-ink-3" scope="col">Likes</th>
+              <th className="px-4 py-2 text-right text-label-md text-ink-3" scope="col">Shares</th>
             </tr>
           </thead>
           <tbody>
             {dailyStats.map((row) => (
               <tr key={row.date} className="border-b border-line-2 last:border-b-0">
-                <td className="px-4 py-2 text-ink-2">{row.date}</td>
-                <td className="px-4 py-2 text-right tabular-nums text-ink">{row.views}</td>
-                <td className="px-4 py-2 text-right tabular-nums text-ink">{row.likes}</td>
-                <td className="px-4 py-2 text-right tabular-nums text-ink">{row.shares}</td>
+                <th className="px-4 py-2 text-left font-normal text-ink-2" scope="row">{formatDate(row.date)}</th>
+                <td className="px-4 py-2 text-right tabular-nums text-ink">{formatCount(row.views)}</td>
+                <td className="px-4 py-2 text-right tabular-nums text-ink">{formatCount(row.likes)}</td>
+                <td className="px-4 py-2 text-right tabular-nums text-ink">{formatCount(row.shares)}</td>
               </tr>
             ))}
           </tbody>
@@ -39,12 +67,24 @@ function DailyStatsTable({ dailyStats }: { dailyStats: Array<{ date: string; vie
 }
 
 export function AnalyticsPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const propertyId = Number(searchParams.get("propertyId") ?? "0");
+  const periodParam = searchParams.get("period");
+  const period: AnalyticsPeriod = isAnalyticsPeriod(periodParam) ? periodParam : "30d";
 
-  const { data: analytics, isLoading, error, refetch } = useListingAnalytics(propertyId);
+  const { data: analytics, isLoading, error, refetch } = useListingAnalytics(propertyId, period);
 
-  if (!propertyId || Number.isNaN(propertyId) || propertyId === 0) {
+  const handlePeriodChange = (next: string) => {
+    setSearchParams(
+      (params) => {
+        params.set("period", next);
+        return params;
+      },
+      { replace: true }
+    );
+  };
+
+  if (!propertyId || Number.isNaN(propertyId) || propertyId <= 0) {
     return (
       <div className="p-4 md:p-6">
         <PageHeader title="Listing Analytics" description="View performance metrics for your listings." />
@@ -60,8 +100,17 @@ export function AnalyticsPage() {
     <div className="p-4 md:p-6">
       <PageHeader
         title="Listing Analytics"
-        description={analytics ? `Performance for listing #${analytics.listing_id}` : "Loading performance metrics..."}
+        description={analytics ? `Performance for listing #${analytics.listing_id}` : "Loading performance metrics."}
       />
+
+      <div className="mt-4">
+        <SegmentedControl
+          ariaLabel="Select time range"
+          options={PERIOD_OPTIONS}
+          value={period}
+          onValueChange={handlePeriodChange}
+        />
+      </div>
 
       {isLoading ? (
         <div className="flex flex-col gap-5 mt-5">
@@ -96,7 +145,7 @@ export function AnalyticsPage() {
         <Card className="mt-5 flex items-center justify-center p-8">
           <ErrorState
             title="Could not load analytics"
-            description="Try refreshing the page."
+            description="We couldn't load metrics for this listing. Retry?"
             onRetry={() => refetch()}
           />
         </Card>
@@ -105,37 +154,48 @@ export function AnalyticsPage() {
           <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3">
             <StatCard
               label="Total Views"
-              value={analytics.total_views}
-              description={`${analytics.unique_views} unique`}
+              value={formatCount(analytics.total_views)}
+              description={`${formatCount(analytics.unique_views)} unique`}
             />
             <StatCard
               label="Likes"
-              value={analytics.likes}
+              value={formatCount(analytics.likes)}
             />
             <StatCard
               label="Shares"
-              value={analytics.shares}
+              value={formatCount(analytics.shares)}
             />
             <StatCard
               label="Conversations Started"
-              value={analytics.conversations_started}
+              value={formatCount(analytics.conversations_started)}
             />
             <StatCard
               label="Visits Scheduled"
-              value={analytics.visits_scheduled}
+              value={formatCount(analytics.visits_scheduled)}
             />
             <StatCard
               label="Boost"
               value={analytics.boost_active ? "Active" : "Inactive"}
-              description={analytics.boost_expires_at ? `Expires ${analytics.boost_expires_at}` : undefined}
+              description={
+                analytics.boost_active && analytics.boost_expires_at
+                  ? `Expires ${formatDate(analytics.boost_expires_at)}`
+                  : undefined
+              }
             />
           </div>
 
-          {analytics.daily_stats.length > 0 && (
-            <div className="mt-6">
+          <div className="mt-6">
+            {analytics.daily_stats.length > 0 ? (
               <DailyStatsTable dailyStats={analytics.daily_stats} />
-            </div>
-          )}
+            ) : (
+              <Card className="flex items-center justify-center p-8">
+                <EmptyState
+                  title="No daily activity yet"
+                  description="Day-by-day views, likes, and shares will appear here once this listing gets engagement."
+                />
+              </Card>
+            )}
+          </div>
         </>
       )}
     </div>

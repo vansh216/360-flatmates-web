@@ -8,7 +8,7 @@ export function StatsPage() {
   return (
     <>
       <SeoHelmet
-        title="City Stats — Flatmate Market Data"
+        title="City Stats: Flatmate Market Data"
         description="Explore flatmate market statistics across Indian cities. Active seekers, verified listings, average rents, and growth trends on 360 Flatmates."
         canonicalUrl={`${SITE_URL}/stats`}
         breadcrumb={breadcrumb}

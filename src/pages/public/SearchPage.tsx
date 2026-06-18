@@ -1,8 +1,9 @@
 import { useMemo, useCallback, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
+import { useStore } from "zustand";
 import { useQueryStates } from "nuqs";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
-import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
+import { Search, SlidersHorizontal, Loader2, X } from "lucide-react";
 
 import { useInfiniteWebSearch } from "@/hooks/queries/useSearch";
 import { useAmenities, useCities } from "@/hooks/queries/useCatalogs";
@@ -15,7 +16,8 @@ import { type ListingCardData, ListingCard } from "@/components/molecules/Listin
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Button } from "@/components/ui/Button";
 import { Input, SelectField } from "@/components/ui/Input";
-import { EmptyState } from "@/components/ui/StateViews";
+import { EmptyState, ErrorState } from "@/components/ui/StateViews";
+import { Card } from "@/components/ui/Card";
 import { BottomSheet } from "@/components/ui/Modal";
 
 const breadcrumb = [{ name: "Search", item: `${SITE_URL}/search` }];
@@ -59,16 +61,30 @@ export function SearchPage() {
   const {
     data: searchResults,
     isLoading,
+    isError,
+    error,
+    isFetching,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
     refetch,
   } = useInfiniteWebSearch(filters);
 
+  const recentSearches = useStore(searchStore, (s) => s.recentSearches);
+  const addRecentSearch = useStore(searchStore, (s) => s.addRecentSearch);
+  const clearRecentSearches = useStore(searchStore, (s) => s.clearRecentSearches);
+
   useEffect(() => {
     // Pass the full filters including a dummy page just for store compatibility if needed
     searchStore.getState().setFilters({ ...filters, page: params.page });
   }, [filters, params.page]);
+
+  // Record a successful, non-empty text query into recent searches.
+  useEffect(() => {
+    if (params.q && searchResults?.pages[0]?.total) {
+      addRecentSearch(params.q);
+    }
+  }, [params.q, searchResults, addRecentSearch]);
 
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.pages) return [];
@@ -210,9 +226,10 @@ export function SearchPage() {
 
         {/* Unified Search & Quick Filter Bar */}
         <div className="flex flex-wrap items-center gap-3 border border-line bg-surface p-3 rounded-2xl mb-6 shadow-xs">
-          <form onSubmit={handleSearchSubmit} className="flex-1 min-w-[280px]">
+          <form onSubmit={handleSearchSubmit} role="search" className="flex-1 min-w-[280px]">
             <Input
               type="search"
+              aria-label="Search listings by city, locality, or keyword"
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
               placeholder="Search by city, locality, or keyword (e.g. 1BHK, WiFi)..."
@@ -223,6 +240,7 @@ export function SearchPage() {
           <div className="flex flex-wrap items-center gap-2">
             {/* City Dropdown */}
             <SelectField
+              aria-label="Filter by city"
               value={String(params.city ?? 0)}
               onChange={(e) => setParams({ city: Number(e.target.value), page: 1 })}
               fullWidth={false}
@@ -234,6 +252,7 @@ export function SearchPage() {
 
             {/* Bedrooms Dropdown */}
             <SelectField
+              aria-label="Filter by bedrooms"
               value={params.bedrooms ?? ""}
               onChange={(e) => setParams({ bedrooms: e.target.value, page: 1 })}
               fullWidth={false}
@@ -271,14 +290,54 @@ export function SearchPage() {
           </div>
         </div>
 
+        {/* Recent searches */}
+        {recentSearches.length > 0 && (
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <span className="text-eyebrow uppercase tracking-widest text-ink-3">Recent:</span>
+            {recentSearches.map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => {
+                  setLocalSearch(term);
+                  setParams({ q: term, page: 1 });
+                }}
+                className="rounded-full border border-line bg-surface px-3 py-1 text-body-sm text-ink-2 transition-colors hover:border-accent/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                {term}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={clearRecentSearches}
+              aria-label="Clear recent searches"
+              className="ml-1 inline-flex items-center gap-1 text-body-sm text-ink-3 transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              <X className="h-3.5 w-3.5" aria-hidden="true" />
+              Clear
+            </button>
+          </div>
+        )}
+
         {/* Listings Container */}
         <div className="flex flex-col min-w-0 h-full border border-line rounded-2xl bg-surface shadow-sm overflow-hidden min-h-[550px]">
           <div className="flex items-center justify-between border-b border-line px-5 py-3 bg-paper-2/30 shrink-0">
-            <span className="text-eyebrow text-ink-3 tracking-widest uppercase">
+            <span
+              className="flex items-center gap-2 text-eyebrow text-ink-3 tracking-widest uppercase"
+              aria-live="polite"
+              aria-atomic="true"
+            >
               {isLoading && listings.length === 0 ? (
                 <Skeleton className="h-4 w-28" />
+              ) : isError && listings.length === 0 ? (
+                "Search unavailable"
               ) : (
-                `${totalResults} results found`
+                <>
+                  {`${totalResults} results found`}
+                  {isFetching && !isFetchingNextPage && listings.length > 0 ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none text-ink-3" aria-hidden="true" />
+                  ) : null}
+                </>
               )}
             </span>
             <button
@@ -297,6 +356,18 @@ export function SearchPage() {
                   <Skeleton key={i} variant="listingCard" />
                 ))}
               </div>
+            ) : isError && listings.length === 0 ? (
+              <Card className="flex items-center justify-center p-8">
+                <ErrorState
+                  title="Could not load listings"
+                  description={
+                    error instanceof Error
+                      ? error.message
+                      : "Check your connection and try again."
+                  }
+                  onRetry={() => refetch()}
+                />
+              </Card>
             ) : listings.length === 0 ? (
               <EmptyState
                 title="No results found"
@@ -310,7 +381,7 @@ export function SearchPage() {
                   <div
                     key={listing.id}
                     id={`listing-card-${listing.id}`}
-                    className="card-appear transition-all duration-300 rounded-2xl"
+                    className="card-appear motion-reduce:animate-none transition-all duration-300 rounded-2xl"
                     style={{ animationDelay: `${Math.min(index % PAGE_SIZE, 10) * 50}ms` }}
                   >
                     <ListingCard

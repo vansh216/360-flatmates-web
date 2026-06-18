@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { SeoHelmet, SITE_URL, buildCollectionPageSchema } from "@/lib/seo";
 import { Card } from "@/components/ui/Card";
+import { NetworkImage } from "@/components/ui/NetworkImage";
 import { ArrowRight, Calendar, Clock } from "lucide-react";
 
 const BLOG_POSTS = [
@@ -17,7 +18,7 @@ const BLOG_POSTS = [
   {
     slug: "flatmate-agreement-essentials",
     title: "The Essential Flatmate Agreement Checklist",
-    excerpt: "Everything you need to cover in a flatmate agreement — from rent splitting to guest policies to cleaning schedules.",
+    excerpt: "Everything you need to cover in a flatmate agreement, from rent splitting to guest policies to cleaning schedules.",
     category: "Guide",
     readTime: "6 min read",
     date: "April 2025",
@@ -44,7 +45,7 @@ const BLOG_POSTS = [
   {
     slug: "room-inspection-checklist",
     title: "Room Inspection Checklist: What to Look For",
-    excerpt: "A comprehensive checklist for inspecting rooms before committing — from water pressure to mobile network coverage.",
+    excerpt: "A comprehensive checklist for inspecting rooms before committing, from water pressure to mobile network coverage.",
     category: "Guide",
     readTime: "7 min read",
     date: "January 2025",
@@ -134,7 +135,7 @@ export function BlogPage() {
                 style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
               >
                 <div className="relative h-56 overflow-hidden bg-paper">
-                  <img
+                  <NetworkImage
                     src={post.image}
                     alt={post.title}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-103"

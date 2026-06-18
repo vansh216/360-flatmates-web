@@ -35,7 +35,6 @@ export function propertyToListingCardProps(property: Property): ListingCardData 
     features: property.features,
     owner: property.owner
       ? {
-          id: property.owner.id,
           name: property.owner.full_name,
           avatarUrl: property.owner.profile_image_url
         }
@@ -131,7 +130,7 @@ export function notificationToNotificationCardProps(
     type: mapNotificationType(notification.type),
     title: notification.title,
     description: notification.body,
-    timestamp: notification.created_at ?? "",
+    timestamp: formatRelativeTime(notification.created_at),
     unread: !notification.is_read
   };
 }

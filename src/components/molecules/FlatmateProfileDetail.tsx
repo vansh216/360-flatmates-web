@@ -58,7 +58,7 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
     profile.has_pets !== undefined ||
     nonNegotiables.length > 0;
 
-  // Listing summary — only when the peer actually has listing context.
+  // Listing summary: only when the peer actually has listing context.
   const photos = profile.image_urls ?? [];
   const hasListing =
     Boolean(profile.property_id) ||

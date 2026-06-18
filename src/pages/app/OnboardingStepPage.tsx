@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
+import { useStore } from "zustand";
 import { useMyProfile } from "@/hooks/queries";
 import { onboardingStore, ONBOARDING_STEPS, type OnboardingStepKey } from "@/lib/stores/onboarding-store";
 import { humanizeSnakeCase } from "@/lib/utils";
@@ -11,18 +12,25 @@ export function OnboardingStepPage() {
   const { step } = useParams<{ step: string }>();
   const navigate = useNavigate();
   const { data: profile } = useMyProfile();
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  // Resolve step index from URL param
+  // Resolve the requested step index from the URL param
   const stepIndex = ONBOARDING_STEPS.indexOf(step as OnboardingStepKey);
   const validStep = stepIndex >= 0 ? stepIndex : 0;
-  const stepKey = ONBOARDING_STEPS[validStep];
 
-  // Sync store with URL — must be in useEffect, not during render
+  // Sync the store from the URL on entry (deep-link). After that the store is
+  // the source of truth: the wizard's Back/Next mutate the store, not the URL,
+  // so we render from `currentStep` to keep the heading and nav in lockstep.
+  // (The URL intentionally stays at the entry step; GateGuard only allows
+  // /onboarding and /onboarding/:step is not a gate route.)
   useEffect(() => {
     if (onboardingStore.getState().currentStep !== validStep) {
       onboardingStore.getState().setStep(validStep);
     }
   }, [validStep]);
+
+  const currentStep = useStore(onboardingStore, (s) => s.currentStep);
+  const stepKey = ONBOARDING_STEPS[currentStep];
 
   // Redirect if onboarding already completed — side effect must be in useEffect
   useEffect(() => {
@@ -30,6 +38,11 @@ export function OnboardingStepPage() {
       navigate("/home", { replace: true });
     }
   }, [profile?.onboarding_completed, navigate]);
+
+  // Move focus to the step content on step change for keyboard/SR users.
+  useEffect(() => {
+    contentRef.current?.focus();
+  }, [currentStep]);
 
   // Don't render content if redirecting
   if (profile?.onboarding_completed) {
@@ -41,11 +54,11 @@ export function OnboardingStepPage() {
       <Card className="w-full max-w-md p-6">
         <StepProgress
           totalSteps={ONBOARDING_STEPS.length}
-          currentStep={validStep}
+          currentStep={currentStep}
           variant="linear"
           labels={ONBOARDING_STEPS.map(humanizeSnakeCase)}
         />
-        <div className="mt-6">
+        <div ref={contentRef} tabIndex={-1} className="mt-6 outline-none">
           <OnboardingStepContent stepKey={stepKey} />
         </div>
       </Card>

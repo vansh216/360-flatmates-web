@@ -7,7 +7,6 @@ import { useResendTimer } from "@/hooks/useResendTimer";
 import { useWebOtp } from "@/hooks/useWebOtp";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { formatFullPhone } from "@/components/ui/PhoneInput";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { ResendOtp } from "@/components/ui/ResendOtp";
 import { StepProgress } from "@/components/ui/StepProgress";
@@ -15,6 +14,7 @@ import { PASSWORD_REGEX } from "@/lib/schemas/common";
 import { maskIdentifier } from "@/lib/lastAuthMethod";
 import { authStore } from "@/lib/stores/auth-store";
 import { uiStore } from "@/lib/stores/ui-store";
+import { normalizePhone } from "@/lib/redirect";
 
 /**
  * Password reset — 6-digit OTP for BOTH channels (decision 1).
@@ -98,7 +98,7 @@ export function ForgotPasswordPage() {
   const handleRequest = useCallback(async () => {
     setError(null);
     setSubmitting(true);
-    const target = channel === "phone" ? formatFullPhone(input) : input.trim();
+    const target = channel === "phone" ? normalizePhone(input) : input.trim();
     try {
       await sendResetOtp(target);
       setIdentifier(target);
@@ -210,7 +210,12 @@ export function ForgotPasswordPage() {
 
       {/* Step 1 — request: single identifier field (email or phone, auto-detected) */}
       {step === "request" && (
-        <>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleRequest();
+          }}
+        >
           <Input
             label="Phone or email"
             type={channel === "phone" ? "tel" : "text"}
@@ -223,22 +228,27 @@ export function ForgotPasswordPage() {
             autoFocus
           />
           <Button
+            type="submit"
             fullWidth
             className="mt-5"
             loading={submitting}
             disabled={input.trim().length < 3}
-            onClick={handleRequest}
           >
             Send OTP
           </Button>
-        </>
+        </form>
       )}
 
       {/* Step 2 — verify OTP (both channels) */}
       {step === "verify" && (() => {
         const expectedOtpLength = 6;
         return (
-          <>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleVerifyOtp();
+            }}
+          >
             <Input
               label="OTP"
               placeholder={`${expectedOtpLength}-digit code`}
@@ -255,6 +265,7 @@ export function ForgotPasswordPage() {
             <ResendOtp timer={resendTimer} onResend={handleResendOtp} loading={resending} />
             <div className="mt-5 flex gap-3">
               <Button
+                type="button"
                 variant="secondary"
                 onClick={() => {
                   setStep("request");
@@ -265,21 +276,26 @@ export function ForgotPasswordPage() {
                 Back
               </Button>
               <Button
+                type="submit"
                 className="flex-1"
                 loading={submitting}
                 disabled={!otp || otp.length < expectedOtpLength}
-                onClick={handleVerifyOtp}
               >
                 Verify
               </Button>
             </div>
-          </>
+          </form>
         );
       })()}
 
       {/* Step 3 — set new password (both channels) */}
       {step === "new-password" && (
-        <>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleResetPassword();
+          }}
+        >
           <PasswordInput
             label="New password"
             placeholder="Min 8 characters"
@@ -287,6 +303,7 @@ export function ForgotPasswordPage() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             className="mt-5"
+            autoFocus
           />
           <PasswordInput
             label="Confirm password"
@@ -300,15 +317,15 @@ export function ForgotPasswordPage() {
             Min 8 chars, 1 uppercase, 1 number, 1 special character.
           </div>
           <Button
+            type="submit"
             fullWidth
             className="mt-5"
             loading={submitting}
             disabled={!newPassword || !confirmPassword}
-            onClick={handleResetPassword}
           >
             Reset Password
           </Button>
-        </>
+        </form>
       )}
 
       <Link

@@ -8,6 +8,10 @@ export interface StepProgressProps extends HTMLAttributes<HTMLDivElement> {
   currentStep: number;
   variant?: StepProgressVariant;
   labels?: string[];
+  /** Accessible name for the progress bar (e.g. "Onboarding progress"). */
+  "aria-label"?: string;
+  /** Custom accessible value text (e.g. "Step 3 of 10"). */
+  "aria-valuetext"?: string;
 }
 
 export function StepProgress({
@@ -16,6 +20,8 @@ export function StepProgress({
   variant = "segments",
   labels,
   className,
+  "aria-label": ariaLabel,
+  "aria-valuetext": ariaValueText,
   ...props
 }: StepProgressProps) {
   const safeTotal = Math.max(1, totalSteps);
@@ -26,9 +32,11 @@ export function StepProgress({
     return (
       <div
         role="progressbar"
+        aria-label={ariaLabel}
         aria-valuenow={safeCurrent + 1}
         aria-valuemin={1}
         aria-valuemax={safeTotal}
+        aria-valuetext={ariaValueText}
         className={cn("flex w-full flex-col gap-2", className)}
         {...props}
       >
@@ -57,9 +65,11 @@ export function StepProgress({
   return (
     <div
       role="progressbar"
+      aria-label={ariaLabel}
       aria-valuenow={safeCurrent + 1}
       aria-valuemin={1}
       aria-valuemax={safeTotal}
+      aria-valuetext={ariaValueText}
       className={cn("flex w-full flex-col gap-2", className)}
       {...props}
     >

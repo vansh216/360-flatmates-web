@@ -5,11 +5,15 @@ export interface ReverseGeocodeResult {
 
 export async function reverseGeocode(
   latitude: number,
-  longitude: number
+  longitude: number,
+  signal?: AbortSignal
 ): Promise<ReverseGeocodeResult> {
   const res = await fetch(
     `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-    { headers: { "User-Agent": "360FlatmatesWeb/1.0" } }
+    {
+      headers: { "Accept-Language": "en" },
+      signal,
+    }
   );
   if (!res.ok) throw new Error("Reverse geocoding request failed");
   const data = await res.json();

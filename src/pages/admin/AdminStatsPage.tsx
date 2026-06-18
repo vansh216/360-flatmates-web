@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export function AdminStatsPage() {
-  const { data: stats, isLoading, refetch } = useAdminStats();
+  const { data: stats, isLoading, error, refetch } = useAdminStats();
 
   if (isLoading) {
     return (
@@ -69,7 +69,7 @@ export function AdminStatsPage() {
             value={stats.active_conversations}
           />
         </div>
-      ) : (
+      ) : error ? (
         <Card className="mt-5 flex items-center justify-center p-8">
           <ErrorState
             title="Could not load platform stats"
@@ -77,7 +77,7 @@ export function AdminStatsPage() {
             onRetry={() => refetch()}
           />
         </Card>
-      )}
+      ) : null}
     </div>
   );
 }

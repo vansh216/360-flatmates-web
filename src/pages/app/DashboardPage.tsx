@@ -1,37 +1,47 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
+import { Plus } from "lucide-react";
 import { useDashboardStats } from "@/hooks/queries";
 import type { RoomPosterDashboard } from "@/lib/api/types";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { ErrorState } from "@/components/ui/StateViews";
+import { ErrorState, EmptyState } from "@/components/ui/StateViews";
 import {
   DashboardPanel,
   type DashboardMetric,
   type ListingPerformanceRow
 } from "@/components/organisms/DashboardPanel";
 
+const NUMBER_FORMATTER = new Intl.NumberFormat("en-IN");
+
+function formatCount(value: number): string {
+  return NUMBER_FORMATTER.format(value);
+}
+
 function mapDashboardMetrics(stats: RoomPosterDashboard): DashboardMetric[] {
   return [
     {
       label: "Active Listings",
-      value: String(stats.active_listings),
+      value: formatCount(stats.active_listings),
       trend: stats.active_listings > 0 ? "up" : "flat",
-      helper: `${stats.pending_review} pending review`
+      helper:
+        stats.pending_review > 0
+          ? `${formatCount(stats.pending_review)} pending review`
+          : undefined
     },
     {
       label: "Views (30d)",
-      value: String(stats.total_views_30d),
+      value: formatCount(stats.total_views_30d),
       trend: stats.total_views_30d > 0 ? "up" : "flat"
     },
     {
       label: "Likes (30d)",
-      value: String(stats.total_likes_30d),
+      value: formatCount(stats.total_likes_30d),
       trend: stats.total_likes_30d > 0 ? "up" : "flat"
     },
     {
       label: "Visits (30d)",
-      value: String(stats.total_visits_30d),
+      value: formatCount(stats.total_visits_30d),
       trend: stats.total_visits_30d > 0 ? "up" : "flat"
     }
   ];
@@ -44,7 +54,6 @@ function mapListingRows(stats: RoomPosterDashboard): ListingPerformanceRow[] {
     views: listing.views,
     likes: listing.likes,
     conversations: listing.conversations,
-    visits: 0,
     boostStatus: listing.boost_active ? "active" : "inactive"
   }));
 }
@@ -93,6 +102,16 @@ export function DashboardPage() {
             onRetry={() => refetch()}
           />
         </Card>
+      ) : stats && rows.length === 0 ? (
+        <Card className="flex items-center justify-center p-8">
+          <EmptyState
+            title="No listings yet"
+            description="Post a room to start tracking views, likes, and chats from potential flatmates."
+            actionLabel="Post a listing"
+            onAction={() => navigate("/post")}
+            icon={<Plus aria-hidden="true" className="h-6 w-6" />}
+          />
+        </Card>
       ) : stats ? (
         <DashboardPanel
           metrics={metrics}
@@ -104,7 +123,7 @@ export function DashboardPage() {
             navigate(`/my-listings/${listingId}`);
           }}
           onViewAnalytics={(listingId) => {
-            navigate(`/my-listings/${listingId}`);
+            navigate(`/dashboard/analytics?propertyId=${listingId}`);
           }}
         />
       ) : null}

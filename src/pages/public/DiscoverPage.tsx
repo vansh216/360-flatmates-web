@@ -91,6 +91,11 @@ export function DiscoverPage() {
     [cities]
   );
 
+  const totalResults = searchResults?.total ?? listings.length;
+  const hasActiveFilters = params.city !== 0 || Boolean(params.filter);
+
+  const handleClearFilters = () => setParams(null);
+
   return (
     <>
       <SeoHelmet
@@ -125,12 +130,19 @@ export function DiscoverPage() {
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x -mx-5 px-5 md:mx-0 md:px-0">
+        <div
+          className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x -mx-5 px-5 md:mx-0 md:px-0"
+          role="group"
+          aria-label="Quick filters"
+        >
           {QUICK_FILTERS.map((item) => (
             <Chip
               key={item}
+              variant="choice"
               selected={params.filter === item}
-              onClick={() => setParams({ filter: item, page: 1 })}
+              onClick={() =>
+                setParams({ filter: params.filter === item ? "" : item, page: 1 })
+              }
               aria-label={`Filter by ${item}`}
               className="snap-start"
             >
@@ -139,7 +151,26 @@ export function DiscoverPage() {
           ))}
         </div>
 
-        <section className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 flex items-center justify-between gap-3">
+          <p
+            className="text-eyebrow uppercase tracking-[0.16em] text-ink-3"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {searchLoading ? "Loading listings" : `${totalResults} results`}
+          </p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="text-body-sm font-semibold text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+
+        <section className="mt-4 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <AsyncView
             data={listings.length > 0 ? listings : null}
             isLoading={searchLoading || citiesLoading}
@@ -156,6 +187,15 @@ export function DiscoverPage() {
                 <p className="mt-2 text-body-md text-ink-3">
                   Try a different city or adjust filters.
                 </p>
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={handleClearFilters}
+                    className="mt-4 inline-flex rounded-full bg-accent px-4 py-2 text-body-sm font-semibold text-white transition-colors hover:bg-accent-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  >
+                    Clear filters
+                  </button>
+                )}
               </div>
             }
           >
@@ -163,7 +203,7 @@ export function DiscoverPage() {
               data.map((listing, index) => (
                 <div
                   key={listing.id}
-                  className="card-appear"
+                  className="card-appear motion-reduce:animate-none"
                   style={{ animationDelay: `${Math.min(index, 5) * 50}ms` }}
                 >
                   <ListingCard

@@ -31,6 +31,7 @@ export interface NotificationCardData {
 export interface NotificationCardProps extends HTMLAttributes<HTMLElement> {
   notification: NotificationCardData;
   icon?: ReactNode;
+  interactive?: boolean;
 }
 
 const notificationConfig: Record<NotificationType, { tone: Tone; icon: ReactNode }> = {
@@ -46,6 +47,7 @@ const notificationConfig: Record<NotificationType, { tone: Tone; icon: ReactNode
 export function NotificationCard({
   notification,
   icon,
+  interactive = false,
   className,
   ...props
 }: NotificationCardProps) {
@@ -55,8 +57,15 @@ export function NotificationCard({
   return (
     <Card
       as="article"
+      interactive={interactive}
+      aria-label={
+        interactive
+          ? `${notification.title}: ${notification.description}${notification.unread ? " (unread)" : ""}`
+          : undefined
+      }
       className={cn(
-        "relative flex gap-3 py-3.5 hover:bg-paper-2",
+        "relative flex gap-3 py-3.5",
+        interactive && "hover:bg-paper-2",
         notification.unread && "border-l-[3px] border-l-accent",
         className
       )}
@@ -71,7 +80,9 @@ export function NotificationCard({
       </div>
       <div className="flex shrink-0 flex-col items-end gap-2">
         <span className="text-caption text-ink-3">{notification.timestamp}</span>
-        {notification.unread ? <span className="h-2.5 w-2.5 rounded-full bg-accent" /> : null}
+        {notification.unread ? (
+          <span className="h-2.5 w-2.5 rounded-full bg-accent" aria-label="Unread" role="img" />
+        ) : null}
       </div>
     </Card>
   );

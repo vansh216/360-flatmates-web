@@ -65,7 +65,10 @@ export function useUpdateProfile() {
         path: "/flatmates/profile",
         body: payload
       }),
-    onSuccess: () => {
+    onSuccess: (updated) => {
+      // Seed the fresh server response straight into the cache so the profile
+      // re-renders without a refetch flash, then revalidate in the background.
+      queryClient.setQueryData(["profile", "me"], updated);
       queryClient.invalidateQueries({ queryKey: ["profile", "me"] });
     }
   });

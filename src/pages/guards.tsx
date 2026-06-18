@@ -1,8 +1,9 @@
-import { Navigate, Outlet, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation, useSearchParams } from "react-router";
 import { useStore } from "zustand";
 import { useAuth } from "@/hooks/useAuth";
 import { authStore } from "@/lib/stores/auth-store";
 import { PageSpinner } from "@/components/ui/Spinner";
+import { resolveRedirect } from "@/lib/redirect";
 
 // /signup intentionally omitted: it's a <Navigate to="/login">, never guarded
 // content — a signed-in user is bounced to /home via the /login entry anyway.
@@ -52,6 +53,7 @@ export function AdminGuard() {
 export function AuthRedirectGuard() {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   // OTP verification signs the user in mid-flow (before the mandatory
   // set-password / new-password step). Hold the redirect until the flow ends.
   const midAuthFlow = useStore(authStore, (s) => s.midAuthFlow);
@@ -61,7 +63,8 @@ export function AuthRedirectGuard() {
   }
 
   if (user && !midAuthFlow && AUTH_ROUTES.has(location.pathname)) {
-    return <Navigate to="/home" replace />;
+    const target = resolveRedirect(searchParams.get("redirect"));
+    return <Navigate to={target} replace />;
   }
 
   return <Outlet />;
@@ -93,7 +96,11 @@ export function GateGuard() {
   }
 
   // Don't redirect if already on a gate route.
-  if (GATE_ROUTES.has(location.pathname)) {
+  // Prefix-match /onboarding so /onboarding/:step is also treated as a gate route.
+  if (
+    GATE_ROUTES.has(location.pathname) ||
+    location.pathname.startsWith("/onboarding/")
+  ) {
     return <Outlet />;
   }
 

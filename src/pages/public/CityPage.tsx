@@ -2,8 +2,11 @@ import { useParams, Link } from "react-router";
 import { SeoHelmet, SITE_URL, SUPPORTED_CITIES, buildCollectionPageSchema, buildFaqPageSchema } from "@/lib/seo";
 import { buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { NetworkImage } from "@/components/ui/NetworkImage";
 import { TrustBadge } from "@/components/ui/TrustBadge";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/StateViews";
+import { getNeighborhoodsForCity } from "@/lib/seo/neighborhoods";
 import { useAuth } from "@/hooks/useAuth";
 import { useWebSearch } from "@/hooks/queries/useSearch";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
@@ -33,13 +36,14 @@ export function CityPage() {
   const { user } = useAuth();
 
   const city = SUPPORTED_CITIES.find((c) => c.slug === slug);
+  const cityNeighborhoods = city ? getNeighborhoodsForCity(city.slug) : [];
 
   const filters: SearchFilters = {
     city: city?.name || "",
     limit: 12,
   };
 
-  const { data: searchResults, isLoading } = useWebSearch(filters);
+  const { data: searchResults, isLoading, isError, refetch } = useWebSearch(filters);
 
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.results) return [];
@@ -50,15 +54,23 @@ export function CityPage() {
 
   if (!city) {
     return (
-      <div className="mx-auto max-w-7xl px-5 py-20 text-center">
-        <h1 className="text-h1">City not found</h1>
-        <p className="mt-4 text-body-lg text-ink-2">
-          We don't have listings for this city yet.{" "}
-          <Link to="/discover" className="text-accent hover:underline">
-            Browse all listings
-          </Link>
-        </p>
-      </div>
+      <>
+        <SeoHelmet
+          title="City Not Found"
+          description="We don't have listings for this city yet. Browse all verified rooms and compatible flatmates on 360 Flatmates."
+          canonicalUrl={`${SITE_URL}/cities/${slug ?? ""}`}
+          noindex
+        />
+        <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-20 text-center">
+          <h1 className="text-h1">City not found</h1>
+          <p className="mt-4 text-body-lg text-ink-2">
+            We don't have listings for this city yet.{" "}
+            <Link to="/discover" className="text-accent hover:underline">
+              Browse all listings
+            </Link>
+          </p>
+        </main>
+      </>
     );
   }
 
@@ -91,7 +103,7 @@ export function CityPage() {
     },
     {
       question: `Are the listings in ${city.name} verified?`,
-      answer: `Yes. Every listing is reviewed before it goes live — real photos, real rent, real availability. Landlords and current flatmates confirm the details directly.`,
+      answer: `Yes. Every listing is reviewed before it goes live: real photos, real rent, real availability. Landlords and current flatmates confirm the details directly.`,
     },
     {
       question: `Is 360 Flatmates free to use in ${city.name}?`,
@@ -116,7 +128,7 @@ export function CityPage() {
       <main id="main" className="page-fade">
         {/* Hero */}
         <section className="relative h-80 md:h-96 overflow-hidden">
-          <img
+          <NetworkImage
             src={`https://images.unsplash.com/photo-${CITY_IMAGES[city.slug] ?? "1596176530529-78163a4f7af2"}?w=1200&fm=webp&fit=crop&q=80`}
             alt={`${city.name} cityscape`}
             className="absolute inset-0 h-full w-full object-cover"
@@ -146,11 +158,13 @@ export function CityPage() {
         <section className="mx-auto max-w-7xl px-5 py-16 md:px-6">
           <h2 className="text-h2 text-center">Popular Neighborhoods in {city.name}</h2>
           <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {CITY_NEIGHBORHOODS[city.slug]?.map((hood) => (
-              <Card key={hood} className="p-4 text-center hover:border-accent/30 transition-colors cursor-pointer" onClick={() => navigate(`/search?q=${hood} ${city.name}`)}>
-                <p className="text-h3 text-ink">{hood}</p>
-                <p className="text-label-md text-ink-3 mt-1">Explore rooms</p>
-              </Card>
+            {cityNeighborhoods.map((hood) => (
+              <Link key={hood.slug} to={`/cities/${city.slug}/${hood.slug}`} className="group">
+                <Card className="p-4 text-center hover:border-accent/30 transition-colors">
+                  <p className="text-h3 text-ink group-hover:text-accent transition-colors">{hood.name}</p>
+                  <p className="text-label-md text-ink-3 mt-1">Explore rooms</p>
+                </Card>
+              </Link>
             ))}
           </div>
         </section>
@@ -174,6 +188,14 @@ export function CityPage() {
                   <Skeleton key={i} variant="listingCard" />
                 ))}
               </div>
+            ) : isError ? (
+              <Card className="flex items-center justify-center p-8">
+                <ErrorState
+                  title={`Couldn't load listings in ${city.name}`}
+                  description="Please check your connection and try again."
+                  onRetry={() => refetch()}
+                />
+              </Card>
             ) : listings.length > 0 ? (
               <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
                 {listings.map((listing) => (

@@ -4,6 +4,8 @@ import { useSwipeDeck, useSwipeAction } from "@/hooks/queries";
 import { useKeyboardSwipe } from "@/hooks/useKeyboardSwipe";
 import { useStore } from "zustand";
 import { swipeStore } from "@/lib/stores/swipe-store";
+import { uiStore } from "@/lib/stores/ui-store";
+import { ApiClientError } from "@/lib/api/errors";
 import type { FlatmatesPeer } from "@/lib/api/types";
 import { Button } from "@/components/ui/Button";
 import { ProgressRing } from "@/components/ui/ProgressRing";
@@ -68,9 +70,6 @@ export function SwipePage() {
     [profiles]
   );
 
-  /* ----- Track the deck's current index for keyboard swipe ----- */
-  const [deckIndex, setDeckIndex] = useState(0);
-
   /* ----- Sync profiles into the store's cardQueue for any consumer ----- */
   useEffect(() => {
     if (profiles && profiles.length > 0) {
@@ -114,6 +113,24 @@ export function SwipePage() {
               if (matched) setMatchProfile(matched);
             }
           },
+          onError: (err) => {
+            // Super-like daily cap (429) gets a distinct, actionable message.
+            const isRateLimited =
+              err instanceof ApiClientError && err.status === 429;
+            uiStore.getState().pushToast(
+              isRateLimited
+                ? {
+                    type: "warning",
+                    title: "Super-like limit reached",
+                    description: "You've used all your super-likes for today. Try again tomorrow."
+                  }
+                : {
+                    type: "error",
+                    title: "Swipe not saved",
+                    description: "Something went wrong. Please try again."
+                  }
+            );
+          },
           onSettled: () => {
             setStoreAnimating(false);
             clearStoreDirection();
@@ -124,37 +141,26 @@ export function SwipePage() {
     [storeAnimating, swipeAction, swipeProfiles, setStoreAnimating, setStoreDirection, clearStoreDirection]
   );
 
-  /* ----- Keyboard swipe handlers ----- */
-  const currentProfile = swipeProfiles[deckIndex];
-
-  const handleKeyboardPass = useCallback(() => {
-    if (currentProfile) handleSwipeAction("pass", currentProfile.id);
-  }, [currentProfile, handleSwipeAction]);
-
-  const handleKeyboardLike = useCallback(() => {
-    if (currentProfile) handleSwipeAction("like", currentProfile.id);
-  }, [currentProfile, handleSwipeAction]);
-
-  const handleKeyboardSuperLike = useCallback(() => {
-    if (currentProfile) handleSwipeAction("super_like", currentProfile.id);
-  }, [currentProfile, handleSwipeAction]);
-
-  const handleKeyboardExpand = useCallback(() => {
-    swipeStore.getState().toggleExpanded();
-  }, []);
-
+  /* ----- Keyboard support -----
+   * Swipe keys (ArrowLeft/Right/Up, Space) are owned solely by SwipeDeck's
+   * focusable <section> onKeyDown handler, which both fires the action callback
+   * AND advances the visual deck. We deliberately do NOT also wire those keys
+   * through the global `useKeyboardSwipe` here: doing so double-fires the swipe
+   * (window listener + section handler) and the global path could not advance
+   * the uncontrolled deck. This hook is retained only to let Escape dismiss the
+   * match-celebration overlay from anywhere on the page. */
+  const noop = useCallback(() => {}, []);
   const handleKeyboardDismiss = useCallback(() => {
-    /* dismiss match celebration or do nothing */
     setMatchProfile(null);
   }, []);
 
   useKeyboardSwipe({
-    onPass: handleKeyboardPass,
-    onLike: handleKeyboardLike,
-    onSuperLike: handleKeyboardSuperLike,
-    onExpand: handleKeyboardExpand,
+    onPass: noop,
+    onLike: noop,
+    onSuperLike: noop,
+    onExpand: noop,
     onDismiss: handleKeyboardDismiss,
-    enabled: !!currentProfile && !storeAnimating
+    enabled: !!matchProfile
   });
 
   /* ----- Rendering ----- */
@@ -186,7 +192,6 @@ export function SwipePage() {
           onExpand={() => { /* expansion toggled inside SwipeDeck */ }}
           onEmptyAction={() => navigate("/explore")}
           onNearEnd={handleNearEnd}
-          onIndexChange={setDeckIndex}
           isAnimating={storeAnimating}
         />
       </div>
@@ -195,7 +200,7 @@ export function SwipePage() {
       {matchProfile && (
         <MatchCelebration
           profile={matchProfile}
-          onDismiss={() => setMatchProfile(null)}
+          onDismiss={handleKeyboardDismiss}
           onChat={() => {
             setMatchProfile(null);
             navigate("/chats");
@@ -260,6 +265,7 @@ function MatchCelebration({
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink/75 backdrop-blur-md"
       onClick={onDismiss}
       role="dialog"
+      aria-modal="true"
       aria-label="Match celebration"
     >
       <div className="relative flex flex-col items-center justify-center">
@@ -308,7 +314,7 @@ function MatchCelebration({
               animate={{ scale: 1, rotate: 0, opacity: 1 }}
               transition={{ delay: 0.2, type: "spring", damping: 12 }}
             >
-              <ProgressRing value={profile.matchScore} size="xl" />
+              <ProgressRing value={profile.matchScore} size="xl" label="Compatibility score" />
             </motion.div>
 
             {/* Sparkle details */}

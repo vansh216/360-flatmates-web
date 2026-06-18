@@ -28,7 +28,9 @@ export {
   useCreateSavedSearch,
   useDeleteSavedSearch,
   useSearchAlerts,
-  useCreateSearchAlert
+  useCreateSearchAlert,
+  useUpdateSearchAlert,
+  useDeleteSearchAlert
 } from "./useSearch";
 
 export {
@@ -66,6 +68,7 @@ export {
   useDashboardStats,
   useListingAnalytics
 } from "./useDashboard";
+export type { AnalyticsPeriod } from "./useDashboard";
 
 export {
   useAdminListings,

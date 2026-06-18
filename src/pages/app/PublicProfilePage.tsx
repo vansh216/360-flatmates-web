@@ -1,7 +1,13 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { Check, Minus } from "lucide-react";
 import { useParams, useNavigate } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
-import { useProfile, useCompatibility, useCreateConversation } from "@/hooks/queries";
+import {
+  useProfile,
+  useCompatibility,
+  useCreateConversation,
+  useRecordProfileView,
+} from "@/hooks/queries";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -16,6 +22,13 @@ import { humanizeSnakeCase } from "@/lib/utils";
 
 const breadcrumb = [{ name: "Profile", item: `${SITE_URL}/profile` }];
 
+/** Match-score tone, paired with the numeric value (never color alone). */
+function matchToneClasses(score: number): string {
+  if (score >= 70) return "bg-success-soft text-success";
+  if (score >= 40) return "bg-warning-soft text-warning";
+  return "bg-error-soft text-error";
+}
+
 export function PublicProfilePage() {
   const { id } = useParams();
   const profileId = Number(id);
@@ -24,6 +37,26 @@ export function PublicProfilePage() {
   const { data: profile, isLoading, error, refetch } = useProfile(profileId);
   const { data: compatibility } = useCompatibility(profileId);
   const createConversation = useCreateConversation();
+  const recordProfileView = useRecordProfileView();
+
+  // Record one profile-view event per (profile) view, with dwell time measured
+  // on unmount / navigation. A ref-guard keeps it from firing on every render.
+  const recordView = recordProfileView.mutate;
+  const viewedRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!Number.isFinite(profileId) || profileId <= 0) return;
+    if (viewedRef.current === profileId) return;
+    viewedRef.current = profileId;
+    const startedAt = Date.now();
+    return () => {
+      const durationSeconds = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
+      recordView({
+        target_user_id: profileId,
+        duration_seconds: durationSeconds,
+        source: "profile_page",
+      });
+    };
+  }, [profileId, recordView]);
 
   const url = `${SITE_URL}/profile/${id ?? ""}`;
 
@@ -58,7 +91,7 @@ export function PublicProfilePage() {
   return (
     <>
       <SeoHelmet
-        title={profile ? `${profile.full_name} — Flatmate Profile` : "Flatmate Profile"}
+        title={profile ? `${profile.full_name}: Flatmate Profile` : "Flatmate Profile"}
         description={profile ? `View ${profile.full_name}'s flatmate profile on 360 Flatmates. ${profile.profession ? `${profile.profession} looking for flatmates. ` : ""}Compatibility scores, lifestyle preferences, and verified user information.` : "View flatmate profiles on 360 Flatmates."}
         canonicalUrl={url}
         ogType="profile"
@@ -85,7 +118,7 @@ export function PublicProfilePage() {
             />
             {matchScore > 0 && (
               <div className="absolute -right-2 -top-2">
-                <ProgressRing size="sm" value={matchScore} />
+                <ProgressRing size="sm" value={matchScore} label="Compatibility score" />
               </div>
             )}
           </div>
@@ -101,7 +134,9 @@ export function PublicProfilePage() {
           </div>
 
           {matchScore > 0 && (
-            <div className="flex items-center gap-2 rounded-full bg-success-soft px-3 py-1.5 text-body-md font-semibold text-success">
+            <div
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-body-md font-semibold ${matchToneClasses(matchScore)}`}
+            >
               {matchScore}% match
             </div>
           )}
@@ -118,11 +153,16 @@ export function PublicProfilePage() {
           >
             <h2 className="text-h3">Compatibility Breakdown</h2>
             {compatibility.dimensions.map((dim) => (
-              <div key={dim.name} className="flex items-center justify-between">
+              <div key={dim.name} className="flex items-center justify-between gap-3">
                 <span className="text-body-md text-ink-2">
                   {humanizeSnakeCase(dim.name)}
                 </span>
-                <span className="text-body-md text-ink">
+                <span className="flex items-center gap-1.5 text-body-md text-ink">
+                  {dim.match ? (
+                    <Check aria-hidden="true" className="h-3.5 w-3.5 text-success" />
+                  ) : (
+                    <Minus aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
+                  )}
                   {dim.score}%
                 </span>
               </div>

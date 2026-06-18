@@ -152,13 +152,17 @@ describe("useConversations hooks", () => {
 
       result.current.mutate({
         conversationId: 5,
-        payload: { body: "Hello" }
+        payload: { body: "Hello" },
+        senderId: 101
       });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
-      expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: ["conversations", 5, "messages"]
-      });
+      // Messages use predicate-based invalidation to cover all page variants
+      expect(invalidateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          predicate: expect.any(Function)
+        })
+      );
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["conversations"] });
     });
 
@@ -177,7 +181,8 @@ describe("useConversations hooks", () => {
 
       result.current.mutate({
         conversationId: 5,
-        payload: { body: "Hello" }
+        payload: { body: "Hello" },
+        senderId: 101
       });
 
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());

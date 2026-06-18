@@ -72,7 +72,7 @@ export function ProfilePage() {
     try {
       await deleteAccount.mutateAsync();
       // The backend hard-deletes the Supabase user, so the local sign-out is
-      // best-effort — don't fail the flow if the session is already gone.
+      // best-effort: don't fail the flow if the session is already gone.
       try {
         await signOut();
       } catch {
@@ -180,7 +180,7 @@ export function ProfilePage() {
         onChange={handleFileChange}
       />
 
-      {/* Header card — profile-dependent */}
+      {/* Header card: profile-dependent */}
       {hasProfile ? (
         <Card className="flex flex-col items-center gap-4 p-6 text-center">
           <Avatar
@@ -206,7 +206,7 @@ export function ProfilePage() {
           {!profile.onboarding_completed && (
             <div className="w-full mt-2 bg-accent-soft/30 border border-accent/10 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
               <div className="flex flex-col sm:flex-row items-center gap-4">
-                <ProgressRing size="lg" value={onboardingProgress} />
+                <ProgressRing size="lg" value={onboardingProgress} label="Profile completion" />
                 <div>
                   <h3 className="text-body-md font-semibold text-ink">Complete your profile</h3>
                   <p className="text-caption text-ink-3 mt-0.5">
@@ -235,7 +235,7 @@ export function ProfilePage() {
         </Card>
       )}
 
-      {/* Profile section — profile-dependent */}
+      {/* Profile section: profile-dependent */}
       {hasProfile && (
         <Card className="divide-y divide-line p-0">
           <MenuItemRow
@@ -248,7 +248,7 @@ export function ProfilePage() {
         </Card>
       )}
 
-      {/* Activity section — profile-dependent */}
+      {/* Activity section: profile-dependent */}
       {hasProfile && (
         <>
           <h2 className="text-label-md text-ink-3 mt-2 px-1">Activity</h2>
@@ -270,7 +270,7 @@ export function ProfilePage() {
         </>
       )}
 
-      {/* Preferences — always visible */}
+      {/* Preferences: always visible */}
       <h2 className="text-label-md text-ink-3 mt-2 px-1">Preferences</h2>
       <Card className="divide-y divide-line p-0">
         <MenuItemRow

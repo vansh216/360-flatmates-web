@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import {
   MapContainer,
   TileLayer,
@@ -44,6 +45,8 @@ export interface MapViewProps {
   onViewportChange?: (bounds: MapBounds, zoom: number) => void;
   /** Called when the locate-me button is clicked */
   onLocate?: () => void;
+  /** True while viewport listings are being (re)fetched; shows a non-blocking indicator */
+  isFetching?: boolean;
   /** HTML class overrides */
   className?: string;
 }
@@ -198,6 +201,14 @@ function MapEventHandler({
   const map = useMap();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Clear any pending debounce timer on unmount so a fired callback can't run
+  // against a torn-down map (avoids a setState-after-unmount / stale-closure leak).
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   useMapEvents({
     moveend: () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -213,7 +224,7 @@ function MapEventHandler({
           },
           zoom
         );
-      }, 150);
+      }, 300);
     }
   });
 
@@ -244,7 +255,14 @@ function MapFlyTo({ target }: { target: { lat: number; lng: number; zoom: number
   const map = useMap();
 
   useEffect(() => {
-    if (target) {
+    if (!target) return;
+    // Honor reduced-motion: jump instead of animating the fly-to.
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      map.setView([target.lat, target.lng], target.zoom, { animate: false });
+    } else {
       map.flyTo([target.lat, target.lng], target.zoom, { duration: 0.5 });
     }
   }, [target, map]);
@@ -266,9 +284,11 @@ export function MapView({
   onFilterClick,
   onViewportChange,
   onLocate,
+  isFetching = false,
   className
 }: MapViewProps) {
   const [isMounted, setIsMounted] = useState(false);
+  const [hasEverLoaded, setHasEverLoaded] = useState(false);
   const [flyToTarget, setFlyToTarget] = useState<{
     lat: number;
     lng: number;
@@ -280,14 +300,23 @@ export function MapView({
   useEffect(() => { setIsMounted(true); }, []);
 
   const theme = useStore(uiStore, (s) => s.theme);
-  const isDark = useMemo(() => {
-    return (
-      theme === "dark" ||
-      (theme === "system" &&
-        typeof window !== "undefined" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches)
-    );
-  }, [theme]);
+  const [systemDark, setSystemDark] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      !!window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
+
+  // Track the OS color-scheme so "system" theme swaps tiles live when the OS flips.
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  const isDark = theme === "dark" || (theme === "system" && systemDark);
 
   const tileUrl = isDark
     ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -309,6 +338,16 @@ export function MapView({
     }
     return map;
   }, [clusters]);
+
+  const totalCount = useMemo(
+    () => pins.length + clusters.reduce((sum, c) => sum + c.count, 0),
+    [pins, clusters]
+  );
+
+  // Track whether data has ever been loaded to avoid flashing the empty overlay
+  // during initial load before the first query resolves.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { if (totalCount > 0) setHasEverLoaded(true); }, [totalCount]);
 
   const handlePinClick = useCallback(
     (pin: MapPin) => {
@@ -394,6 +433,7 @@ export function MapView({
           center={center}
           zoom={zoom}
           className="h-full w-full"
+          aria-label="Map of listings in the current area"
           zoomControl={false}
           attributionControl={true}
           scrollWheelZoom={true}
@@ -435,8 +475,30 @@ export function MapView({
 
         {/* Pin count badge */}
         <div className="absolute left-3 top-3 z-[1000] rounded-full bg-surface px-2.5 py-1 sm:left-4 sm:top-4 sm:px-3 sm:py-1.5 text-caption font-semibold text-ink shadow-sm">
-          {pins.length + clusters.reduce((sum, c) => sum + c.count, 0)} listings
+          {totalCount} {totalCount === 1 ? "listing" : "listings"}
         </div>
+
+        {/* Non-blocking refetch indicator (smooth pan/zoom: pins stay visible) */}
+        {isFetching ? (
+          <div
+            aria-live="polite"
+            className="absolute right-3 top-3 z-[1000] flex items-center gap-2 rounded-full bg-surface px-2.5 py-1 sm:right-4 sm:top-4 sm:px-3 sm:py-1.5 text-caption font-semibold text-ink-2 shadow-sm"
+          >
+            <span aria-hidden="true" className="contents">
+              <Spinner size="sm" />
+            </span>
+            <span>Updating…</span>
+          </div>
+        ) : null}
+
+        {/* Empty: no listings in this viewport (overlay, map stays interactive) */}
+        {!isFetching && totalCount === 0 && hasEverLoaded ? (
+          <div className="pointer-events-none absolute inset-x-0 bottom-20 z-[1000] flex justify-center px-4">
+            <p className="rounded-full bg-surface px-4 py-2 text-center text-caption font-medium text-ink-2 shadow-md">
+              No listings in this area. Pan or zoom out to explore nearby.
+            </p>
+          </div>
+        ) : null}
       </div>
     </section>
   );

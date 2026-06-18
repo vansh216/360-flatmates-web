@@ -145,7 +145,7 @@ function MatchesBar({
               <div className="relative">
                 <MatchAvatar name={peer.full_name} src={peer.profile_image_url} />
                 <span className="absolute -bottom-0.5 -right-0.5">
-                  <ProgressRing size="sm" value={peer.match_percentage ?? 0} />
+                  <ProgressRing size="sm" value={peer.match_percentage ?? 0} label="Compatibility score" />
                 </span>
               </div>
               <span className="max-w-[56px] truncate text-[10px] font-medium text-ink-2">
@@ -218,7 +218,7 @@ function MatchesList({
             <div className="relative shrink-0">
               <MatchAvatar name={peer.full_name} src={peer.profile_image_url} size="sm" />
               <span className="absolute -bottom-0.5 -right-0.5">
-                <ProgressRing size="sm" value={peer.match_percentage ?? 0} />
+                <ProgressRing size="sm" value={peer.match_percentage ?? 0} label="Compatibility score" />
               </span>
             </div>
             <div className="min-w-0 flex-1">

@@ -96,7 +96,7 @@ export default function ListingDetailClient() {
                 {data.compatibilityScore !== undefined && (
                   <div className="absolute top-4 left-4 rounded-full bg-surface/95 px-3.5 py-1.5 shadow-md border border-line-low flex items-center gap-2 animate-scale-in">
                     <span className="text-[10px] uppercase font-mono tracking-wider text-ink-2 font-bold">Compatibility</span>
-                    <ProgressRing value={data.compatibilityScore} size="sm" showValue={true} />
+                    <ProgressRing value={data.compatibilityScore} size="sm" showValue={true} label="Compatibility score" />
                   </div>
                 )}
               </div>

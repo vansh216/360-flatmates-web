@@ -11,14 +11,14 @@ import type { QueryValue } from "@/lib/api/client";
 export function swipeDeckOptions(filters?: SwipeDeckParams) {
   return queryOptions({
     queryKey: ["swipes", "deck", filters],
-    queryFn: async () => {
-      const response = await apiClient.request<{ profiles: FlatmatesPeer[]; total: number }>({
+    // `/flatmates/profiles` returns a bare array of FlatmatesPeer (see docs/flatmates-openapi.yaml).
+    queryFn: ({ signal }) =>
+      apiClient.request<FlatmatesPeer[]>({
         method: "GET",
         path: "/flatmates/profiles",
-        query: (filters ?? {}) as Record<string, QueryValue>
-      });
-      return response.profiles || [];
-    }
+        query: (filters ?? {}) as Record<string, QueryValue>,
+        signal
+      })
   });
 }
 

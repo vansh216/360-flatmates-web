@@ -5,6 +5,7 @@ import { Camera, Crosshair, Loader2 } from "lucide-react";
 import { useMyProfile, useCreateProfile, useUpdateProfile, useReverseGeocode } from "@/hooks/queries";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import { onboardingStore, ONBOARDING_STEPS, type OnboardingStepKey } from "@/lib/stores/onboarding-store";
+import { authStore } from "@/lib/stores/auth-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { uiStore } from "@/lib/stores/ui-store";
 import { FLATMATE_MODE_OPTIONS, type FlatmatesMode } from "@/lib/data";
@@ -138,6 +139,9 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
           price_max: draft.budget_timeline?.budget_max,
         });
         onboardingStore.getState().clearDraft();
+        // Advance authStage before navigating so GateGuard does not bounce
+        // the user back to /onboarding.
+        authStore.getState().setAuthStage("active");
         navigate("/home");
       };
 

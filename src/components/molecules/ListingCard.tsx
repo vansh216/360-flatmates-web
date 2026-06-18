@@ -108,7 +108,7 @@ export function ListingCard({
         {listing.compatibilityScore !== undefined ? (
           <div className="absolute bottom-2 right-2 rounded-full bg-surface/95 px-2 py-0.5 shadow-xs backdrop-blur-sm border border-line-low flex items-center gap-1.5">
             <span className="text-[9px] uppercase font-mono tracking-wider text-ink-3">Score</span>
-            <ProgressRing value={listing.compatibilityScore} size="sm" showValue={true} />
+            <ProgressRing value={listing.compatibilityScore} size="sm" showValue={true} label="Compatibility score" />
           </div>
         ) : null}
       </div>

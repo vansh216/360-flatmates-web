@@ -149,7 +149,7 @@ describe("useVisits hooks", () => {
   });
 
   describe("useCancelVisit(id)", () => {
-    it("invalidates ['visits', id] on success", async () => {
+    it("invalidates ['visits'] on success", async () => {
       mockRequest.mockResolvedValue({
         id: 10,
         property_id: 301,
@@ -173,7 +173,7 @@ describe("useVisits hooks", () => {
       result.current.mutate({ reason: "Schedule conflict" });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["visits", 10] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["visits"] });
     });
 
     it("sends POST /visits/{id}/cancel", async () => {

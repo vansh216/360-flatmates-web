@@ -13,11 +13,12 @@ import type { QueryValue } from "@/lib/api/client";
 export function useVisits(filters?: VisitFilters) {
   return useQuery({
     queryKey: ["visits", filters],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       apiClient.request<VisitList>({
         method: "GET",
         path: "/visits",
-        query: (filters ?? {}) as Record<string, QueryValue>
+        query: (filters ?? {}) as Record<string, QueryValue>,
+        signal
       })
   });
 }
@@ -25,12 +26,13 @@ export function useVisits(filters?: VisitFilters) {
 export function useVisit(id: number) {
   return useQuery({
     queryKey: ["visits", id],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       apiClient.request<Visit>({
         method: "GET",
-        path: `/visits/${id}`
+        path: `/visits/${id}`,
+        signal
       }),
-    enabled: id > 0
+    enabled: Number.isFinite(id) && id > 0
   });
 }
 
@@ -60,8 +62,12 @@ export function useUpdateVisit(id: number) {
         path: `/visits/${id}`,
         body: payload
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["visits", id] });
+    onSuccess: (updated) => {
+      // Seed the detail cache with the server response, then invalidate the
+      // whole "visits" namespace so the list and calendar reflect the new
+      // status/date as well as the detail view.
+      queryClient.setQueryData(["visits", id], updated);
+      queryClient.invalidateQueries({ queryKey: ["visits"] });
     }
   });
 }
@@ -76,8 +82,9 @@ export function useCancelVisit(id: number) {
         path: `/visits/${id}/cancel`,
         body: payload ?? {}
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["visits", id] });
+    onSuccess: (cancelled) => {
+      queryClient.setQueryData(["visits", id], cancelled);
+      queryClient.invalidateQueries({ queryKey: ["visits"] });
     }
   });
 }

@@ -5,7 +5,7 @@ import { useReportUserMutation } from "@/hooks/queries/useReports";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { TextArea } from "@/components/ui/Input";
+import { TextArea, SelectField } from "@/components/ui/Input";
 import type { UserReportReason } from "@/lib/data";
 
 const REPORT_REASONS: Array<{ value: UserReportReason; label: string }> = [
@@ -22,10 +22,15 @@ export function ReportProblemPage() {
   const [reason, setReason] = useState<UserReportReason>("other");
   const [description, setDescription] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [showDescError, setShowDescError] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!description.trim()) return;
+    if (!description.trim()) {
+      setShowDescError(true);
+      return;
+    }
+    setShowDescError(false);
 
     reportMutation.mutate(
       {
@@ -91,29 +96,22 @@ export function ReportProblemPage() {
 
       <Card className="p-5">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="reason" className="text-label-md text-ink-2">
-              Reason
-            </label>
-            <select
-              id="reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value as UserReportReason)}
-              className="h-12 rounded-[9px] border border-line bg-surface px-3 text-body-md text-ink focus:border-accent focus:shadow-focus focus:outline-none"
-            >
-              {REPORT_REASONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <SelectField
+            label="Reason"
+            options={REPORT_REASONS}
+            value={reason}
+            onChange={(e) => setReason(e.target.value as UserReportReason)}
+          />
 
           <TextArea
             label="Description"
             placeholder="Tell us what went wrong or what you would like to see..."
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              if (showDescError && e.target.value.trim()) setShowDescError(false);
+            }}
+            error={showDescError ? "Please describe the problem" : undefined}
             rows={5}
           />
 
@@ -121,7 +119,7 @@ export function ReportProblemPage() {
             type="submit"
             fullWidth
             loading={isSubmitting}
-            disabled={!description.trim() || isSubmitting}
+            disabled={isSubmitting}
           >
             Submit Report
           </Button>

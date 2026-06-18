@@ -1,12 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, CheckCircle2, Shield, Smartphone, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { StepProgress } from "@/components/ui/StepProgress";
-
-type VerifyStep = "phone" | "id" | "profile";
 
 const STEPS = [
   { key: "phone" as const, label: "Phone Verified", icon: Smartphone },
@@ -16,10 +14,18 @@ const STEPS = [
 
 export function VerifyPage() {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState<VerifyStep>("phone");
+  // Number of steps completed (0..STEPS.length). The "current" step is the
+  // first not-yet-completed one.
+  const [completed, setCompleted] = useState(0);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
-  const stepIndex = STEPS.findIndex((s) => s.key === currentStep);
-  const progress = ((stepIndex + 1) / STEPS.length) * 100;
+  const allDone = completed >= STEPS.length;
+  const progress = (completed / STEPS.length) * 100;
+
+  // Land focus on the page heading for keyboard and screen-reader users.
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
 
   return (
     <div className="flex flex-col gap-5 page-fade mx-auto max-w-lg">
@@ -27,19 +33,21 @@ export function VerifyPage() {
         <Button variant="icon" size="icon" onClick={() => navigate(-1)} aria-label="Go back">
           <ArrowLeft aria-hidden="true" className="h-5 w-5" />
         </Button>
-        <h1 className="text-h1">Verification</h1>
+        <h1 ref={headingRef} tabIndex={-1} className="text-h1 outline-none">Verification</h1>
       </div>
 
       <Card className="flex flex-col items-center gap-4 p-6 text-center">
         <ProgressRing value={progress} size="xl" />
-        <p className="text-body-md text-ink-2">
-          Complete all steps to earn your verified badge and build trust with the community.
+        <p className="text-body-md text-ink-2" aria-live="polite">
+          {allDone
+            ? "You're verified. Your badge is now visible across the community."
+            : "Complete all steps to earn your verified badge and build trust with the community."}
         </p>
       </Card>
 
       <StepProgress
         totalSteps={STEPS.length}
-        currentStep={stepIndex}
+        currentStep={Math.min(completed, STEPS.length - 1)}
         variant="linear"
         labels={STEPS.map((s) => s.label)}
       />
@@ -47,8 +55,8 @@ export function VerifyPage() {
       <Card className="divide-y divide-line p-0">
         {STEPS.map((step, i) => {
           const Icon = step.icon;
-          const isComplete = i < stepIndex;
-          const isCurrent = i === stepIndex;
+          const isComplete = i < completed;
+          const isCurrent = !allDone && i === completed;
 
           return (
             <div
@@ -77,13 +85,10 @@ export function VerifyPage() {
                 </p>
               </div>
               {isCurrent && (
-                <Button size="compact" onClick={() => {
-                  // Advance to next step for demo
-                  const nextIndex = i + 1;
-                  if (nextIndex < STEPS.length) {
-                    setCurrentStep(STEPS[nextIndex].key);
-                  }
-                }}>
+                <Button
+                  size="compact"
+                  onClick={() => setCompleted((c) => Math.min(c + 1, STEPS.length))}
+                >
                   Verify
                 </Button>
               )}
@@ -91,6 +96,12 @@ export function VerifyPage() {
           );
         })}
       </Card>
+
+      {allDone && (
+        <Button fullWidth onClick={() => navigate("/profile")}>
+          Done
+        </Button>
+      )}
     </div>
   );
 }

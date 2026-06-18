@@ -29,6 +29,7 @@ import { Logo } from "../ui/Logo";
 import { SearchBar } from "../ui/SearchBar";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { cn, focusRing } from "../ui/component-utils";
+import { useNotifications } from "@/hooks/queries";
 
 export interface ShellUser {
   name: string;
@@ -91,6 +92,13 @@ export function AppShell({
   className,
   ...props
 }: AppShellProps) {
+  // Derive unread notification count from live query data
+  const { data: notifications } = useNotifications();
+  const unreadCount = useMemo(
+    () => notificationCount ?? (notifications?.filter((n) => !n.is_read).length ?? 0),
+    [notificationCount, notifications]
+  );
+
   const visibleItems = useMemo(
     () => navItems.filter((item) => item.showFor.includes(mode)),
     [navItems, mode]
@@ -301,9 +309,9 @@ export function AppShell({
           <PrefetchLink to="/notifications" aria-label="Notifications" className={cn("flex h-10 w-10 items-center justify-center rounded-[9px] text-ink-3 hover:bg-paper-3 hover:text-ink", focusRing)}>
             <span className="relative">
               <Bell aria-hidden="true" className="h-5 w-5" />
-              {notificationCount ? (
+              {unreadCount > 0 ? (
                 <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
-                  {notificationCount}
+                  {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               ) : null}
             </span>

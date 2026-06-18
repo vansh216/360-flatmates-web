@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { ImagePlus, X } from "lucide-react";
 import { useCreateProperty, useUploadPropertyImage } from "@/hooks/queries";
@@ -47,26 +47,66 @@ interface PendingImage {
   uploading: boolean;
 }
 
+const DRAFT_STORAGE_KEY = "flatmates:post-draft";
+
+const DEFAULT_FORM: Partial<PropertyCreate> = {
+  property_type: "flatmate",
+  purpose: "rent",
+  features: [],
+  tags: [],
+  society_amenities: [],
+  society_vibe_tags: [],
+  image_urls: []
+};
+
+function loadDraft(): Partial<PropertyCreate> {
+  if (typeof window === "undefined") return DEFAULT_FORM;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return DEFAULT_FORM;
+    const parsed = JSON.parse(raw) as Partial<PropertyCreate>;
+    return { ...DEFAULT_FORM, ...parsed };
+  } catch {
+    return DEFAULT_FORM;
+  }
+}
+
+/** Returns true when the given step has all required fields filled in. */
+function isStepValid(step: number, form: Partial<PropertyCreate>): boolean {
+  switch (step) {
+    case 0:
+      return Boolean(form.title?.trim()) && typeof form.monthly_rent === "number" && form.monthly_rent > 0;
+    case 1:
+      return Boolean(form.city?.trim()) && Boolean(form.locality?.trim());
+    default:
+      return true;
+  }
+}
+
 export function PostPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [form, setForm] = useState<Partial<PropertyCreate>>({
-    property_type: "flatmate",
-    purpose: "rent",
-    features: [],
-    tags: [],
-    society_amenities: [],
-    society_vibe_tags: [],
-    image_urls: []
-  });
+  const [form, setForm] = useState<Partial<PropertyCreate>>(loadDraft);
+  const [showStepError, setShowStepError] = useState(false);
   const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /* Persist the form as a draft so a refresh mid-wizard does not lose progress. */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
+    } catch {
+      /* storage may be unavailable (private mode); fail silently */
+    }
+  }, [form]);
 
   const createProperty = useCreateProperty();
   const uploadImage = useUploadPropertyImage();
   const { upload: uploadImageFile } = useImageUpload();
 
   function patchForm(patch: Partial<PropertyCreate>) {
+    setShowStepError(false);
     setForm((prev) => ({ ...prev, ...patch }));
   }
 
@@ -84,11 +124,26 @@ export function PostPage() {
   }
 
   function handleNext() {
+    if (!isStepValid(currentStep, form)) {
+      setShowStepError(true);
+      return;
+    }
+    setShowStepError(false);
+
     if (currentStep >= STEPS.length - 1) {
+      if (createProperty.isPending) return; // guard against double-submit
       createProperty.mutate(form as PropertyCreate, {
         onSuccess: (property) => {
-          /* Upload pending images after the property is created */
-          const unuploaded = pendingImages.filter((img) => !img.uploaded && !img.uploading);
+          /* Clear the saved draft now that the listing is published */
+          try {
+            window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+          } catch {
+            /* ignore */
+          }
+          /* Upload pending images after the property is created (skip ones that failed to process) */
+          const unuploaded = pendingImages.filter(
+            (img) => !img.uploaded && !img.uploading && img.preview
+          );
           if (unuploaded.length > 0 && property.id) {
             unuploaded.forEach((img, imgIndex) => {
               setPendingImages((prev) =>
@@ -124,7 +179,7 @@ export function PostPage() {
               title: "Listing published"
             });
           }
-          navigate("/post/review");
+          navigate("/post/review", { state: { listingId: property.id } });
         },
         onError: (err) => {
           uiStore.getState().pushToast({
@@ -177,20 +232,51 @@ export function PostPage() {
   }, [uploadImageFile]);
 
   function removeImage(id: string) {
-    setPendingImages((prev) => prev.filter((i) => i.id !== id));
-    setForm((prev) => ({
-      ...prev,
-      image_urls: pendingImages.filter((i) => i.id !== id).map((i) => i.preview)
-    }));
+    setPendingImages((prev) => {
+      const next = prev.filter((i) => i.id !== id);
+      setForm((f) => ({
+        ...f,
+        image_urls: next.filter((i) => i.preview).map((i) => i.preview)
+      }));
+      return next;
+    });
   }
 
+  /* Re-attempt the local conversion/encoding for an image that failed to preview. */
+  const retryImage = useCallback(
+    async (id: string) => {
+      const target = pendingImages.find((i) => i.id === id);
+      if (!target) return;
+      setPendingImages((prev) => prev.map((i) => (i.id === id ? { ...i, uploading: true } : i)));
+      try {
+        const preview = await uploadImageFile(target.file);
+        setPendingImages((prev) => {
+          const next = prev.map((i) => (i.id === id ? { ...i, preview, uploading: false } : i));
+          setForm((f) => ({ ...f, image_urls: next.filter((i) => i.preview).map((i) => i.preview) }));
+          return next;
+        });
+      } catch {
+        setPendingImages((prev) => prev.map((i) => (i.id === id ? { ...i, uploading: false } : i)));
+        uiStore.getState().pushToast({
+          type: "error",
+          title: "Could not process photo",
+          description: "Please try a different image."
+        });
+      }
+    },
+    [pendingImages, uploadImageFile]
+  );
+
   function handleBack() {
+    setShowStepError(false);
     if (currentStep > 0) {
       setCurrentStep((s) => s - 1);
     } else {
       navigate("/manage");
     }
   }
+
+  const stepValid = isStepValid(currentStep, form);
 
   return (
     <ListingBuilder
@@ -200,6 +286,7 @@ export function PostPage() {
       onBack={handleBack}
       nextLabel={currentStep >= STEPS.length - 1 ? "Publish Listing" : "Next"}
       submitting={createProperty.isPending}
+      nextDisabled={!stepValid}
     >
       {/* Step 1: Basic Info */}
       {currentStep === 0 && (
@@ -211,8 +298,12 @@ export function PostPage() {
               <Input
                 placeholder="e.g. Spacious 1BHK in DLF Phase 1"
                 value={form.title ?? ""}
+                aria-invalid={showStepError && !form.title?.trim() ? true : undefined}
                 onChange={(e) => patchForm({ title: e.target.value })}
               />
+              {showStepError && !form.title?.trim() && (
+                <span className="text-caption text-error">Title is required.</span>
+              )}
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="text-label-md text-ink-2">Monthly Rent</span>
@@ -220,8 +311,12 @@ export function PostPage() {
                 type="number"
                 placeholder="15000"
                 value={form.monthly_rent ? String(form.monthly_rent) : ""}
+                aria-invalid={showStepError && !(form.monthly_rent && form.monthly_rent > 0) ? true : undefined}
                 onChange={(e) => patchForm({ monthly_rent: Number(e.target.value) })}
               />
+              {showStepError && !(form.monthly_rent && form.monthly_rent > 0) && (
+                <span className="text-caption text-error">Enter a monthly rent greater than zero.</span>
+              )}
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="text-label-md text-ink-2">Security Deposit</span>
@@ -246,16 +341,24 @@ export function PostPage() {
               <Input
                 placeholder="Gurugram"
                 value={form.city ?? ""}
+                aria-invalid={showStepError && !form.city?.trim() ? true : undefined}
                 onChange={(e) => patchForm({ city: e.target.value })}
               />
+              {showStepError && !form.city?.trim() && (
+                <span className="text-caption text-error">City is required.</span>
+              )}
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="text-label-md text-ink-2">Locality</span>
               <Input
                 placeholder="DLF Phase 1"
                 value={form.locality ?? ""}
+                aria-invalid={showStepError && !form.locality?.trim() ? true : undefined}
                 onChange={(e) => patchForm({ locality: e.target.value })}
               />
+              {showStepError && !form.locality?.trim() && (
+                <span className="text-caption text-error">Locality is required.</span>
+              )}
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="text-label-md text-ink-2">Address</span>
@@ -435,22 +538,32 @@ export function PostPage() {
                   key={img.id}
                   className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-line bg-paper-2"
                 >
-                  <NetworkImage
-                    alt="Listing photo preview"
-                    src={img.preview}
-                    wrapperClassName="h-full w-full rounded-xl"
-                  />
+                  {img.preview ? (
+                    <NetworkImage
+                      alt={`Listing photo ${index + 1} preview`}
+                      src={img.preview}
+                      wrapperClassName="h-full w-full rounded-xl"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-error-soft px-2 text-center">
+                      <span className="text-caption text-error">Could not load</span>
+                    </div>
+                  )}
                   {/* Uploading overlay */}
                   {img.uploading && (
                     <div className="absolute inset-0 flex items-center justify-center bg-ink/40">
                       <Skeleton variant="block" className="h-4 w-16 rounded" />
                     </div>
                   )}
-                  {/* Failed badge */}
-                  {!img.uploading && !img.uploaded && index > 0 && (
-                    <div className="absolute bottom-1 right-1 rounded bg-error-soft px-1.5 py-0.5 text-caption text-error">
-                      retry
-                    </div>
+                  {/* Retry control for a photo that failed to process */}
+                  {!img.uploading && !img.preview && (
+                    <button
+                      type="button"
+                      onClick={() => retryImage(img.id)}
+                      className="absolute bottom-1 right-1 rounded bg-surface px-1.5 py-0.5 text-caption font-semibold text-accent shadow-sm hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    >
+                      Retry
+                    </button>
                   )}
                   {/* Remove button */}
                   <button

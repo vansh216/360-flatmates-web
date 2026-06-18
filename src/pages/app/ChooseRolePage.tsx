@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Home, Search, Shuffle } from "lucide-react";
 import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
@@ -22,9 +22,28 @@ export function ChooseRolePage() {
   const updateProfile = useUpdateProfile();
   const [selected, setSelected] = useState<UserMode | null>(profile?.mode ?? null);
   const [submitting, setSubmitting] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // Preselect the saved mode once the profile finishes loading. The initial
+  // useState ran before `profile` resolved, so seed it here without clobbering
+  // a fresh user choice.
+  const syncedFromProfile = useRef(false);
+  useEffect(() => {
+    if (profile?.mode && !syncedFromProfile.current) {
+      syncedFromProfile.current = true;
+      setSelected((prev) => prev ?? (profile.mode as UserMode));
+    }
+  }, [profile?.mode]);
+
+  // Move focus to the heading on mount for screen-reader and keyboard context.
+  useEffect(() => {
+    if (!isLoading) {
+      headingRef.current?.focus();
+    }
+  }, [isLoading]);
 
   async function handleContinue() {
-    if (!selected) return;
+    if (!selected || submitting) return;
     setSubmitting(true);
     try {
       await updateProfile.mutateAsync({ mode: selected });
@@ -69,7 +88,9 @@ export function ChooseRolePage() {
   return (
     <div className="flex flex-col gap-5 page-fade mx-auto max-w-lg">
       <div>
-        <h1 className="text-h1">How do you want to use 360 Flatmates?</h1>
+        <h1 ref={headingRef} tabIndex={-1} className="text-h1 outline-none">
+          How do you want to use 360 Flatmates?
+        </h1>
         <p className="mt-2 text-body-md text-ink-2">
           You can change this anytime from your profile settings.
         </p>

@@ -189,14 +189,34 @@ export function SwipeDeck({
 
   /* ----- Card replenishment: notify when within 3 of end ----- */
   const nearEndNotified = useRef(false);
-  const prevProfileCount = useRef(profiles.length);
 
+  /* ----- Reset/preserve index across deck refetches -----
+   * The deck query is invalidated after every swipe, so `profiles` is frequently
+   * replaced. We distinguish an *append* (pagination growth where the leading ids
+   * are unchanged) from a *fresh* deck (new set of ids, e.g. after the backend
+   * re-filters out already-swiped profiles). On a fresh deck we reset the
+   * uncontrolled index to 0 so we don't skip cards; on an append we keep it. */
+  const prevIdsRef = useRef<string[]>(profiles.map((p) => p.id));
   useEffect(() => {
-    if (profiles.length > prevProfileCount.current) {
+    const ids = profiles.map((p) => p.id);
+    const prev = prevIdsRef.current;
+    const isAppend =
+      ids.length >= prev.length &&
+      prev.every((id, i) => id === ids[i]);
+
+    if (isAppend) {
+      if (ids.length > prev.length) {
+        nearEndNotified.current = false;
+      }
+    } else {
+      // Fresh deck: reset to the top so the user sees the first new card.
       nearEndNotified.current = false;
+      if (controlledIndex === undefined) {
+        setInternalIndex(0); // eslint-disable-line react-hooks/set-state-in-effect
+      }
     }
-    prevProfileCount.current = profiles.length;
-  }, [profiles.length]);
+    prevIdsRef.current = ids;
+  }, [profiles, controlledIndex]);
 
   useEffect(() => {
     if (
@@ -487,7 +507,7 @@ function SwipeableCard({
               </div>
               <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
                 <div className="rounded-full bg-surface/90 backdrop-blur-xs p-1 shadow-xs">
-                  <ProgressRing size="lg" value={profile.matchScore} />
+                  <ProgressRing size="lg" value={profile.matchScore} label="Compatibility score" />
                 </div>
                 {profile.verified ? <TrustBadge /> : null}
               </div>
@@ -706,7 +726,7 @@ function SwipeableCard({
               </div>
               <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
                 <div className="rounded-full bg-surface p-1 shadow-xs">
-                  <ProgressRing size="lg" value={profile.matchScore} />
+                  <ProgressRing size="lg" value={profile.matchScore} label="Compatibility score" />
                 </div>
                 {profile.verified ? <TrustBadge /> : null}
               </div>
@@ -845,7 +865,7 @@ function SwipeCard({
         </div>
         <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
           <div className="rounded-full bg-surface p-1 shadow-xs">
-            <ProgressRing size="lg" value={profile.matchScore} />
+            <ProgressRing size="lg" value={profile.matchScore} label="Compatibility score" />
           </div>
           {profile.verified ? <TrustBadge /> : null}
         </div>

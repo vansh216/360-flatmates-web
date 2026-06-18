@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { Calendar, ChevronLeft, ChevronRight, List } from "lucide-react";
 import { useVisits } from "@/hooks/queries";
@@ -159,6 +159,75 @@ function CalendarView({ visits }: { visits: Visit[] }) {
   );
 }
 
+/* ---------- List View ---------- */
+
+function VisitsListView({
+  visits,
+  isLoading,
+  error,
+  activeTab,
+  onRetry,
+  onOpen,
+}: {
+  visits: Visit[];
+  isLoading: boolean;
+  error: Error | null;
+  activeTab: VisitTab;
+  onRetry: () => void;
+  onOpen: (visitId: string) => void;
+}) {
+  return (
+    <AsyncView
+      data={visits}
+      isLoading={isLoading}
+      error={error}
+      isEmpty={(data) => data.length === 0}
+      loading={
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 4 }, (_, i) => (
+            <Skeleton key={i} variant="visitCard" />
+          ))}
+        </div>
+      }
+      empty={
+        <EmptyState
+          title={
+            activeTab === "upcoming"
+              ? "No upcoming visits"
+              : activeTab === "past"
+                ? "No past visits"
+                : "No cancelled visits"
+          }
+          description={
+            activeTab === "upcoming"
+              ? "Start exploring to schedule your first visit."
+              : activeTab === "past"
+                ? "Your completed visits will appear here."
+                : "Cancelled visits will appear here."
+          }
+        />
+      }
+      onRetry={onRetry}
+    >
+      {(data) => (
+        <div className="flex flex-col gap-3">
+          {data.map((visit) => (
+            <VisitCard
+              key={visit.id}
+              visit={visitToVisitCardProps(visit)}
+              canConfirm={visit.status === "requested"}
+              onConfirm={onOpen}
+              onReschedule={onOpen}
+              onCancel={onOpen}
+              onRate={onOpen}
+            />
+          ))}
+        </div>
+      )}
+    </AsyncView>
+  );
+}
+
 /* ---------- Visits Page ---------- */
 
 export function VisitsPage() {
@@ -171,6 +240,7 @@ export function VisitsPage() {
     () => filterVisitsByTab(visitList?.visits ?? [], activeTab),
     [visitList?.visits, activeTab]
   );
+  const openVisit = useCallback((visitId: string) => navigate(`/visits/${visitId}`), [navigate]);
 
   return (
     <div className="flex flex-col gap-4 page-fade">
@@ -251,91 +321,25 @@ export function VisitsPage() {
 
       {/* List view: shown when list mode is selected, or as mobile fallback for calendar mode */}
       {viewMode === "list" ? (
-        <AsyncView
-          data={filteredVisits}
+        <VisitsListView
+          visits={filteredVisits}
           isLoading={isLoading}
           error={error}
-          isEmpty={(data) => data.length === 0}
-          loading={
-              <div className="flex flex-col gap-3">
-                {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} variant="visitCard" />)}
-              </div>
-            }
-          empty={
-            <EmptyState
-              title={
-                activeTab === "upcoming" ? "No upcoming visits" :
-                activeTab === "past" ? "No past visits" : "No cancelled visits"
-              }
-              description={
-                activeTab === "upcoming" ? "Start exploring to schedule your first visit!"
-                : activeTab === "past" ? "Your completed visits will appear here."
-                : "Cancelled visits will appear here."
-              }
-            />
-          }
+          activeTab={activeTab}
           onRetry={() => refetch()}
-        >
-          {(data) => (
-            <div className="flex flex-col gap-3">
-              {data.map((visit) => (
-                <VisitCard
-                  key={visit.id}
-                  visit={visitToVisitCardProps(visit)}
-                  canConfirm={visit.status === "requested"}
-                  onConfirm={(visitId) => navigate(`/visits/${visitId}`)}
-                  onReschedule={(visitId) => navigate(`/visits/${visitId}`)}
-                  onCancel={(visitId) => navigate(`/visits/${visitId}`)}
-                  onRate={(visitId) => navigate(`/visits/${visitId}`)}
-                />
-              ))}
-            </div>
-          )}
-        </AsyncView>
+          onOpen={openVisit}
+        />
       ) : (
         /* Mobile fallback: show list view on small screens when calendar is selected */
         <div className="md:hidden">
-          <AsyncView
-            data={filteredVisits}
+          <VisitsListView
+            visits={filteredVisits}
             isLoading={isLoading}
             error={error}
-            isEmpty={(data) => data.length === 0}
-            loading={
-              <div className="flex flex-col gap-3">
-                {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} variant="visitCard" />)}
-              </div>
-            }
-            empty={
-              <EmptyState
-                title={
-                  activeTab === "upcoming" ? "No upcoming visits" :
-                  activeTab === "past" ? "No past visits" : "No cancelled visits"
-                }
-                description={
-                  activeTab === "upcoming" ? "Start exploring to schedule your first visit!"
-                  : activeTab === "past" ? "Your completed visits will appear here."
-                  : "Cancelled visits will appear here."
-                }
-              />
-            }
+            activeTab={activeTab}
             onRetry={() => refetch()}
-          >
-            {(data) => (
-              <div className="flex flex-col gap-3">
-                {data.map((visit) => (
-                  <VisitCard
-                    key={visit.id}
-                    visit={visitToVisitCardProps(visit)}
-                    canConfirm={visit.status === "requested"}
-                    onConfirm={(visitId) => navigate(`/visits/${visitId}`)}
-                    onReschedule={(visitId) => navigate(`/visits/${visitId}`)}
-                    onCancel={(visitId) => navigate(`/visits/${visitId}`)}
-                    onRate={(visitId) => navigate(`/visits/${visitId}`)}
-                  />
-                ))}
-              </div>
-            )}
-          </AsyncView>
+            onOpen={openVisit}
+          />
         </div>
       )}
     </div>

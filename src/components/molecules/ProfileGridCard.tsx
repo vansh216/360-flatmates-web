@@ -48,7 +48,7 @@ export function ProfileGridCard({
           wrapperClassName={cn("h-full w-full rounded-2xl", blurred && "blur-sm")}
         />
         <div className="absolute right-2 top-2 rounded-full bg-surface p-1 shadow-xs">
-          <ProgressRing size="md" value={profile.matchScore} />
+          <ProgressRing size="md" value={profile.matchScore} label="Compatibility score" />
         </div>
       </div>
       <div className="mt-3 min-w-0">

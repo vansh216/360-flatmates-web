@@ -45,7 +45,7 @@ export function HelpPage() {
   return (
     <div className="flex flex-col gap-5 page-fade">
       <div className="flex items-center gap-3">
-        <Button variant="icon" size="icon" onClick={() => navigate(-1)} aria-label="Go back">
+        <Button variant="icon" size="icon" onClick={() => navigate("/profile")}>
           <ArrowLeft aria-hidden="true" className="h-5 w-5" />
         </Button>
         <h1 className="text-h1">Help & Support</h1>

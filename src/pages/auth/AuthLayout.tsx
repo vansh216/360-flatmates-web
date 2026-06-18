@@ -1,5 +1,7 @@
 import { Link, Outlet } from "react-router";
+import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
+import { focusRing } from "@/components/ui/component-utils";
 
 export function AuthLayout() {
   return (
@@ -12,9 +14,9 @@ export function AuthLayout() {
       <div className="absolute top-6 left-6 z-20">
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-label-md text-ink-3 hover:text-accent transition-colors duration-200"
+          className={`inline-flex items-center gap-1.5 rounded-[9px] text-label-md text-ink-3 hover:text-accent transition-colors duration-200 ${focusRing}`}
         >
-          <span>←</span> Back to home
+          <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Back to home
         </Link>
       </div>
 

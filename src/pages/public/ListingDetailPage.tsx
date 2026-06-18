@@ -23,7 +23,7 @@ export function ListingDetailPage() {
         property.area_sqft ? `${property.area_sqft} sq ft` : undefined,
       ]
         .filter(Boolean)
-        .join(" — ") + ". Verified listing on 360 Flatmates."
+        .join(", ") + ". Verified listing on 360 Flatmates."
     : "View verified room and flatmate listings on 360 Flatmates with compatibility scores, society vibe tags, and visit scheduling.";
 
   const breadcrumb = [

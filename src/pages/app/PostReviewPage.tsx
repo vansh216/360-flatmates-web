@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { CheckCircle2, CircleCheck, Clock } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +11,10 @@ const reviewSteps: Array<{ label: string; icon: LucideIcon }> = [
 ];
 
 export function PostReviewPage() {
+  const location = useLocation();
+  const listingId = (location.state as { listingId?: number } | null)?.listingId;
+  const editPath = listingId ? `/my-listings/${listingId}/edit` : "/post";
+
   return (
     <div className="flex items-center justify-center p-4 md:p-6">
       <Card className="mx-auto max-w-lg p-6 text-center">
@@ -38,7 +42,7 @@ export function PostReviewPage() {
           <p>3. Approved listings receive a 24 hour launch boost.</p>
         </div>
         <div className="mt-6 flex justify-center gap-3">
-          <Link to="/post">
+          <Link to={editPath}>
             <Button>Edit Listing</Button>
           </Link>
           <Link to="/manage">

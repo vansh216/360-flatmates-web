@@ -113,7 +113,7 @@ export function ProgressRing({
   return (
     <div
       role="progressbar"
-      aria-label={label ?? "Compatibility score"}
+      aria-label={label ?? "Progress"}
       aria-valuenow={percentage}
       aria-valuemin={0}
       aria-valuemax={100}

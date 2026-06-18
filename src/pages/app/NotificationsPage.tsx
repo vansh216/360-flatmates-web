@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router";
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/queries";
 import { notificationToNotificationCardProps } from "@/lib/api/adapters";
+import { formatRelativeTime } from "@/lib/utils";
+import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView } from "@/components/ui/StateViews";
@@ -23,7 +25,20 @@ export function NotificationsPage() {
           <Button
             size="compact"
             variant="tertiary"
-            onClick={() => markAllRead.mutate({ mark_all_read: true })}
+            onClick={() =>
+              markAllRead.mutate(
+                { mark_all_read: true },
+                {
+                  onError: () => {
+                    uiStore.getState().pushToast({
+                      type: "error",
+                      title: "Could not mark all as read",
+                      description: "Please try again."
+                    });
+                  }
+                }
+              )
+            }
             loading={markAllRead.isPending}
           >
             Mark all read
@@ -45,24 +60,32 @@ export function NotificationsPage() {
         onRetry={() => refetch()}
       >
         {(data) => (
-          <div className="flex flex-col gap-2">
-            {data.map((notification) => (
-              <NotificationCard
-                key={notification.id}
-                notification={notificationToNotificationCardProps(notification)}
-                onClick={() => {
-                  if (!notification.is_read) {
-                    markRead.mutate({
-                      notificationId: notification.id,
-                      payload: { is_read: true }
-                    });
-                  }
-                  if (notification.route) {
-                    navigate(notification.route);
-                  }
-                }}
-              />
-            ))}
+          <div className="flex flex-col gap-2" role="list" aria-label="Notifications">
+            {data.map((notification) => {
+              const cardProps = notificationToNotificationCardProps(notification);
+              return (
+                <NotificationCard
+                  key={notification.id}
+                  role="listitem"
+                  notification={{
+                    ...cardProps,
+                    timestamp: formatRelativeTime(notification.created_at)
+                  }}
+                  interactive
+                  onClick={() => {
+                    if (!notification.is_read) {
+                      markRead.mutate({
+                        notificationId: notification.id,
+                        payload: { is_read: true }
+                      });
+                    }
+                    if (notification.route) {
+                      navigate(notification.route);
+                    }
+                  }}
+                />
+              );
+            })}
           </div>
         )}
       </AsyncView>

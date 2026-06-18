@@ -17,6 +17,7 @@ import { PageLayout, PageHeader } from "@/components/ui/Layout";
 import { PriceText } from "@/components/ui/PriceText";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView } from "@/components/ui/StateViews";
+import { uiStore } from "@/lib/stores/ui-store";
 import { humanizeSnakeCase, formatSharingType } from "@/lib/utils";
 import type { StatusTone } from "@/components/ui/Badge";
 
@@ -37,14 +38,31 @@ export function PrescreenPage() {
   const [rejectReason, setRejectReason] = useState("");
 
   function handleApprove() {
+    if (moderate.isPending) return;
     moderate.mutate(
       { listingId, payload: { action: "approve" } },
-      { onSuccess: () => navigate("/admin/moderation/listings") }
+      {
+        onSuccess: () => {
+          uiStore.getState().pushToast({
+            type: "success",
+            title: "Listing approved",
+            description: "The listing is now live."
+          });
+          navigate("/admin/moderation/listings");
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not approve listing",
+            description: "Please try again."
+          });
+        }
+      }
     );
   }
 
   function handleReject() {
-    if (!rejectReason.trim()) return;
+    if (!rejectReason.trim() || moderate.isPending) return;
     moderate.mutate(
       {
         listingId,
@@ -54,7 +72,19 @@ export function PrescreenPage() {
         onSuccess: () => {
           setRejectModalOpen(false);
           setRejectReason("");
+          uiStore.getState().pushToast({
+            type: "success",
+            title: "Listing rejected",
+            description: "The owner will see your reason."
+          });
           navigate("/admin/moderation/listings");
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not reject listing",
+            description: "Please try again."
+          });
         }
       }
     );
@@ -325,7 +355,10 @@ export function PrescreenPage() {
         open={rejectModalOpen}
         title="Reject Listing"
         description="Please provide a reason for rejecting this listing."
-        onClose={() => setRejectModalOpen(false)}
+        onClose={() => {
+          if (moderate.isPending) return;
+          setRejectModalOpen(false);
+        }}
         footer={
           <>
             <Button

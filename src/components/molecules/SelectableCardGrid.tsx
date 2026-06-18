@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "@/components/ui/component-utils";
+import { cn, focusRing, interactiveMotion } from "@/components/ui/component-utils";
 
 export interface SelectableCardProps {
   icon: ReactNode;
@@ -22,7 +22,9 @@ export function SelectableCard({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "flex items-center gap-4 rounded-2xl border p-4 text-left transition-colors",
+        "flex items-center gap-4 rounded-2xl border p-4 text-left",
+        focusRing,
+        interactiveMotion,
         selected
           ? "border-[1.5px] border-accent bg-accent-soft"
           : "border-line bg-surface hover:border-accent/40 hover:shadow-hover",

@@ -10,6 +10,7 @@ export interface MenuItemRowProps
   description?: string;
   tone?: Tone;
   trailing?: ReactNode;
+  /** @deprecated No longer needed; parent Card with `divide-y` handles borders. */
   isLast?: boolean;
 }
 
@@ -19,7 +20,7 @@ export function MenuItemRow({
   description,
   tone = "neutral",
   trailing,
-  isLast = false,
+  isLast: _isLast,
   className,
   ...props
 }: MenuItemRowProps) {
@@ -30,7 +31,6 @@ export function MenuItemRow({
       type="button"
       className={cn(
         "group flex min-h-14 w-full items-center gap-3 px-2 py-2 text-left hover:bg-accent-soft active:scale-[0.99] rounded-xl transition-all duration-300",
-        !isLast && "border-b border-line",
         interactiveMotion,
         focusRing,
         className

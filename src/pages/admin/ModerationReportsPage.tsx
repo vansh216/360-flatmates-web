@@ -14,6 +14,7 @@ import { PageLayout, PageHeader } from "@/components/ui/Layout";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, EmptyState } from "@/components/ui/StateViews";
+import { uiStore } from "@/lib/stores/ui-store";
 import type { ReportAdmin } from "@/lib/api/types";
 import type { ReportAction } from "@/lib/data";
 
@@ -28,6 +29,8 @@ export function ModerationReportsPage() {
   const [selectedReport, setSelectedReport] = useState<ReportAdmin | null>(null);
   const [pendingAction, setPendingAction] = useState<ReportAction | null>(null);
   const [actionNotes, setActionNotes] = useState("");
+  // Id of the report currently mutating, so only its row buttons are disabled.
+  const [actingId, setActingId] = useState<number | null>(null);
 
   const filtered = useMemo(
     () => {
@@ -52,12 +55,15 @@ export function ModerationReportsPage() {
   }
 
   function handleConfirmAction() {
-    if (!selectedReport || !pendingAction) return;
+    if (!selectedReport || !pendingAction || reportAction.isPending) return;
+    const report = selectedReport;
+    const action = pendingAction;
+    setActingId(report.id);
     reportAction.mutate(
       {
-        reportId: selectedReport.id,
+        reportId: report.id,
         payload: {
-          action: pendingAction,
+          action,
           notes: actionNotes.trim() || undefined
         }
       },
@@ -67,8 +73,20 @@ export function ModerationReportsPage() {
           setSelectedReport(null);
           setPendingAction(null);
           setActionNotes("");
-          refetch();
-        }
+          uiStore.getState().pushToast({
+            type: "success",
+            title: `Report ${actionPastTense[action]}`,
+            description: `Action taken on the report against ${report.reported_name}.`
+          });
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not complete action",
+            description: "Please try again."
+          });
+        },
+        onSettled: () => setActingId(null)
       }
     );
   }
@@ -77,6 +95,12 @@ export function ModerationReportsPage() {
     dismiss: "Dismiss",
     warn: "Warn User",
     suspend: "Suspend User"
+  };
+
+  const actionPastTense: Record<ReportAction, string> = {
+    dismiss: "dismissed",
+    warn: "resolved with a warning",
+    suspend: "resolved, user suspended"
   };
 
   const actionVariantMap: Record<ReportAction, "primary" | "secondary" | "tertiary"> = {
@@ -145,23 +169,27 @@ export function ModerationReportsPage() {
           }
         >
           {() => (
-            <div className="flex flex-col gap-3">
+            <ul className="flex flex-col gap-3">
               {filtered.map((report: ReportAdmin) => (
-                <ReportRow
-                  key={report.id}
-                  report={report}
-                  statusBadgeMap={statusBadgeMap}
-                  onAction={(action) => openActionModal(report, action)}
-                  isActing={reportAction.isPending}
-                />
+                <li key={report.id}>
+                  <ReportRow
+                    report={report}
+                    statusBadgeMap={statusBadgeMap}
+                    onAction={(action) => openActionModal(report, action)}
+                    isActing={actingId === report.id}
+                    actionsDisabled={actingId !== null}
+                  />
+                </li>
               ))}
               {filtered.length === 0 && search && (
-                <EmptyState
-                  title="No matches"
-                  description={`No reports match "${search}".`}
-                />
+                <li>
+                  <EmptyState
+                    title="No matches"
+                    description={`No reports match "${search}".`}
+                  />
+                </li>
               )}
-            </div>
+            </ul>
           )}
         </AsyncView>
       </div>
@@ -175,7 +203,10 @@ export function ModerationReportsPage() {
             ? `You are about to ${pendingAction ?? "act on"} the report by ${selectedReport.reporter_name} against ${selectedReport.reported_name}.`
             : ""
         }
-        onClose={() => setActionModalOpen(false)}
+        onClose={() => {
+          if (reportAction.isPending) return;
+          setActionModalOpen(false);
+        }}
         footer={
           <>
             <Button
@@ -213,12 +244,14 @@ function ReportRow({
   report,
   statusBadgeMap,
   onAction,
-  isActing
+  isActing,
+  actionsDisabled
 }: {
   report: ReportAdmin;
   statusBadgeMap: Record<string, "pending" | "confirmed" | "rejected">;
   onAction: (action: ReportAction) => void;
   isActing: boolean;
+  actionsDisabled: boolean;
 }) {
   return (
     <Card as="div" variant="compact">
@@ -253,7 +286,8 @@ function ReportRow({
           <Button
             size="compact"
             variant="tertiary"
-            disabled={isActing}
+            loading={isActing}
+            disabled={actionsDisabled && !isActing}
             leadingIcon={<CheckCircle2 aria-hidden="true" className="h-4 w-4" />}
             onClick={() => onAction("dismiss")}
           >
@@ -262,7 +296,7 @@ function ReportRow({
           <Button
             size="compact"
             variant="secondary"
-            disabled={isActing}
+            disabled={actionsDisabled}
             leadingIcon={<AlertTriangle aria-hidden="true" className="h-4 w-4" />}
             onClick={() => onAction("warn")}
           >
@@ -271,7 +305,7 @@ function ReportRow({
           <Button
             size="compact"
             variant="primary"
-            disabled={isActing}
+            disabled={actionsDisabled}
             leadingIcon={<Ban aria-hidden="true" className="h-4 w-4" />}
             onClick={() => onAction("suspend")}
           >

@@ -81,7 +81,7 @@ export function AboutPage() {
               experience we wished we had. If you have ever moved into a place and realized too late
               that your flatmate keeps the AC on 18 degrees all night, you understand our mission."
             </p>
-            <p className="mt-6 text-eyebrow text-accent uppercase tracking-wider">— The 360 Flatmates Team</p>
+            <p className="mt-6 text-eyebrow text-accent uppercase tracking-wider">The 360 Flatmates Team</p>
           </div>
         </section>
 

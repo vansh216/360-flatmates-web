@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { AlertCircle } from "lucide-react";
 import { cn, interactiveMotion } from "./component-utils";
 
 export function formatFullPhone(localDigits: string): string {
@@ -15,6 +16,10 @@ interface PhoneInputProps {
   label?: string;
   /** HTML autocomplete hint for the underlying input (defaults to `tel`). */
   autoComplete?: string;
+  /** Optional helper text shown below the field. */
+  helperText?: string;
+  /** Error message shown below the field (also flags the field as invalid). */
+  error?: string;
 }
 
 export function PhoneInput({
@@ -25,10 +30,14 @@ export function PhoneInput({
   className,
   id,
   label,
-  autoComplete = "tel"
+  autoComplete = "tel",
+  helperText,
+  error
 }: PhoneInputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
+  const helperId = `${inputId}-helper`;
+  const errorId = `${inputId}-error`;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const digits = e.target.value.replace(/\D/g, "").slice(-10);
@@ -47,8 +56,9 @@ export function PhoneInput({
       )}
       <div
         className={cn(
-          "group flex min-h-12 items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
+          "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
           interactiveMotion,
+          error && "border-error",
           disabled && "bg-paper-4"
         )}
       >
@@ -64,9 +74,21 @@ export function PhoneInput({
           onChange={handleChange}
           disabled={disabled}
           autoFocus={autoFocus}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : helperText ? helperId : undefined}
           className="min-w-0 flex-1 bg-transparent py-3 text-body-md text-ink outline-none placeholder:text-ink-3 disabled:cursor-not-allowed disabled:text-ink-4"
         />
       </div>
+      {error ? (
+        <p className="flex items-center gap-1.5 text-caption text-error" id={errorId}>
+          <AlertCircle aria-hidden="true" className="h-4 w-4" />
+          {error}
+        </p>
+      ) : helperText ? (
+        <p className="text-caption text-ink-3" id={helperId}>
+          {helperText}
+        </p>
+      ) : null}
     </div>
   );
 }

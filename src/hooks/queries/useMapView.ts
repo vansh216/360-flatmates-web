@@ -1,4 +1,4 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type { MapViewResponse, MapViewFilters, MapPin, Property, PaginatedPropertyResponse } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
@@ -20,11 +20,14 @@ function propertyToPin(p: Property): MapPin {
 export function mapViewOptions(filters: MapViewFilters) {
   return queryOptions({
     queryKey: ["map", filters],
-    queryFn: async () => {
+    // Pass the per-query AbortSignal so stale viewport fetches (rapid pan/zoom)
+    // are cancelled instead of racing to resolve over the freshest request.
+    queryFn: async ({ signal }) => {
       const response = await apiClient.request<PaginatedPropertyResponse>({
         method: "GET",
         path: "/properties",
         auth: false,
+        signal,
         query: {
           lat: filters.lat,
           lng: filters.lng,
@@ -46,6 +49,8 @@ export function mapViewOptions(filters: MapViewFilters) {
         total_listings: response.total,
       } satisfies MapViewResponse;
     },
+    // Viewport results stay fresh briefly so micro-pans don't trigger a refetch storm.
+    staleTime: 30_000,
     enabled:
       filters.lat !== undefined &&
       filters.lng !== undefined,
@@ -55,10 +60,8 @@ export function mapViewOptions(filters: MapViewFilters) {
 export function useMapView(filters: MapViewFilters) {
   return useQuery({
     ...mapViewOptions(filters),
-    placeholderData: {
-      clusters: [],
-      pins: [],
-      total_listings: 0
-    }
+    // Keep the previous viewport's pins on screen while a new one loads so the
+    // map doesn't flash blank on every pan/zoom (smooth refetch).
+    placeholderData: keepPreviousData
   });
 }

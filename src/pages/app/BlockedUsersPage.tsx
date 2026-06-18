@@ -2,9 +2,11 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import { useBlockedUsers, useUnblockUser } from "@/hooks/queries";
+import { uiStore } from "@/lib/stores/ui-store";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Modal } from "@/components/ui/Modal";
 import { AsyncView } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -13,6 +15,7 @@ export function BlockedUsersPage() {
   const { data: blockedUsers, isLoading, error, refetch } = useBlockedUsers();
   const unblockUser = useUnblockUser();
   const [pendingId, setPendingId] = useState<number | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{ id: number; name: string } | null>(null);
 
   return (
     <div className="flex flex-col gap-5 page-fade">
@@ -76,12 +79,12 @@ export function BlockedUsersPage() {
                 <Button
                   variant="tertiary"
                   size="compact"
-                  onClick={() => {
-                    setPendingId(block.blocked_user_id);
-                    unblockUser.mutate(block.blocked_user_id, {
-                      onSettled: () => setPendingId(null)
-                    });
-                  }}
+                  onClick={() =>
+                    setConfirmTarget({
+                      id: block.blocked_user_id,
+                      name: block.blocked_user.full_name
+                    })
+                  }
                   loading={unblockUser.isPending && pendingId === block.blocked_user_id}
                 >
                   Unblock
@@ -91,6 +94,53 @@ export function BlockedUsersPage() {
           </div>
         )}
       </AsyncView>
+
+      <Modal
+        open={confirmTarget !== null}
+        title={`Unblock ${confirmTarget?.name ?? "user"}?`}
+        description="They will be able to see your profile and message you again."
+        onClose={() => setConfirmTarget(null)}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setConfirmTarget(null)}
+              className="w-full md:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              loading={unblockUser.isPending}
+              onClick={() => {
+                if (!confirmTarget) return;
+                const targetId = confirmTarget.id;
+                setPendingId(targetId);
+                setConfirmTarget(null);
+                unblockUser.mutate(targetId, {
+                  onSettled: () => setPendingId(null),
+                  onSuccess: () => {
+                    uiStore.getState().pushToast({
+                      type: "success",
+                      title: "User unblocked"
+                    });
+                  },
+                  onError: () => {
+                    uiStore.getState().pushToast({
+                      type: "error",
+                      title: "Could not unblock user",
+                      description: "Please try again."
+                    });
+                  }
+                });
+              }}
+              className="w-full md:w-auto"
+            >
+              Unblock
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }

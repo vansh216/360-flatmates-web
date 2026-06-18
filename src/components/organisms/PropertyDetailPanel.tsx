@@ -76,7 +76,7 @@ export function PropertyDetailPanel({
               )}
             </div>
             {fullProperty.image_urls && fullProperty.image_urls.length > 1 && (
-              <span className="absolute bottom-3 right-3 text-[9px] font-mono bg-black/60 text-white px-2 py-0.5 rounded-full pointer-events-none">
+              <span className="absolute bottom-3 right-3 text-[9px] font-mono bg-ink/70 text-paper px-2 py-0.5 rounded-full pointer-events-none">
                 Swipe for more ({fullProperty.image_urls.length})
               </span>
             )}
@@ -96,17 +96,17 @@ export function PropertyDetailPanel({
           <div className="grid grid-cols-3 gap-2">
             <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
               <span className="text-[9px] uppercase font-mono tracking-wider text-ink-3 block">Rent</span>
-              <p className="text-body-md font-serif font-bold text-accent mt-0.5">{formatCurrencyINR(fullProperty.monthly_rent)}</p>
+              <p className="text-body-md font-serif font-normal text-accent mt-0.5">{formatCurrencyINR(fullProperty.monthly_rent)}</p>
             </div>
             <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
               <span className="text-[9px] uppercase font-mono tracking-wider text-ink-3 block">Deposit</span>
-              <p className="text-body-md font-serif font-bold text-ink mt-0.5">
+              <p className="text-body-md font-serif font-normal text-ink mt-0.5">
                 {fullProperty.security_deposit ? formatCurrencyINR(fullProperty.security_deposit) : "TBD"}
               </p>
             </div>
             <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
               <span className="text-[9px] uppercase font-mono tracking-wider text-ink-3 block">Maint.</span>
-              <p className="text-body-md font-serif font-bold text-ink mt-0.5">
+              <p className="text-body-md font-serif font-normal text-ink mt-0.5">
                 {fullProperty.maintenance_charges ? formatCurrencyINR(fullProperty.maintenance_charges) : "None"}
               </p>
             </div>

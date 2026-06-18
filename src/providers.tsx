@@ -12,6 +12,7 @@ import { useStore } from "zustand";
 import { uiStore } from "@/lib/stores/ui-store";
 import type { PalettePreference, ThemePreference } from "@/lib/stores/ui-store";
 import { searchStore } from "@/lib/stores/search-store";
+import { onboardingStore } from "@/lib/stores/onboarding-store";
 import { Toast, ToastViewport } from "@/components/ui/Toast";
 
 
@@ -33,6 +34,7 @@ function ProviderInternals({
     if (wasAuthenticated.current && !isAuthenticated) {
       queryClient.clear();
       searchStore.getState().resetFilters();
+      onboardingStore.getState().clearDraft();
     }
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated, queryClient]);

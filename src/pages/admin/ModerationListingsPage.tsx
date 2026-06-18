@@ -5,12 +5,15 @@ import { useAdminListings, useAdminModerate } from "@/hooks/queries";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Modal } from "@/components/ui/Modal";
+import { TextArea } from "@/components/ui/Input";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { PageLayout, PageHeader } from "@/components/ui/Layout";
 import { PriceText } from "@/components/ui/PriceText";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, EmptyState } from "@/components/ui/StateViews";
+import { uiStore } from "@/lib/stores/ui-store";
 import type { FlatmateListingAdmin } from "@/lib/api/types";
 
 export function ModerationListingsPage() {
@@ -19,6 +22,12 @@ export function ModerationListingsPage() {
     status: "pending_review"
   });
   const moderate = useAdminModerate();
+
+  // Track the listing id currently being actioned so only its row shows the
+  // loading/disabled state (never the whole queue) and to prevent double-submit.
+  const [actingId, setActingId] = useState<number | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<FlatmateListingAdmin | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const filtered = useMemo(
     () => {
@@ -35,13 +44,56 @@ export function ModerationListingsPage() {
     [search, data]
   );
 
-  function handleAction(
-    listingId: number,
-    action: "approve" | "reject"
-  ) {
+  function handleApprove(listing: FlatmateListingAdmin) {
+    if (actingId !== null) return;
+    setActingId(listing.id);
     moderate.mutate(
-      { listingId, payload: { action } },
-      { onSuccess: () => refetch() }
+      { listingId: listing.id, payload: { action: "approve" } },
+      {
+        onSuccess: () => {
+          uiStore.getState().pushToast({
+            type: "success",
+            title: "Listing approved",
+            description: `"${listing.title}" is now live.`
+          });
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not approve listing",
+            description: "Please try again."
+          });
+        },
+        onSettled: () => setActingId(null)
+      }
+    );
+  }
+
+  function handleConfirmReject() {
+    if (!rejectTarget || !rejectReason.trim() || actingId !== null) return;
+    const target = rejectTarget;
+    setActingId(target.id);
+    moderate.mutate(
+      { listingId: target.id, payload: { action: "reject", reason: rejectReason.trim() } },
+      {
+        onSuccess: () => {
+          setRejectTarget(null);
+          setRejectReason("");
+          uiStore.getState().pushToast({
+            type: "success",
+            title: "Listing rejected",
+            description: `"${target.title}" was rejected.`
+          });
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not reject listing",
+            description: "Please try again."
+          });
+        },
+        onSettled: () => setActingId(null)
+      }
     );
   }
 
@@ -101,26 +153,81 @@ export function ModerationListingsPage() {
           }
         >
           {() => (
-            <div className="flex flex-col gap-3">
+            <ul className="flex flex-col gap-3">
               {filtered.map((listing: FlatmateListingAdmin) => (
-                <ListingRow
-                  key={listing.id}
-                  listing={listing}
-                  onApprove={() => handleAction(listing.id, "approve")}
-                  onReject={() => handleAction(listing.id, "reject")}
-                  isActing={moderate.isPending}
-                />
+                <li key={listing.id}>
+                  <ListingRow
+                    listing={listing}
+                    onApprove={() => handleApprove(listing)}
+                    onReject={() => {
+                      setRejectTarget(listing);
+                      setRejectReason("");
+                    }}
+                    isActing={actingId === listing.id}
+                    actionsDisabled={actingId !== null}
+                  />
+                </li>
               ))}
               {filtered.length === 0 && search && (
-                <EmptyState
-                  title="No matches"
-                  description={`No listings match "${search}".`}
-                />
+                <li>
+                  <EmptyState
+                    title="No matches"
+                    description={`No listings match "${search}".`}
+                  />
+                </li>
               )}
-            </div>
+            </ul>
           )}
         </AsyncView>
       </div>
+
+      {/* Reject confirmation (destructive: requires a reason) */}
+      <Modal
+        open={rejectTarget !== null}
+        title="Reject Listing"
+        description={
+          rejectTarget
+            ? `Provide a reason for rejecting "${rejectTarget.title}". The owner will see this.`
+            : ""
+        }
+        onClose={() => {
+          if (moderate.isPending) return;
+          setRejectTarget(null);
+          setRejectReason("");
+        }}
+        footer={
+          <>
+            <Button
+              size="compact"
+              variant="secondary"
+              onClick={() => {
+                setRejectTarget(null);
+                setRejectReason("");
+              }}
+              disabled={moderate.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="compact"
+              variant="primary"
+              loading={moderate.isPending}
+              onClick={handleConfirmReject}
+              disabled={!rejectReason.trim()}
+            >
+              Confirm Rejection
+            </Button>
+          </>
+        }
+      >
+        <TextArea
+          label="Reason"
+          placeholder="Describe why this listing is being rejected..."
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          rows={3}
+        />
+      </Modal>
     </PageLayout>
   );
 }
@@ -129,12 +236,14 @@ function ListingRow({
   listing,
   onApprove,
   onReject,
-  isActing
+  isActing,
+  actionsDisabled
 }: {
   listing: FlatmateListingAdmin;
   onApprove: () => void;
   onReject: () => void;
   isActing: boolean;
+  actionsDisabled: boolean;
 }) {
   const statusMap: Record<string, "pending" | "confirmed" | "rejected"> = {
     pending_review: "pending",
@@ -179,6 +288,7 @@ function ListingRow({
               size="compact"
               variant="primary"
               loading={isActing}
+              disabled={actionsDisabled && !isActing}
               leadingIcon={<CheckCircle2 aria-hidden="true" className="h-4 w-4" />}
               onClick={onApprove}
             >
@@ -187,13 +297,13 @@ function ListingRow({
             <Button
               size="compact"
               variant="secondary"
-              loading={isActing}
+              disabled={actionsDisabled}
               leadingIcon={<XCircle aria-hidden="true" className="h-4 w-4" />}
               onClick={onReject}
             >
               Reject
             </Button>
-            <Link to={`/admin/moderation/prescreen/${listing.id}`}>
+            <Link to={`/admin/moderation/prescreen/${listing.id}`} tabIndex={-1}>
               <Button
                 size="compact"
                 variant="tertiary"

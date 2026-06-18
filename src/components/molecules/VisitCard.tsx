@@ -5,6 +5,7 @@ import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { NetworkImage } from "../ui/NetworkImage";
 import { cn } from "../ui/component-utils";
+import { formatDateTime } from "@/lib/utils/format";
 
 export type VisitStatus = "confirmed" | "pending" | "completed" | "cancelled";
 export type VisitType = "Property Tour" | "Flatmate Meet";
@@ -14,13 +15,31 @@ export interface VisitCardData {
   propertyTitle: string;
   propertyImageUrl?: string | null;
   type: VisitType;
+  /** ISO date-time string from the API. */
   dateTime: string;
   status: VisitStatus;
+}
+
+const STATUS_LABEL: Record<VisitStatus, string> = {
+  confirmed: "Confirmed",
+  pending: "Pending",
+  completed: "Completed",
+  cancelled: "Cancelled"
+};
+
+/** Format an ISO date-time into a friendly label, falling back to the raw value. */
+function formatVisitDateTime(value: string): string {
+  if (!value) return "Date to be confirmed";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return formatDateTime(parsed);
 }
 
 export interface VisitCardProps extends HTMLAttributes<HTMLElement> {
   visit: VisitCardData;
   canConfirm?: boolean;
+  /** Disables inline action buttons and shows a busy state (e.g. mutation in flight). */
+  busy?: boolean;
   onConfirm?: (visitId: string) => void;
   onReschedule?: (visitId: string) => void;
   onCancel?: (visitId: string) => void;
@@ -37,6 +56,7 @@ const statusMap: Record<VisitStatus, StatusTone> = {
 export function VisitCard({
   visit,
   canConfirm = false,
+  busy = false,
   onConfirm,
   onReschedule,
   onCancel,
@@ -44,6 +64,8 @@ export function VisitCard({
   className,
   ...props
 }: VisitCardProps) {
+  const dateLabel = formatVisitDateTime(visit.dateTime);
+
   return (
     <Card as="article" className={cn("flex gap-3", className)} {...props}>
       <NetworkImage
@@ -58,29 +80,29 @@ export function VisitCard({
         </div>
         <p className="mt-2 flex items-center gap-1.5 text-[13px] text-ink-2">
           <CalendarDays aria-hidden="true" className="h-4 w-4 text-accent" />
-          {visit.dateTime}
+          <time dateTime={visit.dateTime || undefined}>{dateLabel}</time>
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <Badge status={statusMap[visit.status]} variant="status">
-            {visit.status.replace("_", " ")}
+            {STATUS_LABEL[visit.status]}
           </Badge>
           {visit.status === "pending" && canConfirm ? (
-            <Button size="compact" onClick={() => onConfirm?.(visit.id)}>
+            <Button size="compact" disabled={busy} onClick={() => onConfirm?.(visit.id)}>
               Confirm
             </Button>
           ) : null}
           {visit.status === "confirmed" || visit.status === "pending" ? (
             <>
-              <Button size="compact" variant="tertiary" onClick={() => onReschedule?.(visit.id)}>
+              <Button size="compact" variant="tertiary" disabled={busy} onClick={() => onReschedule?.(visit.id)}>
                 Reschedule
               </Button>
-              <Button size="compact" variant="tertiary" onClick={() => onCancel?.(visit.id)}>
+              <Button size="compact" variant="tertiary" disabled={busy} onClick={() => onCancel?.(visit.id)}>
                 Cancel
               </Button>
             </>
           ) : null}
           {visit.status === "completed" ? (
-            <Button size="compact" variant="tertiary" onClick={() => onRate?.(visit.id)}>
+            <Button size="compact" variant="tertiary" disabled={busy} onClick={() => onRate?.(visit.id)}>
               Rate
             </Button>
           ) : null}

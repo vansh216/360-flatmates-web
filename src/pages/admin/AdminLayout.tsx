@@ -33,6 +33,16 @@ const adminNavItems: AdminNavItem[] = [
   }
 ];
 
+function isNavActive(pathname: string, href: string): boolean {
+  if (href === "/admin/moderation/listings") {
+    // Prescreen detail lives under the listing queue, keep the tab active there.
+    return (
+      pathname === href || pathname.startsWith("/admin/moderation/prescreen")
+    );
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function AdminLayout() {
   const location = useLocation();
 
@@ -45,7 +55,11 @@ export function AdminLayout() {
         </div>
         <nav aria-label="Admin navigation" className="mt-5 flex flex-1 flex-col gap-1">
           {adminNavItems.map((item) => (
-            <AdminNavLink key={item.href} item={item} active={location.pathname === item.href} />
+            <AdminNavLink
+              key={item.href}
+              item={item}
+              active={isNavActive(location.pathname, item.href)}
+            />
           ))}
         </nav>
       </aside>
@@ -60,20 +74,24 @@ export function AdminLayout() {
             aria-label="Mobile admin navigation"
             className="ml-auto flex items-center gap-1 xl:hidden"
           >
-            {adminNavItems.map((item) => (
+            {adminNavItems.map((item) => {
+              const active = isNavActive(location.pathname, item.href);
+              return (
               <Link
                 key={item.href}
                 to={item.href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-2 rounded-[9px] px-3 py-2 text-label-md text-ink-3 hover:bg-paper-3 hover:text-ink",
-                  location.pathname === item.href && "bg-accent-soft text-accent",
+                  active && "bg-accent-soft text-accent",
                   focusRing
                 )}
               >
                 {item.icon}
                 <span className="hidden md:inline">{item.label}</span>
               </Link>
-            ))}
+              );
+            })}
           </nav>
         </header>
         <main className="min-h-[calc(100vh-64px)] px-5 py-6 md:px-6">

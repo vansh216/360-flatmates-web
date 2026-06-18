@@ -1,9 +1,12 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useUpdateProfile, useMyProfile } from "@/hooks/queries";
+import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/StateViews";
 import { Toggle } from "@/components/ui/Toggle";
 
 interface NotificationToggle {
@@ -32,7 +35,7 @@ function buildInitialToggles(savedPrefs: Record<string, boolean>): Record<string
 
 export function SettingsNotificationsPage() {
   const navigate = useNavigate();
-  const { data: profile } = useMyProfile();
+  const { data: profile, isLoading, error, refetch } = useMyProfile();
   const updateProfile = useUpdateProfile();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingPrefs = useRef<Record<string, boolean> | null>(null);
@@ -48,22 +51,68 @@ export function SettingsNotificationsPage() {
 
   const flushPrefs = useCallback(() => {
     if (pendingPrefs.current) {
-      updateProfile.mutate({ preferences: pendingPrefs.current });
+      updateProfile.mutate(
+        { preferences: pendingPrefs.current },
+        {
+          onError: () => {
+            uiStore.getState().pushToast({
+              type: "error",
+              title: "Could not save preferences",
+              description: "Please try again."
+            });
+          }
+        }
+      );
       pendingPrefs.current = null;
     }
   }, [updateProfile]);
 
+  // Flush any pending preferences on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (pendingPrefs.current) {
+        updateProfile.mutate({ preferences: pendingPrefs.current });
+        pendingPrefs.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleToggle = useCallback(
     (key: string) => {
-      const next = { ...toggles, [key]: !toggles[key] };
-      setUserEdits(next);
-      pendingPrefs.current = next;
+      setUserEdits((prev) => {
+        const base = prev ?? baseToggles;
+        const next = { ...base, [key]: !base[key] };
+        pendingPrefs.current = next;
 
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(flushPrefs, 500);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(flushPrefs, 500);
+
+        return next;
+      });
     },
-    [toggles, flushPrefs]
+    [baseToggles, flushPrefs]
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-5 page-fade">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-[9px]" />
+          <Skeleton className="h-8 w-48" />
+        </div>
+        <div className="rounded-2xl border border-line bg-surface">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="flex min-h-14 items-center justify-between px-4 py-3 border-b border-line last:border-b-0">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-7 w-12 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-5 page-fade">
@@ -74,21 +123,31 @@ export function SettingsNotificationsPage() {
         <h1 className="text-h1">Notification Settings</h1>
       </div>
 
-      <Card className="divide-y divide-line p-0">
-        {NOTIFICATION_TOGGLES.map((item) => (
-          <div
-            key={item.key}
-            className="flex min-h-14 items-center justify-between px-4 py-3"
-          >
-            <span className="text-body-md font-medium text-ink">{item.label}</span>
-            <Toggle
-              checked={toggles[item.key]}
-              onCheckedChange={() => handleToggle(item.key)}
-              label={item.label}
-            />
-          </div>
-        ))}
-      </Card>
+      {error ? (
+        <Card className="flex items-center justify-center p-8">
+          <ErrorState
+            title="Could not load preferences"
+            description="Please try again."
+            onRetry={() => refetch()}
+          />
+        </Card>
+      ) : (
+        <Card className="divide-y divide-line p-0">
+          {NOTIFICATION_TOGGLES.map((item) => (
+            <div
+              key={item.key}
+              className="flex min-h-14 items-center justify-between px-4 py-3"
+            >
+              <span id={`toggle-label-${item.key}`} className="text-body-md font-medium text-ink">{item.label}</span>
+              <Toggle
+                checked={toggles[item.key]}
+                onCheckedChange={() => handleToggle(item.key)}
+                aria-labelledby={`toggle-label-${item.key}`}
+              />
+            </div>
+          ))}
+        </Card>
+      )}
     </div>
   );
 }
