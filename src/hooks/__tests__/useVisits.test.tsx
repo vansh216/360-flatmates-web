@@ -35,7 +35,7 @@ describe("useVisits hooks", () => {
   describe("useVisits(filters)", () => {
     it("uses query key ['visits', filters]", async () => {
       const mockVisits = {
-        visits: [
+        items: [
           {
             id: 1,
             property_id: 301,
@@ -44,6 +44,9 @@ describe("useVisits hooks", () => {
             status: "confirmed"
           }
         ],
+        next_cursor: null,
+        has_more: false,
+        limit: 20,
         total: 1
       };
       mockRequest.mockResolvedValue(mockVisits);
@@ -61,12 +64,18 @@ describe("useVisits hooks", () => {
       renderHook(() => useVisits(filters), { wrapper });
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
 
+      // useVisits extracts response.items and stores that as the cached value.
       const cache = queryClient.getQueryData(["visits", filters]);
-      expect(cache).toEqual(mockVisits);
+      expect(cache).toEqual(mockVisits.items);
     });
 
     it("requests GET /visits with filters", async () => {
-      mockRequest.mockResolvedValue({ visits: [], total: 0 });
+      mockRequest.mockResolvedValue({
+        items: [],
+        next_cursor: null,
+        has_more: false,
+        limit: 10
+      });
 
       const filters = { upcoming: true, limit: 10 };
       renderHook(() => useVisits(filters), { wrapper: createWrapper() });
@@ -79,7 +88,12 @@ describe("useVisits hooks", () => {
     });
 
     it("works without filters", async () => {
-      mockRequest.mockResolvedValue({ visits: [], total: 0 });
+      mockRequest.mockResolvedValue({
+        items: [],
+        next_cursor: null,
+        has_more: false,
+        limit: 20
+      });
 
       renderHook(() => useVisits(), { wrapper: createWrapper() });
 

@@ -151,7 +151,13 @@ describe("useProfiles hooks", () => {
       const mockPeers = [
         { id: 202, full_name: "Aditi", mode: "open_to_both", onboarding_completed: true }
       ];
-      mockRequest.mockResolvedValue({ profiles: mockPeers, total: 1 });
+      mockRequest.mockResolvedValue({
+        items: mockPeers,
+        next_cursor: null,
+        has_more: false,
+        limit: 20,
+        total: 1
+      });
 
       const filters = { city: "Bangalore" };
       const queryClient = new QueryClient({
@@ -171,7 +177,12 @@ describe("useProfiles hooks", () => {
     });
 
     it("sends filters as query params", async () => {
-      mockRequest.mockResolvedValue({ profiles: [], total: 0 });
+      mockRequest.mockResolvedValue({
+        items: [],
+        next_cursor: null,
+        has_more: false,
+        limit: 20
+      });
 
       const filters = { city: "Bangalore", budget_max: 30000 };
       renderHook(() => usePeers(filters), { wrapper: createWrapper() });

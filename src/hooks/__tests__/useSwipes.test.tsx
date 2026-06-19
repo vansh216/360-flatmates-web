@@ -33,9 +33,18 @@ describe("useSwipes hooks", () => {
 
   describe("useSwipeDeck(filters)", () => {
     it("uses query key ['swipes', 'deck', filters]", async () => {
-      const mockResponse = [
-        { id: 202, full_name: "Aditi", mode: "open_to_both", onboarding_completed: true }
-      ];
+      const mockProfile = {
+        id: 202,
+        full_name: "Aditi",
+        mode: "open_to_both",
+        onboarding_completed: true
+      };
+      const mockResponse = {
+        items: [mockProfile],
+        next_cursor: null,
+        has_more: false,
+        limit: 20
+      };
       mockRequest.mockResolvedValue(mockResponse);
 
       const filters = { city: "Bangalore" };
@@ -52,14 +61,19 @@ describe("useSwipes hooks", () => {
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
 
       const cache = queryClient.getQueryData(["swipes", "deck", filters]);
-      expect(cache).toEqual(mockResponse);
+      expect(cache).toEqual([mockProfile]);
     });
 
     it("returns profiles array from response", async () => {
       const profiles = [
         { id: 202, full_name: "Aditi", mode: "open_to_both", onboarding_completed: true }
       ];
-      mockRequest.mockResolvedValue(profiles);
+      mockRequest.mockResolvedValue({
+        items: profiles,
+        next_cursor: null,
+        has_more: false,
+        limit: 20
+      });
 
       const { result } = renderHook(() => useSwipeDeck(), {
         wrapper: createWrapper()
@@ -70,7 +84,12 @@ describe("useSwipes hooks", () => {
     });
 
     it("requests GET /flatmates/profiles with filters", async () => {
-      mockRequest.mockResolvedValue([]);
+      mockRequest.mockResolvedValue({
+        items: [],
+        next_cursor: null,
+        has_more: false,
+        limit: 20
+      });
 
       const filters = { city: "Bangalore", limit: 10 };
       renderHook(() => useSwipeDeck(filters), { wrapper: createWrapper() });

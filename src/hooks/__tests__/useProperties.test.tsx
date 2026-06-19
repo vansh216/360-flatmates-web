@@ -114,7 +114,12 @@ describe("useProperties hooks", () => {
           monthly_rent: 25000
         }
       ];
-      mockRequest.mockResolvedValue(mockProperties);
+      mockRequest.mockResolvedValue({
+        items: mockProperties,
+        next_cursor: null,
+        has_more: false,
+        limit: 20
+      });
 
       const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false } }
@@ -133,7 +138,12 @@ describe("useProperties hooks", () => {
     });
 
     it("requests GET /properties/me", async () => {
-      mockRequest.mockResolvedValue([]);
+      mockRequest.mockResolvedValue({
+        items: [],
+        next_cursor: null,
+        has_more: false,
+        limit: 20
+      });
 
       renderHook(() => useMyProperties(), { wrapper: createWrapper() });
 

@@ -35,20 +35,20 @@ describe("useSearch hooks", () => {
   describe("useWebSearch(filters)", () => {
     it("uses query key ['search', 'web', filters]", async () => {
       const rawApiResponse = {
-        properties: [],
+        items: [],
         total: 0,
-        page: 1,
+        next_cursor: null,
+        has_more: false,
         limit: 20,
-        total_pages: 0,
         filters_applied: undefined,
         search_center: undefined
       };
       const expectedCache = {
         results: [],
         total: 0,
-        page: 1,
+        next_cursor: null,
+        has_more: false,
         limit: 20,
-        total_pages: 0,
         search_type: "listings",
         filters_applied: undefined,
         search_center: undefined
@@ -83,11 +83,11 @@ describe("useSearch hooks", () => {
 
     it("is enabled when at least one filter has a value", async () => {
       mockRequest.mockResolvedValue({
-        properties: [],
+        items: [],
         total: 0,
-        page: 1,
-        limit: 20,
-        total_pages: 0
+        next_cursor: null,
+        has_more: false,
+        limit: 20
       });
 
       renderHook(
@@ -100,11 +100,11 @@ describe("useSearch hooks", () => {
 
     it("requests GET /properties with filters", async () => {
       mockRequest.mockResolvedValue({
-        properties: [],
+        items: [],
         total: 0,
-        page: 1,
-        limit: 20,
-        total_pages: 0
+        next_cursor: null,
+        has_more: false,
+        limit: 20
       });
 
       const filters = { q: "Koramangala" };

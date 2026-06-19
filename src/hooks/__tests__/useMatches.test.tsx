@@ -45,7 +45,12 @@ describe("useMatches hooks", () => {
           }
         }
       ];
-      mockRequest.mockResolvedValue(mockMatches);
+      mockRequest.mockResolvedValue({
+        items: mockMatches,
+        next_cursor: null,
+        has_more: false,
+        limit: 20
+      });
 
       const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false } }
@@ -64,7 +69,12 @@ describe("useMatches hooks", () => {
     });
 
     it("requests GET /flatmates/matches", async () => {
-      mockRequest.mockResolvedValue([]);
+      mockRequest.mockResolvedValue({
+        items: [],
+        next_cursor: null,
+        has_more: false,
+        limit: 20
+      });
 
       renderHook(() => useMatches(), { wrapper: createWrapper() });
 

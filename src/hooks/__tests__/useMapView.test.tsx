@@ -32,11 +32,11 @@ describe("useMapView hooks", () => {
   describe("useMapView(filters)", () => {
     it("uses query key ['map', filters]", async () => {
       const rawApiResponse = {
-        properties: [],
+        items: [],
         total: 0,
-        page: 1,
-        limit: 100,
-        total_pages: 0
+        next_cursor: null,
+        has_more: false,
+        limit: 100
       };
       const expectedCache: MapViewResponse = {
         clusters: [],
@@ -64,11 +64,11 @@ describe("useMapView hooks", () => {
 
     it("requests GET /properties with filters as query", async () => {
       mockRequest.mockResolvedValue({
-        properties: [],
+        items: [],
         total: 0,
-        page: 1,
-        limit: 100,
-        total_pages: 0
+        next_cursor: null,
+        has_more: false,
+        limit: 100
       });
 
       const filters = { lat: 12.97, lng: 77.59, radius: 5 };
