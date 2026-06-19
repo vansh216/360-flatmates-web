@@ -26,12 +26,12 @@ const BLOG_PAGE_SIZE = 12;
  * more in the future without touching the components).
  */
 export interface BlogPostDetail extends BlogPost {
-  /** Final rendered body (markdown / html). */
+  /** Final rendered body (markdown / html), sourced from `content`. */
   renderedBody: string;
 }
 
 function asDetail(post: BlogPost): BlogPostDetail {
-  return { ...post, renderedBody: post.body };
+  return { ...post, renderedBody: post.content };
 }
 
 export function blogPostsOptions(filters?: BlogPostFilters) {

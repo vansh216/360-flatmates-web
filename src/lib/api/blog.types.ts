@@ -23,11 +23,13 @@ export interface BlogPost {
   title: string;
   slug: string;
   excerpt?: string;
-  body: string;
+  /** Post body (HTML/markdown). Backend field name is `content`. */
+  content: string;
   status: BlogPostStatus;
   /** ISO-8601 publish timestamp; absent while in draft. */
   published_at?: string | null;
-  scheduled_for?: string | null;
+  /** ISO-8601 scheduled publish timestamp for scheduled posts. */
+  scheduled_at?: string | null;
   /** SEO metadata attached at creation time. */
   meta_title?: string;
   meta_description?: string;
@@ -39,9 +41,6 @@ export interface BlogPost {
   word_count?: number;
   /** Cover image (separate from the SEO og_image). */
   cover_image_url?: string;
-  author_id?: number;
-  author_name?: string;
-  author_avatar_url?: string;
   categories?: BlogCategory[];
   tags?: BlogTag[];
   /** Citations / external sources referenced in the article body. */
@@ -64,14 +63,15 @@ export interface BlogPostFilters {
   limit?: number;
 }
 
-/** Response returned by `GET /blog/posts/preview/{token}` (public preview link). */
-export interface BlogPostPreviewResponse {
-  post: BlogPost;
-  /** True when the preview token is still valid. */
-  token_valid: boolean;
-  /** ISO-8601 expiry of the preview token. */
-  expires_at?: string;
-}
+/**
+ * Response returned by `GET /blog/posts/preview/{token}` (public preview link).
+ *
+ * The backend returns a flat object with the same fields as BlogPost
+ * (minus sensitive internal fields like `preview_token`).
+ */
+export type BlogPostPreviewResponse = Omit<BlogPost, "seo_metadata"> & {
+  preview_token?: string;
+};
 
 /** Payload for `POST /blog/posts/{post_id}/preview-token`. */
 export interface BlogPreviewTokenCreate {

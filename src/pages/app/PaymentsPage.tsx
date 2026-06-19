@@ -33,15 +33,10 @@ function PaymentMethodRow({
         </div>
         <div className="flex flex-col min-w-0">
           <span className="truncate text-body-md text-ink font-semibold">
-            {method.brand}
-            {method.last4 ? ` · •••• ${method.last4}` : method.vpa ? ` · ${method.vpa}` : null}
+            {method.brand ?? method.method_type}
+            {method.last4 ? ` · •••• ${method.last4}` : null}
             {method.nickname ? ` (${method.nickname})` : null}
           </span>
-          {method.exp_month && method.exp_year ? (
-            <span className="text-eyebrow text-ink-3 uppercase">
-              Expires {String(method.exp_month).padStart(2, "0")}/{method.exp_year}
-            </span>
-          ) : null}
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">

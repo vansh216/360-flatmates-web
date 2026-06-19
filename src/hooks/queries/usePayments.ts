@@ -175,10 +175,10 @@ export function useRazorpayCheckout() {
       }
       const checkout = new RazorpayCtor({
         key: order.key_id,
-        amount: order.amount_paise,
+        amount: Math.round(order.amount * 100), // rupees → paise
         currency: order.currency,
         name: "360 Ghar",
-        description: order.booking_label ?? "Booking payment",
+        description: "Booking payment",
         order_id: order.order_id,
         prefill,
         notes: order.notes,

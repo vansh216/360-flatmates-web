@@ -112,18 +112,9 @@ export function AddPaymentMethodPage() {
     setServerError(null);
     addMethod.mutate(
       {
-        brand: values.brand,
+        method_type: isUpi ? "upi" : "card",
+        brand: values.brand || undefined,
         last4: values.last4 || undefined,
-        exp_month:
-          values.exp_month && values.exp_month !== ""
-            ? Number(values.exp_month)
-            : undefined,
-        exp_year:
-          values.exp_year && values.exp_year !== ""
-            ? Number(values.exp_year)
-            : undefined,
-        cardholder_name: values.cardholder_name || undefined,
-        vpa: values.vpa || undefined,
         nickname: values.nickname || undefined,
         is_default: values.is_default
       },

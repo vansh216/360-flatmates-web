@@ -42,9 +42,12 @@ describe("Payment & batch hooks", () => {
       const mockMethods = [
         {
           id: 1,
+          method_type: "card",
           brand: "Visa",
           last4: "1234",
-          is_default: true
+          nickname: null,
+          is_default: true,
+          created_at: "2026-06-19T00:00:00Z"
         }
       ];
       mockRequest.mockResolvedValue({
@@ -92,10 +95,10 @@ describe("Payment & batch hooks", () => {
       mockRequest.mockResolvedValue({
         order_id: "order_abc",
         amount: 15000,
-        amount_paise: 1500000,
         currency: "INR",
-        status: "created",
-        key_id: "rzp_test"
+        key_id: "rzp_test",
+        booking_id: 42,
+        notes: {}
       });
 
       const { result } = renderHook(() => useRazorpayCreateOrder(), {
@@ -144,9 +147,12 @@ describe("Payment & batch hooks", () => {
     it("sends POST /payments/methods and invalidates ['payments', 'methods'] on success", async () => {
       mockRequest.mockResolvedValue({
         id: 7,
+        method_type: "upi",
         brand: "UPI",
-        vpa: "name@bank",
-        is_default: false
+        last4: null,
+        nickname: null,
+        is_default: false,
+        created_at: "2026-06-19T00:00:00Z"
       });
 
       const queryClient = new QueryClient({
@@ -161,7 +167,7 @@ describe("Payment & batch hooks", () => {
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
       const { result } = renderHook(() => useAddPaymentMethod(), { wrapper });
 
-      result.current.mutate({ brand: "UPI", vpa: "name@bank" });
+      result.current.mutate({ method_type: "upi", brand: "UPI" });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(invalidateSpy).toHaveBeenCalledWith({
@@ -174,9 +180,12 @@ describe("Payment & batch hooks", () => {
     it("sends PUT /payments/methods/{id}", async () => {
       mockRequest.mockResolvedValue({
         id: 7,
+        method_type: "upi",
         brand: "UPI",
-        vpa: "name@bank",
-        is_default: true
+        last4: null,
+        nickname: null,
+        is_default: true,
+        created_at: "2026-06-19T00:00:00Z"
       });
 
       const { result } = renderHook(() => useUpdatePaymentMethod(), {

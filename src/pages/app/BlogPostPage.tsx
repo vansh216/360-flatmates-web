@@ -45,12 +45,11 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
 
   const post = useMemo(() => {
     if (previewMode) {
-      return previewQuery.data?.post;
+      // Preview response is a flat BlogPost-compatible object
+      return previewQuery.data;
     }
     return postQuery.data;
   }, [previewMode, previewQuery.data, postQuery.data]);
-
-  const tokenValid = previewMode ? previewQuery.data?.token_valid !== false : true;
 
   if (isLoading) {
     return (
@@ -90,25 +89,11 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
     );
   }
 
-  if (previewMode && !tokenValid) {
-    return (
-      <div className="page-fade mx-auto max-w-3xl px-5 py-12">
-        <Card className="p-8 text-center">
-          <p className="text-h3 text-ink-2 font-semibold">Preview link expired</p>
-          <p className="mt-2 text-body-md text-ink-3">
-            Ask the author to generate a new preview link.
-          </p>
-        </Card>
-      </div>
-    );
-  }
-
   const articleLd = buildArticleSchema({
     headline: post.title,
     description: post.excerpt ?? post.meta_description ?? "",
     image: post.cover_image_url ?? post.og_image_url ?? `${SITE_URL}/og-default.png`,
     url: `${SITE_URL}/blog/${post.slug}`,
-    authorName: post.author_name,
     datePublished: post.published_at ?? post.created_at ?? new Date().toISOString()
   });
 
@@ -147,9 +132,6 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
         ) : null}
 
         <div className="mt-6 flex flex-wrap items-center gap-4 text-label-md text-ink-3">
-          {post.author_name ? (
-            <span className="font-semibold text-ink-2">{post.author_name}</span>
-          ) : null}
           {post.published_at ? (
             <span className="flex items-center gap-1.5">
               <Calendar aria-hidden="true" className="h-3.5 w-3.5" />
@@ -179,7 +161,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
         ) : null}
 
         <article className="prose prose-neutral mt-10 max-w-none text-ink-2">
-          {post.body
+          {post.content
             .split("\n\n")
             .filter((paragraph) => paragraph.trim().length > 0)
             .map((paragraph, index) => (

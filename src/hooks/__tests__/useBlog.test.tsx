@@ -40,7 +40,7 @@ describe("Blog hooks", () => {
           id: 1,
           title: "How to find flatmates",
           slug: "how-to-find-flatmates",
-          body: "Lorem ipsum",
+          content: "Lorem ipsum",
           status: "published"
         }
       ];
@@ -90,7 +90,7 @@ describe("Blog hooks", () => {
         id: 1,
         title: "How to find flatmates",
         slug: "how-to-find-flatmates",
-        body: "Lorem ipsum",
+        content: "Lorem ipsum",
         status: "published"
       };
       mockRequest.mockResolvedValue(mockPost);
@@ -114,15 +114,11 @@ describe("Blog hooks", () => {
   describe("useBlogPreview(token)", () => {
     it("uses auth=false for public preview", async () => {
       const mockResponse = {
-        post: {
-          id: 1,
-          title: "Draft",
-          slug: "draft",
-          body: "draft body",
-          status: "draft"
-        },
-        token_valid: true,
-        expires_at: "2026-12-31T00:00:00Z"
+        id: 1,
+        title: "Draft",
+        slug: "draft",
+        content: "draft body",
+        status: "draft"
       };
       mockRequest.mockResolvedValue(mockResponse);
 

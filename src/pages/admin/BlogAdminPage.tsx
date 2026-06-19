@@ -127,7 +127,6 @@ export function BlogAdminPage() {
                   >
                     {STATUS_LABELS[post.status]}
                   </span>
-                  {post.author_name ? <span>{post.author_name}</span> : null}
                   {post.published_at ? (
                     <span>{new Date(post.published_at).toLocaleDateString()}</span>
                   ) : null}
