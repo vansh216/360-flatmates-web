@@ -1,12 +1,22 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  infiniteQueryOptions,
+  queryOptions,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
   FlatmatesPeer,
   FlatmatesProfile,
   FlatmatesProfileUpdate,
+  PeerCursorPage,
   PeerFilters,
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
+
+const PEERS_PAGE_SIZE = 20;
 
 export const myProfileOptions = queryOptions({
   queryKey: ["profile", "me"],
@@ -33,13 +43,43 @@ export function peerProfilesOptions(filters?: PeerFilters) {
   return queryOptions({
     queryKey: ["profiles", "peers", filters],
     queryFn: async () => {
-      const response = await apiClient.request<{ profiles: FlatmatesPeer[]; total: number }>({
+      const response = await apiClient.request<PeerCursorPage>({
         method: "GET",
         path: "/flatmates/profiles",
         query: (filters ?? {}) as Record<string, QueryValue>
       });
-      return response.profiles || [];
+      return response.items || [];
     }
+  });
+}
+
+/**
+ * Infinite cursor-paginated peer profiles.
+ *
+ * Used by the swipe deck so additional cards can be pre-fetched as the user
+ * approaches the end of the current deck without re-rendering from scratch.
+ */
+export function peersInfiniteOptions(
+  filters?: Omit<PeerFilters, "limit" | "cursor">
+) {
+  return infiniteQueryOptions({
+    queryKey: ["profiles", "peers", "infinite", filters],
+    queryFn: async ({ pageParam, signal }) => {
+      const response = await apiClient.request<PeerCursorPage>({
+        method: "GET",
+        path: "/flatmates/profiles",
+        query: {
+          ...(filters ?? {}),
+          cursor: pageParam,
+          limit: PEERS_PAGE_SIZE
+        } as Record<string, QueryValue>,
+        signal
+      });
+      return response;
+    },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.has_more ? lastPage.next_cursor ?? undefined : undefined
   });
 }
 
@@ -53,6 +93,12 @@ export function useProfile(id: number) {
 
 export function usePeers(filters?: PeerFilters) {
   return useQuery(peerProfilesOptions(filters));
+}
+
+export function useInfinitePeers(
+  filters?: Omit<PeerFilters, "limit" | "cursor">
+) {
+  return useInfiniteQuery(peersInfiniteOptions(filters));
 }
 
 export function useUpdateProfile() {

@@ -1,8 +1,16 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  queryOptions,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
   Property,
   PropertyCreate,
+  PropertyCursorPage,
   PropertyUpdate,
   PropertyImageUploadPayload,
   PropertyImageUploadResponse,
@@ -10,15 +18,45 @@ import type {
   BoostListingResponse,
   RenewListingPayload
 } from "@/lib/api/types";
+import type { QueryValue } from "@/lib/api/client";
+
+const MY_PROPERTIES_PAGE_SIZE = 20;
 
 export const myPropertiesOptions = queryOptions({
   queryKey: ["properties", "mine"],
-  queryFn: () =>
-    apiClient.request<Property[]>({
+  queryFn: async () => {
+    const response = await apiClient.request<PropertyCursorPage>({
       method: "GET",
       path: "/properties/me"
-    })
+    });
+    return response.items;
+  }
 });
+
+/**
+ * Infinite cursor-paginated "my properties" list.
+ *
+ * The backend `/properties/me` endpoint returns a `CursorPage<Property>` envelope.
+ * Pages are concatenated in order; consumers can either flatten the pages or
+ * use the raw `InfiniteData` for virtualized rendering.
+ */
+export function useInfiniteMyProperties() {
+  return useInfiniteQuery({
+    queryKey: ["properties", "mine", "infinite"],
+    queryFn: async ({ pageParam, signal }) => {
+      const response = await apiClient.request<PropertyCursorPage>({
+        method: "GET",
+        path: "/properties/me",
+        query: { cursor: pageParam, limit: MY_PROPERTIES_PAGE_SIZE },
+        signal
+      });
+      return response;
+    },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.has_more ? lastPage.next_cursor ?? undefined : undefined
+  });
+}
 
 export function propertyOptions(id: number) {
   return queryOptions({
@@ -53,38 +91,107 @@ export function useCreateProperty() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     }
   });
+}
+
+interface UpdateContext {
+  previousSingle: Property | undefined;
+  previousList: Property[] | undefined;
 }
 
 export function useUpdateProperty(id: number) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (payload: PropertyUpdate) =>
+  return useMutation<Property, Error, PropertyUpdate, UpdateContext>({
+    mutationFn: (payload) =>
       apiClient.request<Property>({
         method: "PUT",
         path: `/properties/${id}`,
         body: payload
       }),
+
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: ["properties", id] });
+      await queryClient.cancelQueries({ queryKey: ["properties", "mine"] });
+
+      const previousSingle = queryClient.getQueryData<Property>(["properties", id]);
+      const previousList = queryClient.getQueryData<Property[]>(["properties", "mine"]);
+
+      if (previousSingle) {
+        queryClient.setQueryData<Property>(["properties", id], {
+          ...previousSingle,
+          ...payload
+        });
+      }
+
+      if (previousList) {
+        queryClient.setQueryData<Property[]>(
+          ["properties", "mine"],
+          previousList.map((p) => (p.id === id ? { ...p, ...payload } : p))
+        );
+      }
+
+      return { previousSingle, previousList };
+    },
+
+    onError: (_err, _payload, context) => {
+      if (context?.previousSingle !== undefined) {
+        queryClient.setQueryData(["properties", id], context.previousSingle);
+      }
+      if (context?.previousList !== undefined) {
+        queryClient.setQueryData(["properties", "mine"], context.previousList);
+      }
+    },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties", id] });
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     }
   });
+}
+
+interface DeleteContext {
+  previousList: Property[] | undefined;
 }
 
 export function useDeleteProperty(id: number) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<{ message: string }, Error, void, DeleteContext>({
     mutationFn: () =>
       apiClient.request<{ message: string }>({
         method: "DELETE",
         path: `/properties/${id}`
       }),
+
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["properties", "mine"] });
+
+      const previousList = queryClient.getQueryData<Property[]>(["properties", "mine"]);
+
+      if (previousList) {
+        queryClient.setQueryData<Property[]>(
+          ["properties", "mine"],
+          previousList.filter((p) => p.id !== id)
+        );
+      }
+
+      return { previousList };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.previousList !== undefined) {
+        queryClient.setQueryData(["properties", "mine"], context.previousList);
+      }
+    },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.removeQueries({ queryKey: ["properties", id] });
     }
   });
 }
@@ -110,6 +217,7 @@ export function useUploadPropertyImage() {
         queryKey: ["properties", variables.propertyId]
       });
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     }
   });
 }
@@ -161,6 +269,7 @@ export function useRenewListing() {
         queryKey: ["properties", variables.propertyId]
       });
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     }
   });
 }
