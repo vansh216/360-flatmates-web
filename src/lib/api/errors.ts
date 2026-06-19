@@ -14,12 +14,14 @@ export type AppError =
 export class ApiClientError extends Error {
   readonly appError: AppError;
   readonly status?: number;
+  readonly errorCode?: string;
 
-  constructor(appError: AppError, status?: number) {
+  constructor(appError: AppError, status?: number, errorCode?: string) {
     super(appError.message);
     this.name = "ApiClientError";
     this.appError = appError;
     this.status = status;
+    this.errorCode = errorCode;
   }
 }
 

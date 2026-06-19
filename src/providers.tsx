@@ -3,10 +3,10 @@ import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useSSE } from "@/hooks/useSSE";
 import { ApiClientError, setAccessToken, setRefreshTokenHandler } from "@/lib/api";
 import { getAuthState } from "@/lib/api/auth";
+import { refreshAccessToken } from "@/lib/auth/refresh";
 import { authStore } from "@/lib/stores/auth-store";
 import { useStore } from "zustand";
 import { uiStore } from "@/lib/stores/ui-store";
@@ -15,8 +15,6 @@ import { searchStore } from "@/lib/stores/search-store";
 import { onboardingStore } from "@/lib/stores/onboarding-store";
 import { Toast, ToastViewport } from "@/components/ui/Toast";
 
-
-let refreshPromise: Promise<string | null> | null = null;
 
 function ProviderInternals({
   children,
@@ -51,34 +49,14 @@ function ProviderInternals({
   // was in flight is not stomped on.
   useAuthStateQuery(isAuthenticated);
 
+  // Wire the API client's 401-recovery path to the shared refresh module.
+  // The same module also serves the SSE auth-failure path (see useSSE.ts), so
+  // concurrent failures from both subsystems dedupe onto a single
+  // refreshSession() call and a single recovery on a dead session. This
+  // avoids racing refresh calls that would otherwise trip Supabase refresh
+  // token reuse detection.
   useEffect(() => {
-    setRefreshTokenHandler(async () => {
-      if (refreshPromise) return refreshPromise;
-
-      // NOTE (F10 #5): there is a benign race window between the consumer
-      // calling `setRefreshTokenHandler` and the first 401. In the normal
-      // cold-load path the handler is set before any user-driven call could
-      // trigger a 401. The dedupe (`refreshPromise` here + `refreshing` on
-      // HttpApiClient) is correct in steady state. Flag for follow-up if this
-      // ever becomes user-visible.
-      refreshPromise = (async () => {
-        try {
-          const supabase = getSupabaseBrowserClient();
-          const { data, error } = await supabase.auth.refreshSession();
-          if (error) throw error;
-          const newToken = data.session?.access_token ?? null;
-          if (newToken) setAccessToken(newToken);
-          return newToken;
-        } catch {
-          return null;
-        } finally {
-          refreshPromise = null;
-        }
-      })();
-
-      return refreshPromise;
-    });
-
+    setRefreshTokenHandler(() => refreshAccessToken());
     return () => setRefreshTokenHandler(null);
   }, []);
 

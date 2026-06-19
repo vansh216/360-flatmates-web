@@ -48,7 +48,10 @@ export function peerProfilesOptions(filters?: PeerFilters) {
         path: "/flatmates/profiles",
         query: (filters ?? {}) as Record<string, QueryValue>
       });
-      return response.items || [];
+      // Defense-in-depth against envelope shape drift (see RCA for the
+      // notifications `h?.filter is not a function` regression). The previous
+      // `response.items || []` only handled undefined, not a truthy non-array.
+      return Array.isArray(response?.items) ? response.items : [];
     }
   });
 }

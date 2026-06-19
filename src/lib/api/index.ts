@@ -27,7 +27,7 @@ async function handleRefresh(): Promise<string | null> {
   // failed refresh and propagates the 401. The `Providers` mount sequence
   // registers the handler synchronously inside a `useEffect`, so in the
   // normal cold-load path the handler is set before any user-driven call
-  // could trigger a 401. The dedupe (`refreshPromise` in Providers and
+  // could trigger a 401. The dedupe (`inflight` in lib/auth/refresh.ts and
   // `refreshing` on HttpApiClient) is correct in steady state. Flag for
   // follow-up if this ever becomes user-visible.
   const newToken = await _refreshHandler();

@@ -48,6 +48,14 @@ vi.mock("@/lib/stores/ui-store", () => ({
   }
 }));
 
+// Mock the shared refresh module so we can assert the SSE auth-failure path
+// delegates to it (single dedupe + recovery site) rather than running its own
+// refreshSession() + setAccessToken() (the Bug B race + infinite-loop source).
+const mockRefreshAccessToken = vi.fn();
+vi.mock("@/lib/auth/refresh", () => ({
+  refreshAccessToken: (...args: unknown[]) => mockRefreshAccessToken(...args)
+}));
+
 import { useSSE } from "@/hooks/useSSE";
 
 function createWrapper() {
@@ -324,5 +332,54 @@ describe("useSSE", () => {
     });
 
     expect(invalidateSpy).not.toHaveBeenCalled();
+  });
+
+  describe("onAuthFailure delegation (Bug B fix)", () => {
+    it("delegates SSE auth-failure to the shared refresh module, not a local refreshSession", async () => {
+      mockRefreshAccessToken.mockResolvedValue("fresh-token");
+
+      renderHook(
+        () => useSSE(true, () => Promise.resolve("test-token")),
+        { wrapper: createWrapper() }
+      );
+
+      await waitFor(() => {
+        expect(sseManagerOptions).not.toBeNull();
+      });
+
+      const onAuthFailure = sseManagerOptions!.onAuthFailure as () => Promise<string | null>;
+
+      const token = await onAuthFailure();
+
+      // The SSE auth-failure path must route through the shared refresh
+      // module so it participates in the mutex dedupe + recovery, instead of
+      // running its own refreshSession() that races the API client 401 path.
+      expect(mockRefreshAccessToken).toHaveBeenCalledTimes(1);
+      expect(token).toBe("fresh-token");
+    });
+
+    it("returns null on a dead session (recovery is owned by the shared module)", async () => {
+      // Simulate a use-revoked session: refresh resolves with no token. The
+      // shared module initiates recovery (signOut + /login) internally; the
+      // SSE handler just propagates null so the manager backs off rather than
+      // hot-looping on the stale token.
+      mockRefreshAccessToken.mockResolvedValue(null);
+
+      renderHook(
+        () => useSSE(true, () => Promise.resolve("stale-token")),
+        { wrapper: createWrapper() }
+      );
+
+      await waitFor(() => {
+        expect(sseManagerOptions).not.toBeNull();
+      });
+
+      const onAuthFailure = sseManagerOptions!.onAuthFailure as () => Promise<string | null>;
+
+      const token = await onAuthFailure();
+
+      expect(mockRefreshAccessToken).toHaveBeenCalledTimes(1);
+      expect(token).toBeNull();
+    });
   });
 });

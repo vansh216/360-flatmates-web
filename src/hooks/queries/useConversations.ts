@@ -49,7 +49,9 @@ export const conversationsOptions = queryOptions({
       method: "GET",
       path: "/flatmates/conversations"
     });
-    return response.items;
+    // Defense-in-depth against envelope shape drift (see RCA for the
+    // notifications `h?.filter is not a function` regression).
+    return Array.isArray(response?.items) ? response.items : [];
   }
 });
 

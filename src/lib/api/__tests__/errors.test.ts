@@ -27,6 +27,21 @@ describe("ApiClientError", () => {
     expect(error.appError).toBe(appError);
   });
 
+  it("carries optional backend error_code", () => {
+    const appError: AppError = { type: "forbidden", message: "Session gone" };
+    const error = new ApiClientError(appError, 403, "session_not_found");
+
+    expect(error.status).toBe(403);
+    expect(error.errorCode).toBe("session_not_found");
+  });
+
+  it("defaults errorCode to undefined when omitted", () => {
+    const appError: AppError = { type: "auth", message: "Unauthorized" };
+    const error = new ApiClientError(appError, 401);
+
+    expect(error.errorCode).toBeUndefined();
+  });
+
   it("carries validation fields on the appError", () => {
     const appError: AppError = {
       type: "validation",

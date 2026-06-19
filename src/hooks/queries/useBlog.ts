@@ -43,7 +43,9 @@ export function blogPostsOptions(filters?: BlogPostFilters) {
         path: "/blog/posts",
         query: (filters ?? {}) as Record<string, QueryValue>
       });
-      return response.items;
+      // Defense-in-depth against envelope shape drift (see RCA for the
+      // notifications `h?.filter is not a function` regression).
+      return Array.isArray(response?.items) ? response.items : [];
     },
     staleTime: 60_000
   });

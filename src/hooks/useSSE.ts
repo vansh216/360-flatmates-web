@@ -15,10 +15,9 @@ import {
   relinquishPrimary,
   setupVisibilityNegotiation,
 } from "@/lib/sse/broadcast";
-import { setAccessToken } from "@/lib/api";
+import { refreshAccessToken } from "@/lib/auth/refresh";
 import { getEnv } from "@/lib/env";
 import { uiStore } from "@/lib/stores/ui-store";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const SSE_URL = `${getEnv().VITE_API_BASE_URL}/flatmates/sse`;
 
@@ -114,15 +113,13 @@ export function useSSE(
   );
 
   const handleAuthFailure = useCallback(async (): Promise<string | null> => {
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const { data, error } = await supabase.auth.refreshSession();
-      if (error || !data.session) return null;
-      setAccessToken(data.session.access_token);
-      return data.session.access_token;
-    } catch {
-      return null;
-    }
+    // Delegate to the shared refresh module so the SSE auth-failure path and
+    // the API client 401 path share one in-flight refreshSession() call, one
+    // setAccessToken write site, and one recovery on a dead session. This
+    // prevents the SSE manager from racing the API client on refresh and
+    // tripping Supabase refresh-token reuse detection, and ensures a
+    // reuse-revoked session logs the user out instead of looping with backoff.
+    return refreshAccessToken();
   }, []);
 
   const handleStateChange = useCallback(

@@ -113,7 +113,7 @@ export function AppShell({
   // Derive unread notification count from live query data
   const { data: notifications } = useNotifications();
   const unreadCount = useMemo(
-    () => notificationCount ?? (notifications?.filter((n) => !n.is_read).length ?? 0),
+    () => notificationCount ?? (Array.isArray(notifications) ? notifications.filter((n) => !n.is_read).length : 0),
     [notificationCount, notifications]
   );
 

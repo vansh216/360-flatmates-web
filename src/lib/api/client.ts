@@ -76,6 +76,7 @@ export function buildApiUrl(
 async function readErrorBody(response: Response): Promise<{
   message: string;
   fields: Record<string, string[]>;
+  errorCode?: string;
 }> {
   const fallback = response.statusText || "Request failed";
 
@@ -100,7 +101,10 @@ async function readErrorBody(response: Response): Promise<{
         ? normalizeValidationFields(record.fields as Record<string, unknown>)
         : {};
 
-    return { message, fields };
+    const errorCode =
+      typeof record.error_code === "string" ? record.error_code : undefined;
+
+    return { message, fields, errorCode };
   } catch {
     return { message: fallback, fields: {} };
   }
@@ -194,10 +198,25 @@ export class HttpApiClient implements ApiAdapter {
 
     let response = await this.doFetch(req, token);
 
-    if (response.status === 401 && auth && this.onAuthFailure) {
-      debug.warn("API", `${method} ${req.path} — 401, attempting token refresh`);
+    // Auth-recoverable contract (verified against the FastAPI auth layer in
+    // `backend/app/api/api_v1/dependencies/auth.py` + `app/core/auth.py`):
+    //   - 401  = token invalid / expired / revoked / not present      -> refresh + retry
+    //   - 503  = Supabase provider unreachable (transient)            -> query retry, no refresh
+    //   - 403  = genuine authorization denial (USER_INACTIVE /
+    //            AGENT_REQUIRED / ADMIN_REQUIRED)                      -> never refresh
+    // Only 401 triggers a token refresh. Genuine 403s must surface to the
+    // caller with their error_code intact, and 503s are handled by query
+    // retries on the TanStack Query layer.
+    const refreshHandler = auth ? this.onAuthFailure : undefined;
+    const isAuthRecoverable = !!refreshHandler && response.status === 401;
+
+    if (isAuthRecoverable) {
+      debug.warn(
+        "API",
+        `${method} ${req.path} — ${response.status}, attempting token refresh`
+      );
       if (!this.refreshing) {
-        this.refreshing = this.onAuthFailure().finally(() => {
+        this.refreshing = refreshHandler().finally(() => {
           this.refreshing = null;
         });
       }
@@ -214,7 +233,7 @@ export class HttpApiClient implements ApiAdapter {
       const retryAfterHeader = response.headers.get("Retry-After");
       const retryAfter =
         retryAfterHeader === null ? undefined : Number(retryAfterHeader);
-      const { message, fields } = await readErrorBody(response);
+      const { message, fields, errorCode } = await readErrorBody(response);
       const appError = mapStatusToAppError(
         response.status,
         message,
@@ -223,7 +242,7 @@ export class HttpApiClient implements ApiAdapter {
       );
       debug.error("API", `${method} ${req.path} — ${response.status}: ${message}`, { fields, appError });
       stopTimer();
-      throw new ApiClientError(appError, response.status);
+      throw new ApiClientError(appError, response.status, errorCode);
     }
 
     debug.log("API", `${method} ${req.path} — ${response.status}`);

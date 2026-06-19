@@ -222,6 +222,173 @@ describe("HttpApiClient.request", () => {
     }
   });
 
+  it("maps 403 with error_code to forbidden AppError carrying errorCode", async () => {
+    // A real authorization denial (not session death) must surface errorCode
+    // so callers can distinguish backend-specific reasons, without triggering
+    // the auth-refresh path.
+    mockFetch.mockResolvedValue(
+      jsonResponse(
+        { code: 403, error_code: "not_owner", msg: "Not the owner" },
+        403
+      )
+    );
+    try {
+      await createTestClient().request({ path: "/test" });
+      expect.unreachable("Should have thrown");
+    } catch (error) {
+      const apiError = error as ApiClientError;
+      expect(apiError.appError.type).toBe("forbidden");
+      expect(apiError.errorCode).toBe("not_owner");
+    }
+  });
+
+  it("does not attempt token refresh on a plain 403 (no onAuthFailure wired)", async () => {
+    // createTestClient wires getAccessToken but no onAuthFailure, so a 403
+    // must not even consider refreshing. This guards the new 403 branch.
+    const onAuthFailure = vi.fn().mockResolvedValue("new-token");
+    const client = createApiClient({
+      baseUrl: "https://api.test.com",
+      getAccessToken: () => "test-token",
+      onAuthFailure,
+      fetcher: mockFetch,
+    });
+    mockFetch.mockResolvedValue(
+      jsonResponse({ detail: "Forbidden" }, 403)
+    );
+    try {
+      await client.request({ path: "/test" });
+    } catch {
+      // expected
+    }
+    expect(onAuthFailure).not.toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("triggers refresh + retry on 401 (dead/expired/revoked token)", async () => {
+    // Backend contract: every invalid/expired/revoked token returns 401 with
+    // code TOKEN_INVALID / AUTHENTICATION_FAILED (see
+    // backend/app/api/api_v1/dependencies/auth.py). This is the only
+    // auth-recoverable status.
+    const onAuthFailure = vi.fn().mockResolvedValue("fresh-token");
+    const client = createApiClient({
+      baseUrl: "https://api.test.com",
+      getAccessToken: () => "stale-token",
+      onAuthFailure,
+      fetcher: mockFetch,
+    });
+    // First call: 401 (token revoked / expired). Second call: success.
+    mockFetch
+      .mockImplementationOnce(() =>
+        Promise.resolve(
+          jsonResponse(
+            {
+              code: "TOKEN_INVALID",
+              detail: "Invalid or expired token",
+            },
+            401
+          )
+        )
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve(jsonResponse({ data: "ok" }, 200))
+      );
+
+    const result = await client.request<{ data: string }>({ path: "/test" });
+
+    expect(result).toEqual({ data: "ok" });
+    expect(onAuthFailure).toHaveBeenCalledTimes(1);
+    // The retry must carry the refreshed token.
+    const retryInit = mockFetch.mock.calls[1][1] as RequestInit;
+    const retryHeaders = new Headers(retryInit.headers as HeadersInit);
+    expect(retryHeaders.get("Authorization")).toBe("Bearer fresh-token");
+  });
+
+  it("propagates 401 as auth error when refresh yields no token (dead session)", async () => {
+    // When refresh returns null the session is unrecoverable; the caller's
+    // request is failed (the shared refresh module already initiated recovery).
+    const onAuthFailure = vi.fn().mockResolvedValue(null);
+    const client = createApiClient({
+      baseUrl: "https://api.test.com",
+      getAccessToken: () => "stale-token",
+      onAuthFailure,
+      fetcher: mockFetch,
+    });
+    mockFetch.mockImplementation(() =>
+      Promise.resolve(
+        jsonResponse(
+          { code: "TOKEN_INVALID", detail: "Invalid or expired token" },
+          401
+        )
+      )
+    );
+
+    try {
+      await client.request({ path: "/test" });
+      expect.unreachable("Should have thrown");
+    } catch (error) {
+      const apiError = error as ApiClientError;
+      expect(apiError.appError.type).toBe("auth");
+      expect(apiError.status).toBe(401);
+    }
+    expect(onAuthFailure).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("dedupes concurrent 401s to a single refresh call", async () => {
+    const onAuthFailure = vi.fn().mockResolvedValue("fresh-token");
+    const client = createApiClient({
+      baseUrl: "https://api.test.com",
+      getAccessToken: () => "stale-token",
+      onAuthFailure,
+      fetcher: mockFetch,
+    });
+    // First call 401, retry success; subsequent calls 401 with no retry.
+    mockFetch
+      .mockImplementationOnce(() =>
+        Promise.resolve(
+          jsonResponse(
+            { code: "TOKEN_INVALID", detail: "Invalid or expired token" },
+            401
+          )
+        )
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve(jsonResponse({ ok: true }, 200))
+      );
+
+    await client.request({ path: "/test" });
+    expect(onAuthFailure).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not refresh on a 403 even with an error_code (genuine authorization denial)", async () => {
+    // Backend returns 403 only for USER_INACTIVE / AGENT_REQUIRED /
+    // ADMIN_REQUIRED. These are genuine authorization denials and must
+    // never trigger a token refresh — only 401 is auth-recoverable.
+    const onAuthFailure = vi.fn().mockResolvedValue("fresh-token");
+    const client = createApiClient({
+      baseUrl: "https://api.test.com",
+      getAccessToken: () => "test-token",
+      onAuthFailure,
+      fetcher: mockFetch,
+    });
+    mockFetch.mockResolvedValue(
+      jsonResponse(
+        { code: "ADMIN_REQUIRED", detail: "Admin privileges required" },
+        403
+      )
+    );
+    try {
+      await client.request({ path: "/test" });
+      expect.unreachable("Should have thrown");
+    } catch (error) {
+      const apiError = error as ApiClientError;
+      expect(apiError.appError.type).toBe("forbidden");
+      expect(apiError.status).toBe(403);
+    }
+    expect(onAuthFailure).not.toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
   it("maps 404 to not_found AppError", async () => {
     mockFetch.mockResolvedValue(
       jsonResponse({ detail: "Not found" }, 404)

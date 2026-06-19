@@ -19,7 +19,9 @@ export const matchesOptions = queryOptions({
       path: "/flatmates/matches",
       signal
     });
-    return response.items;
+    // Defense-in-depth against envelope shape drift (see RCA for the
+    // notifications `h?.filter is not a function` regression).
+    return Array.isArray(response?.items) ? response.items : [];
   },
   staleTime: MATCHES_STALE_TIME
 });
@@ -96,7 +98,9 @@ export function incomingLikesOptions(limit = 20, cursor?: string) {
         query: { limit, cursor },
         signal
       });
-      return response.items;
+      // Defense-in-depth against envelope shape drift (see RCA for the
+      // notifications `h?.filter is not a function` regression).
+      return Array.isArray(response?.items) ? response.items : [];
     },
     staleTime: MATCHES_STALE_TIME
   });

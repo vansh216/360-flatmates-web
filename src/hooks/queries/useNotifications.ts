@@ -25,7 +25,12 @@ export function notificationsOptions(filters?: NotificationFilters) {
         path: "/flatmates/notifications",
         query: (filters ?? {}) as Record<string, QueryValue>
       });
-      return response.items;
+      // Defense-in-depth: the backend returns a CursorPage envelope
+      // ({ items, has_more, next_cursor }). Guard against any future shape
+      // drift so consumers that treat `data` as an array never crash the
+      // ErrorBoundary (see RCA for the deployed `h?.filter is not a function`
+      // regression caused by the cursor-envelope refactor).
+      return Array.isArray(response?.items) ? response.items : [];
     }
   });
 }
