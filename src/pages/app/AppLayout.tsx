@@ -93,7 +93,9 @@ export function AppLayout() {
   }
 
   if (!user) {
-    return null;
+    // Show a spinner rather than returning null so the user never sees a
+    // blank white page while the session is being restored or refreshed.
+    return <PageSpinner />;
   }
 
   return (

@@ -37,10 +37,12 @@ function ProviderInternals({
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated, queryClient]);
 
-  useEffect(() => {
-    const token = session?.access_token ?? null;
-    setAccessToken(token);
-  }, [session?.access_token, loading]);
+  // Hoist the access token synchronously before the first render so that
+  // any useQuery that fires during this render cycle already has a token.
+  // Previously this was deferred to a useEffect, which created a race
+  // window where the auth-state query (and any other enabled query) could
+  // fire with a null token, get a 401, and never recover.
+  setAccessToken(session?.access_token ?? null);
 
   // Fetch the backend-computed auth gate stage when the user is authenticated.
   // Routed through TanStack Query so retries, dedup, and refetch-on-focus are
@@ -130,15 +132,14 @@ function useAuthStateQuery(isAuthenticated: boolean) {
     enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    retry: false
+    retry: 1
   });
 
   useEffect(() => {
     if (!query.data) return;
-    if (query.isStale && !query.isFetching) return;
     if (authStore.getState().midAuthFlow) return;
     authStore.getState().setAuthStage(query.data.stage, query.data.missing_fields);
-  }, [query.data, query.isStale, query.isFetching]);
+  }, [query.data]);
 }
 
 function ToastContainer() {

@@ -208,8 +208,12 @@ export function useSSE(
 
       if (getIsPrimaryTab()) {
         relinquishPrimary();
-        resetSSEManager();
       }
+      // Always reset the SSE manager so a fresh instance is created with
+      // updated options (token, callbacks) on the next connect. Previously
+      // this only ran for primary tabs, which leaked stale getToken/onAuthFailure
+      // closures on non-primary tabs that later became primary.
+      resetSSEManager();
 
       closeBroadcast();
 
