@@ -132,7 +132,7 @@ function readShellTemplate(): ShellTemplate {
 function generatePage(shell: ShellTemplate, route: RouteContent): string {
   const fullTitle = `${route.title} | ${SITE_NAME}`;
   const canonical = route.path === "/" ? SITE_URL : `${SITE_URL}${route.path}`;
-  const ogImage = route.ogImage ?? `${SITE_URL}/og-image.png`;
+  const ogImage = route.ogImage ?? `${SITE_URL}/og-image.webp`;
 
   const metaTags = [
     `<title>${esc(fullTitle)}</title>`,

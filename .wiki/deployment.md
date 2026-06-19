@@ -51,8 +51,8 @@ npx tsx scripts/prerender.ts
 | Step | Script | Output |
 | --- | --- | --- |
 | 1 | `tsc --noEmit` | Type-check the whole project. A failure halts the build before any artifacts are produced. |
-| 2 | `scripts/generate-pwa-icons.ts` | `public/favicon-192.png`, `public/favicon-512.png`, plus maskable variants, all derived from `public/favicon.svg`. |
-| 3 | `scripts/generate-og-image.ts` | `public/og-image.png` (1200x630 social card) and `public/logo.png` (512x512). |
+| 2 | `scripts/generate-pwa-icons.ts` | `public/favicon-192.webp`, `public/favicon-512.webp`, plus maskable variants, all derived from `public/favicon.svg`. |
+| 3 | `scripts/generate-og-image.ts` | `public/og-image.webp` (1200x630 social card) and `public/logo.webp` (512x512). |
 | 4 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution legacy icon). |
 | 5 | `scripts/generate-sitemap.ts` | `public/sitemap.xml`, derived from the same route inventory and city/neighborhood catalog the prerender step uses. |
 | 6 | `vite build` | `dist/` with the production bundle, the service worker, and a clean `dist/index.html` shell. |

@@ -12,16 +12,16 @@ export default defineConfig({
         "favicon.svg",
         "robots.txt",
         "sitemap.xml",
-        "favicon-192.png",
-        "favicon-512.png",
-        "favicon-192-maskable.png",
-        "favicon-512-maskable.png",
-        "og-image.png",
-        "logo.png",
+        "favicon-192.webp",
+        "favicon-512.webp",
+        "favicon-192-maskable.webp",
+        "favicon-512-maskable.webp",
+        "og-image.webp",
+        "logo.webp",
         "favicon.ico",
         "llms.txt",
-        "screenshots/landing-wide.png",
-        "screenshots/discover-wide.png",
+        "screenshots/landing-wide.webp",
+        "screenshots/discover-wide.webp",
       ],
       manifest: {
         name: "360 Flatmates",
@@ -41,42 +41,42 @@ export default defineConfig({
             purpose: "any",
           },
           {
-            src: "favicon-192.png",
+            src: "favicon-192.webp",
             sizes: "192x192",
-            type: "image/png",
+            type: "image/webp",
             purpose: "any",
           },
           {
-            src: "favicon-512.png",
+            src: "favicon-512.webp",
             sizes: "512x512",
-            type: "image/png",
+            type: "image/webp",
             purpose: "any",
           },
           {
-            src: "favicon-192-maskable.png",
+            src: "favicon-192-maskable.webp",
             sizes: "192x192",
-            type: "image/png",
+            type: "image/webp",
             purpose: "maskable",
           },
           {
-            src: "favicon-512-maskable.png",
+            src: "favicon-512-maskable.webp",
             sizes: "512x512",
-            type: "image/png",
+            type: "image/webp",
             purpose: "maskable",
           },
         ],
         screenshots: [
           {
-            src: "screenshots/landing-wide.png",
+            src: "screenshots/landing-wide.webp",
             sizes: "1280x633",
-            type: "image/png",
+            type: "image/webp",
             form_factor: "wide",
             label: "Landing page with compatibility matching overview",
           },
           {
-            src: "screenshots/discover-wide.png",
+            src: "screenshots/discover-wide.webp",
             sizes: "1280x633",
-            type: "image/png",
+            type: "image/webp",
             form_factor: "wide",
             label: "Discover verified rooms across India",
           },
@@ -85,7 +85,7 @@ export default defineConfig({
       workbox: {
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api/, /^\/admin/],
-        globPatterns: ["**/*.{js,css,html,svg,png,ico,webp,woff,woff2,ttf}"],
+        globPatterns: ["**/*.{js,css,html,svg,webp,ico,woff,woff2,ttf}"],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === "navigate",
@@ -116,6 +116,25 @@ export default defineConfig({
         ],
       },
     }),
+    /* Defer the main CSS bundle so it does not block rendering.
+       Critical inline CSS in index.html handles above-the-fold styles.
+       The media="print" trick downloads the CSS without blocking, then
+       swaps to media="all" on load. A <noscript> fallback preserves
+       the standard render-blocking behaviour when JS is disabled. */
+    {
+      name: "defer-main-css",
+      enforce: "post",
+      transformIndexHtml(html) {
+        return html.replace(
+          /<link rel="stylesheet"([^>]*?)>/g,
+          (match, attrs) => {
+            const noscriptFallback = `<noscript><link rel="stylesheet"${attrs}></noscript>`;
+            const deferred = `<link rel="stylesheet"${attrs} media="print" onload="this.media='all'">`;
+            return deferred + noscriptFallback;
+          },
+        );
+      },
+    },
   ],
   resolve: {
     tsconfigPaths: true,

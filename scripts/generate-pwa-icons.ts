@@ -12,16 +12,16 @@ async function generateIcons() {
   // 1. Standard 192x192
   await sharp(svgBuffer)
     .resize(192, 192)
-    .png()
-    .toFile(resolve(root, "public", "favicon-192.png"));
-  console.log("Generated favicon-192.png");
+    .webp({ quality: 90 })
+    .toFile(resolve(root, "public", "favicon-192.webp"));
+  console.log("Generated favicon-192.webp");
 
   // 2. Standard 512x512
   await sharp(svgBuffer)
     .resize(512, 512)
-    .png()
-    .toFile(resolve(root, "public", "favicon-512.png"));
-  console.log("Generated favicon-512.png");
+    .webp({ quality: 90 })
+    .toFile(resolve(root, "public", "favicon-512.webp"));
+  console.log("Generated favicon-512.webp");
 
   // 3. Maskable 192x192 (scale down logo and place on terracotta #C96442 background)
   const pad192 = Math.round(192 * 0.15); // 15% padding
@@ -39,9 +39,9 @@ async function generateIcons() {
     }
   })
     .composite([{ input: logo192, gravity: "center" }])
-    .png()
-    .toFile(resolve(root, "public", "favicon-192-maskable.png"));
-  console.log("Generated favicon-192-maskable.png");
+    .webp({ quality: 90 })
+    .toFile(resolve(root, "public", "favicon-192-maskable.webp"));
+  console.log("Generated favicon-192-maskable.webp");
 
   // 4. Maskable 512x512
   const pad512 = Math.round(512 * 0.15);
@@ -59,9 +59,9 @@ async function generateIcons() {
     }
   })
     .composite([{ input: logo512, gravity: "center" }])
-    .png()
-    .toFile(resolve(root, "public", "favicon-512-maskable.png"));
-  console.log("Generated favicon-512-maskable.png");
+    .webp({ quality: 90 })
+    .toFile(resolve(root, "public", "favicon-512-maskable.webp"));
+  console.log("Generated favicon-512-maskable.webp");
 
   console.log("PWA icon generation complete.");
 }

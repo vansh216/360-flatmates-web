@@ -127,7 +127,7 @@ function HeroMiniCards() {
   return (
     <>
       {/* Desktop Layered/Floating Mockup (lg viewport) */}
-      <div className="relative w-full max-w-[480px] h-[450px] hidden lg:block" aria-hidden="true">
+      <div className="relative w-full max-w-[480px] h-[450px] hidden lg:block" aria-hidden="true" inert>
         {/* Decorative background visual elements */}
         <div className="absolute inset-0 rounded-full border border-line-low/50 scale-90 translate-y-4 pointer-events-none" />
         <div className="absolute inset-0 rounded-full border border-line-low/30 scale-75 -translate-y-4 pointer-events-none" />

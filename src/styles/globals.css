@@ -715,7 +715,7 @@ svg {
   .animate-counter-up,
   .animate-fade-in-up,
   .animate-slide-in-right,
-  .animate-gradient-shift,
+  .animate-gradient-shift::before,
   .stagger-reveal>* {
     animation: none;
     opacity: 1;
@@ -779,16 +779,16 @@ svg {
   }
 }
 
-/* Slow atmospheric gradient shift */
+/* Slow atmospheric gradient shift — compositor-only transform animation */
 @keyframes gradient-shift {
 
   0%,
   100% {
-    background-position: 0% 50%;
+    transform: translate(-10%, -10%);
   }
 
   50% {
-    background-position: 100% 50%;
+    transform: translate(10%, 10%);
   }
 }
 
@@ -888,9 +888,8 @@ svg {
   animation: slide-in-right 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Gradient shift for atmospheric backgrounds */
-.animate-gradient-shift {
-  background-size: 200% 200%;
+/* Gradient shift for atmospheric backgrounds — applied to ::before pseudo-element */
+.animate-gradient-shift::before {
   animation: gradient-shift 12s ease-in-out infinite;
 }
 
@@ -1083,18 +1082,30 @@ svg {
 }
 
 /* ── Hero atmospheric glow (with dark mode) ── */
+/* Painted on a ::before pseudo-element so the animation can use compositor-only transform.
+   The element already has position:absolute from Tailwind; overflow:hidden clips the
+   oversized ::before pseudo-element. */
 .hero-glow {
+  overflow: hidden;
+}
+.hero-glow::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
   background:
     radial-gradient(ellipse 60% 50% at 30% 20%, rgba(201, 100, 66, 0.08), transparent),
     radial-gradient(ellipse 50% 40% at 70% 80%, rgba(201, 100, 66, 0.06), transparent),
     radial-gradient(ellipse 40% 30% at 15% 50%, rgba(201, 100, 66, 0.04), transparent);
   background-size: 200% 200%;
+  background-position: center;
+  will-change: transform;
 }
 
-[data-theme="dark"] .hero-glow {
+[data-theme="dark"] .hero-glow::before {
   background:
     radial-gradient(ellipse 60% 50% at 30% 20%, rgba(201, 100, 66, 0.12), transparent),
     radial-gradient(ellipse 50% 40% at 70% 80%, rgba(201, 100, 66, 0.08), transparent),
     radial-gradient(ellipse 40% 30% at 15% 50%, rgba(201, 100, 66, 0.05), transparent);
   background-size: 200% 200%;
+  background-position: center;
 }

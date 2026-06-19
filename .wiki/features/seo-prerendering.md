@@ -47,8 +47,8 @@ npx tsx scripts/prerender.ts
 | Step | Script | Output |
 | --- | --- | --- |
 | 1 | `tsc --noEmit` | Type-check failure halts the build before any artifacts are produced |
-| 2 | `scripts/generate-pwa-icons.ts` | `public/favicon-192.png`, `public/favicon-512.png`, plus maskable variants |
-| 3 | `scripts/generate-og-image.ts` | `public/og-image.png` (1200x630) and `public/logo.png` (512x512) |
+| 2 | `scripts/generate-pwa-icons.ts` | `public/favicon-192.webp`, `public/favicon-512.webp`, plus maskable variants |
+| 3 | `scripts/generate-og-image.ts` | `public/og-image.webp` (1200x630) and `public/logo.webp` (512x512) |
 | 4 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution) |
 | 5 | `scripts/generate-sitemap.ts` | `public/sitemap.xml` (with image-sitemap entries) |
 | 6 | `vite build` | `dist/` with the production bundle, service worker, and a clean `dist/index.html` shell |
@@ -196,7 +196,7 @@ Two correctness rules are baked in:
 - **No fabricated ratings.** `buildWebApplicationSchema` and `buildResidenceSchema` deliberately omit `aggregateRating`. Ratings and reviews are only emitted when backed by a real, crawlable review system, which does not exist today.
 - **Safe JSON-LD serialization.** `SeoHelmet`'s `safeJsonLd` helper escapes `<`, `>`, U+2028, and U+2029 so a listing title containing the literal `</script>` cannot terminate the script element early. This is a stored-XSS guard, since listing titles and descriptions are user-generated.
 
-The `LOGO_URL` constant points at `${SITE_URL}/logo.png` (the 512x512 square PNG produced by `scripts/generate-og-image.ts`) because schema.org requires a PNG or JPG logo, not SVG. The OG image (`/og-image.png`, 1200x630) is used for `og:image`, not for the schema logo.
+The `LOGO_URL` constant points at `${SITE_URL}/logo.webp` (the 512x512 square WebP produced by `scripts/generate-og-image.ts`) because schema.org supports WebP, so a raster logo is used instead of SVG. The OG image (`/og-image.webp`, 1200x630) is used for `og:image`, not for the schema logo.
 
 ## Meta and OG tags
 
@@ -213,7 +213,7 @@ The shell in `index.html` carries fallback meta tags. These are the SPA-shell fa
 
 ### OG image and logo
 
-`scripts/generate-og-image.ts` renders a 1200x630 social preview PNG and a 512x512 brand logo PNG from inline SVG. The brand fonts (Fraunces, Inter, JetBrains Mono) are self-hosted as variable TTFs in `public/fonts/` and embedded into the SVG as base64 `@font-face` blocks, so `sharp`'s librsvg renderer paints the real brand typography deterministically. No reliance on system-installed fonts. Colors are pulled from the DESIGN.md tokens.
+`scripts/generate-og-image.ts` renders a 1200x630 social preview WebP and a 512x512 brand logo WebP from inline SVG. The brand fonts (Fraunces, Inter, JetBrains Mono) are self-hosted as variable TTFs in `public/fonts/` and embedded into the SVG as base64 `@font-face` blocks, so `sharp`'s librsvg renderer paints the real brand typography deterministically. No reliance on system-installed fonts. Colors are pulled from the DESIGN.md tokens.
 
 ### llms.txt for LLM crawlers
 
@@ -253,7 +253,7 @@ The `/stats` route demonstrates the split. `src/components/page-clients/StatsCli
 | `scripts/prerender.ts` | The prerender engine: preview server, headless Chromium, per-route capture, concurrency, failure handling |
 | `scripts/lib/listings.ts` | Shared build-time listing fetch used by both the sitemap and the prerender step |
 | `scripts/generate-sitemap.ts` | Emits `public/sitemap.xml` with image-sitemap entries |
-| `scripts/generate-og-image.ts` | Renders `public/og-image.png` (1200x630) and `public/logo.png` (512x512) from inline SVG with embedded fonts |
+| `scripts/generate-og-image.ts` | Renders `public/og-image.webp` (1200x630) and `public/logo.webp` (512x512) from inline SVG with embedded fonts |
 | `scripts/generate-pwa-icons.ts` | Renders standard and maskable PWA icons from `public/favicon.svg` |
 | `scripts/generate-favicon-ico.ts` | Hand-assembles a multi-resolution `public/favicon.ico` from `public/favicon.svg` |
 | `src/lib/seo/SeoHelmet.tsx` | The `SeoHelmet` component: title, meta, canonical, OG, Twitter, JSON-LD with safe serialization |

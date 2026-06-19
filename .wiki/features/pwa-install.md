@@ -11,7 +11,7 @@ The PWA layer is configured in `vite.config.ts` via the `VitePWA` plugin. Two se
 - `registerType: "autoUpdate"`. The service worker updates silently in the background. When a new version is published, the next navigation serves it without prompting the user. This avoids stale-content bugs and the UX cost of a "new version available" toast.
 - `injectRegister: "auto"`. The plugin injects the service worker registration automatically, so no manual `navigator.serviceWorker.register` call is needed in app code.
 
-The `includeAssets` array lists every file the service worker should precache beyond the bundle itself: the favicon in three forms (svg, ico, png), the standard and maskable PWA icons, the og image, the logo, the robots and llms text files, and the sitemap. These are copied into `dist/` by Vite and precached so the installed app has them offline. The icon set that ships to users is generated at build time by `scripts/generate-pwa-icons.ts` (see below).
+The `includeAssets` array lists every file the service worker should precache beyond the bundle itself: the favicon in three forms (svg, ico, webp), the standard and maskable PWA icons, the og image, the logo, the robots and llms text files, and the sitemap. These are copied into `dist/` by Vite and precached so the installed app has them offline. The icon set that ships to users is generated at build time by `scripts/generate-pwa-icons.ts` (see below).
 
 ## The manifest
 
@@ -37,12 +37,12 @@ The icon set follows the standard plus maskable split. Standard icons (`purpose:
 
 With `autoUpdate` and `injectRegister: "auto"`, `vite-plugin-pwa` generates a Workbox-powered service worker that precaches the bundle and the `includeAssets` list on install, and serves them cache-first when offline. The installed app therefore works offline for any precached route and asset, including the prerendered HTML for public routes. Runtime caching for cross-origin assets (fonts, map tiles, Nominatim) is left to the browser defaults, since those are not part of the precache manifest.
 
-The maskable icon generation script (`scripts/generate-pwa-icons.ts`) is a build-time step that uses `sharp` to read `public/favicon.svg` and emit four PNGs:
+The maskable icon generation script (`scripts/generate-pwa-icons.ts`) is a build-time step that uses `sharp` to read `public/favicon.svg` and emit four WebPs:
 
-- `public/favicon-192.png` and `public/favicon-512.png`: the logo resized to square PNGs.
-- `public/favicon-192-maskable.png` and `public/favicon-512-maskable.png`: the logo composited onto a solid `#C96442` background with 15% padding, centered.
+- `public/favicon-192.webp` and `public/favicon-512.webp`: the logo resized to square WebPs.
+- `public/favicon-192-maskable.webp` and `public/favicon-512-maskable.webp`: the logo composited onto a solid `#C96442` background with 15% padding, centered.
 
-The script runs as step 2 of the build pipeline (see [SEO and prerendering](seo-prerendering.md)), before `vite build`, so the generated PNGs are present when Vite copies `public/` into `dist/`. The `generate:pwa-icons` npm script wraps it for standalone regeneration.
+The script runs as step 2 of the build pipeline (see [SEO and prerendering](seo-prerendering.md)), before `vite build`, so the generated WebPs are present when Vite copies `public/` into `dist/`. The `generate:pwa-icons` npm script wraps it for standalone regeneration.
 
 ## The index.html shell
 
@@ -50,7 +50,7 @@ The script runs as step 2 of the build pipeline (see [SEO and prerendering](seo-
 
 - `<meta name="theme-color" content="#F4F3EE">`, matching the manifest and giving iOS Safari its status bar tint.
 - `<link rel="icon" href="/favicon.ico" sizes="32x32">` and `<link rel="icon" href="/favicon.svg" type="image/svg+xml">` for the favicon.
-- `<link rel="apple-touch-icon" href="/favicon-192.png">` for iOS home screen icons (Apple ignores the manifest icons for home screen placement).
+- `<link rel="apple-touch-icon" href="/favicon-192.webp">` for iOS home screen icons (Apple ignores the manifest icons for home screen placement).
 - `<link rel="mask-icon" href="/favicon.svg" color="#C96442">` for the pinned-tab icon in Safari.
 
 A pre-paint inline script reads the persisted theme from `localStorage` and sets `data-theme` and `data-theme` on `<html>` before first paint, so the installed app does not flash the wrong theme on launch. The `<noscript>` fallback lists the core public links so the app is at least partially usable without JavaScript.
@@ -99,6 +99,6 @@ For the canonical color tokens (`paper` `#F4F3EE`, accent `#C96442`) referenced 
 | `src/components/organisms/PWAInstallInstructionsModal.tsx` | iOS Safari manual Add to Home Screen guide |
 | `src/pages/app/AppLayout.tsx` | Wires `PWAInstallBanner` above the authenticated page outlet |
 | `src/pages/app/ProfilePage.tsx` | Second `usePWA` entry point with standalone install affordance |
-| `scripts/generate-pwa-icons.ts` | `sharp` script that emits standard and maskable PNGs from `favicon.svg` |
+| `scripts/generate-pwa-icons.ts` | `sharp` script that emits standard and maskable WebPs from `favicon.svg` |
 | `index.html` | SPA shell with `theme-color`, apple-touch-icon, mask-icon, pre-paint theme script |
 | `public/llms.txt` | LLM-facing site summary, precached as an included asset |

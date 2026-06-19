@@ -1,11 +1,11 @@
 import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORT_EMAIL, SUPPORTED_CITIES } from "./config";
 
 /**
- * Absolute URL to the organization logo. Schema.org requires a PNG/JPG (not SVG),
- * so we reference the square brand logo at /logo.png (512×512).
- * The social preview card (/og-image.png, 1200×630) is used for og:image, not logo.
+ * Absolute URL to the organization logo. Schema.org accepts WebP, so we
+ * reference the square brand logo at /logo.webp (512×512).
+ * The social preview card (/og-image.webp, 1200×630) is used for og:image, not logo.
  */
-export const LOGO_URL = `${SITE_URL}/logo.png`;
+export const LOGO_URL = `${SITE_URL}/logo.webp`;
 
 /** Stable @id values so other graphs can reference these nodes by reference. */
 export const ORG_ID = `${SITE_URL}/#organization`;

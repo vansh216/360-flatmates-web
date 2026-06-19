@@ -1,6 +1,6 @@
 /**
- * Generate 1200x630 social preview PNG (og-image.png) and a square brand
- * logo PNG (logo.png) for 360 Flatmates.
+ * Generate 1200x630 social preview WebP (og-image.webp) and a square brand
+ * logo WebP (logo.webp) for 360 Flatmates.
  *
  * The brand fonts (Fraunces / Inter / JetBrains Mono) are self-hosted as
  * variable TTFs in public/fonts/. We embed them into the SVG as base64
@@ -10,8 +10,8 @@
  * Run:  npx tsx scripts/generate-og-image.ts
  *
  * Output:
- *   public/og-image.png   (1200 x 630, optimized)
- *   public/logo.png       (512 x 512, brand mark)
+ *   public/og-image.webp   (1200 x 630, optimized)
+ *   public/logo.webp       (512 x 512, brand mark)
  */
 import { readFileSync } from "fs";
 import { resolve } from "path";
@@ -144,21 +144,21 @@ function buildLogoSvg(): string {
 
 async function generateOgImage(): Promise<void> {
   const svg = Buffer.from(buildOgSvg(), "utf-8");
-  const out = resolve(root, "public", "og-image.png");
+  const out = resolve(root, "public", "og-image.webp");
   await sharp(svg, { density: 144 })
     .resize(1200, 630, { fit: "cover" })
-    .png({ quality: 90, compressionLevel: 9, palette: false })
+    .webp({ quality: 85 })
     .toFile(out);
-  console.log("Generated og-image.png (1200x630)");
+  console.log("Generated og-image.webp (1200x630)");
 
-  // logo.png
+  // logo.webp
   const logoSvg = Buffer.from(buildLogoSvg(), "utf-8");
-  const logoOut = resolve(root, "public", "logo.png");
+  const logoOut = resolve(root, "public", "logo.webp");
   await sharp(logoSvg, { density: 144 })
     .resize(512, 512, { fit: "cover" })
-    .png({ quality: 92, compressionLevel: 9 })
+    .webp({ quality: 90 })
     .toFile(logoOut);
-  console.log("Generated logo.png (512x512)");
+  console.log("Generated logo.webp (512x512)");
 }
 
 generateOgImage().catch((err) => {

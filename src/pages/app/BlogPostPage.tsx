@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate, useParams, Link } from "react-router";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
-import { SeoHelmet, SITE_URL, buildArticleSchema } from "@/lib/seo";
+import { SeoHelmet, SITE_URL, DEFAULT_OG_IMAGE, buildArticleSchema } from "@/lib/seo";
 import { useBlogPost, useBlogPreview } from "@/hooks/queries";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -92,7 +92,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
   const articleLd = buildArticleSchema({
     headline: post.title,
     description: post.excerpt ?? post.meta_description ?? "",
-    image: post.cover_image_url ?? post.og_image_url ?? `${SITE_URL}/og-default.png`,
+    image: post.cover_image_url ?? post.og_image_url ?? DEFAULT_OG_IMAGE,
     url: `${SITE_URL}/blog/${post.slug}`,
     datePublished: post.published_at ?? post.created_at ?? new Date().toISOString()
   });

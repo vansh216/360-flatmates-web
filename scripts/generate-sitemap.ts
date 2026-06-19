@@ -61,7 +61,7 @@ interface StaticRoute {
 
 // Stable OG image used as the representative image. config.ts names this file;
 // keep the value in sync with DEFAULT_OG_IMAGE.
-const OG_IMAGE = `${SITE_URL}/og-image.png`;
+const OG_IMAGE = `${SITE_URL}/og-image.webp`;
 
 const STATIC_ROUTES: StaticRoute[] = [
   { path: "/", changefreq: "daily", priority: "1.0", image: OG_IMAGE, imageTitle: "360 Flatmates" },

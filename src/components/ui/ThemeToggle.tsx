@@ -1,5 +1,4 @@
 import { useStore } from "zustand";
-import { motion } from "framer-motion";
 import { Sun, Moon, Monitor } from "lucide-react";
 import {
   uiStore,
@@ -23,20 +22,35 @@ export interface ThemeToggleProps {
 export function ThemeToggle({ size = "md", className }: ThemeToggleProps) {
   const theme = useStore(uiStore, (s) => s.theme);
   const setTheme = useStore(uiStore, (s) => s.setTheme);
-  const reducedMotion = useStore(uiStore, (s) => s.reducedMotion);
 
   const btnSize = size === "sm" ? "h-8 w-8" : "h-10 w-10";
   const iconSize = size === "sm" ? "h-4 w-4" : "h-5 w-5";
+  const btnPx = size === "sm" ? 32 : 40;
+  const gapPx = 4;
+  const padPx = 4;
+  const activeIndex = THEME_OPTIONS.findIndex((o) => o.value === theme);
+  const indicatorLeft = padPx + activeIndex * (btnPx + gapPx);
 
   return (
     <div
       className={cn(
-        "flex items-center gap-1 rounded-[9px] bg-paper-2 p-1",
+        "relative flex items-center gap-1 rounded-[9px] bg-paper-2 p-1",
         className
       )}
       role="radiogroup"
       aria-label="Theme preference"
     >
+      {/* Active indicator bubble — CSS transition replaces the framer-motion layoutId animation */}
+      <span
+        aria-hidden="true"
+        className="absolute rounded-[7px] bg-accent-soft transition-all duration-300 ease-emphasized"
+        style={{
+          left: `${indicatorLeft}px`,
+          top: `${padPx}px`,
+          width: `${btnPx}px`,
+          height: `calc(100% - ${padPx * 2}px)`,
+        }}
+      />
       {THEME_OPTIONS.map((option) => {
         const Icon = THEME_ICONS[option.value];
         const isActive = theme === option.value;
@@ -49,7 +63,7 @@ export function ThemeToggle({ size = "md", className }: ThemeToggleProps) {
             aria-label={option.label}
             onClick={() => setTheme(option.value)}
             className={cn(
-              "relative inline-flex items-center justify-center rounded-[7px] transition-colors duration-200",
+              "relative z-10 inline-flex items-center justify-center rounded-[7px] transition-colors duration-200",
               btnSize,
               focusRing,
               isActive
@@ -57,14 +71,7 @@ export function ThemeToggle({ size = "md", className }: ThemeToggleProps) {
                 : "text-ink-3 hover:bg-paper-3/40 hover:text-ink"
             )}
           >
-            {isActive && (
-              <motion.span
-                layoutId="activeThemeBubble"
-                className="absolute inset-0 rounded-[7px] bg-accent-soft"
-                transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 30 }}
-              />
-            )}
-            <Icon aria-hidden="true" className={cn("relative z-10", iconSize)} />
+            <Icon aria-hidden="true" className={cn(iconSize)} />
           </button>
         );
       })}

@@ -35,7 +35,7 @@ function orgSchema() {
     "@id": `${SITE_URL}/#organization`,
     name: SITE_NAME,
     url: SITE_URL,
-    logo: `${SITE_URL}/logo.png`,
+    logo: `${SITE_URL}/logo.webp`,
     description: DEFAULT_DESCRIPTION,
   };
 }
@@ -112,7 +112,7 @@ function articleSchema(post: BlogPost, url: string) {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
       name: SITE_NAME,
-      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png`, width: 512, height: 512 },
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.webp`, width: 512, height: 512 },
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };
@@ -355,7 +355,7 @@ export function buildStaticRoutes(): RouteContent[] {
         { question: "Which cities are you in?", answer: "We're live in Gurugram and Bangalore right now." },
       ]),
     ],
-    ogImage: `${SITE_URL}/og-image.png`,
+    ogImage: `${SITE_URL}/og-image.webp`,
   });
 
   // ── Discover ───────────────────────────────────────────────────────────

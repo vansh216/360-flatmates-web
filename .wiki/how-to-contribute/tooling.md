@@ -27,8 +27,8 @@ npx tsx scripts/prerender.ts
 | Step | Script | Output |
 | --- | --- | --- |
 | 1 | `tsc --noEmit` | Type check. Failure halts the build before any artifacts are produced. |
-| 2 | `scripts/generate-pwa-icons.ts` | `public/favicon-192.png`, `public/favicon-512.png`, plus maskable variants. |
-| 3 | `scripts/generate-og-image.ts` | `public/og-image.png` (1200x630) and `public/logo.png` (512x512). |
+| 2 | `scripts/generate-pwa-icons.ts` | `public/favicon-192.webp`, `public/favicon-512.webp`, plus maskable variants. |
+| 3 | `scripts/generate-og-image.ts` | `public/og-image.webp` (1200x630) and `public/logo.webp` (512x512). |
 | 4 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution). |
 | 5 | `scripts/generate-sitemap.ts` | `public/sitemap.xml` (with image-sitemap entries). |
 | 6 | `vite build` | `dist/` with the production bundle, service worker, and the SPA shell. |
@@ -71,13 +71,13 @@ Test files are excluded from the production `tsconfig.json` `include` (the `src/
 | Command | Script | What it generates |
 | --- | --- | --- |
 | `npm run generate:api-types` | `openapi-typescript docs/flatmates-openapi.yaml -o src/lib/api/openapi-types.ts` | TypeScript types from the OpenAPI contract. Run this whenever the API contract changes and commit the result. |
-| `npm run generate:pwa-icons` | `npx tsx scripts/generate-pwa-icons.ts` | The four PWA PNGs from `public/favicon.svg` via `sharp`. |
+| `npm run generate:pwa-icons` | `npx tsx scripts/generate-pwa-icons.ts` | The four PWA WebP icons from `public/favicon.svg` via `sharp`. |
 
 The build pipeline runs four more generators that do not have standalone npm scripts (they only run inside `npm run build`):
 
 | Generator | Script | Output |
 | --- | --- | --- |
-| OG image | `scripts/generate-og-image.ts` | `public/og-image.png` (1200x630 social preview) and `public/logo.png` (512x512 brand mark). Embeds the self-hosted Fraunces, Inter, and JetBrains Mono TTFs as base64 into an SVG so `sharp`'s `librsvg` paints the real brand typography. |
+| OG image | `scripts/generate-og-image.ts` | `public/og-image.webp` (1200x630 social preview) and `public/logo.webp` (512x512 brand mark). Embeds the self-hosted Fraunces, Inter, and JetBrains Mono TTFs as base64 into an SVG so `sharp`'s `librsvg` paints the real brand typography. |
 | Favicon ICO | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (16, 32, 48 multi-resolution). Hand-assembles the ICO header and appends PNG bytes from `sharp`. |
 | Sitemap | `scripts/generate-sitemap.ts` | `public/sitemap.xml`. Static public routes only (verified against `src/App.tsx`'s `PublicLayout`), plus cities, neighborhoods, blog posts, comparison pages, and dynamic listing pages fetched at build time via `scripts/lib/listings.ts`. Authenticated routes (`/search`, `/search/semantic`) are deliberately excluded. Set `SITEMAP_STRICT=1` on deploy builds to fail loudly on a listing-fetch outage. |
 | Prerender | `scripts/prerender.ts` | The `dist/<route>/index.html` files. See [SEO and prerendering](../features/seo-prerendering.md). |
@@ -124,7 +124,7 @@ Anything not matched falls into the automatic chunk graph. The performance budge
 | `eslint.config.mjs` | The flat ESLint config, the rules, and the ignored paths. |
 | `tsconfig.json` | Strict mode, the `@/*` path alias, the ES2022 target, the test-file exclusions. |
 | `postcss.config.mjs` | The single `@tailwindcss/postcss` plugin. |
-| `scripts/generate-pwa-icons.ts` | PWA PNG generator (standard plus maskable) via `sharp`. |
+| `scripts/generate-pwa-icons.ts` | PWA WebP generator (standard plus maskable) via `sharp`. |
 | `scripts/generate-og-image.ts` | OG image and logo generator with embedded brand fonts. |
 | `scripts/generate-favicon-ico.ts` | Multi-resolution ICO generator. |
 | `scripts/generate-sitemap.ts` | Sitemap generator (static plus dynamic listing routes). |
