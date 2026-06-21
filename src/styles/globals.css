@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+
+
 @theme {
   --color-accent: #c96442;
   --color-accent-soft: rgba(201, 100, 66, 0.1);
@@ -1109,3 +1111,5 @@ svg {
   background-size: 200% 200%;
   background-position: center;
 }
+
+
