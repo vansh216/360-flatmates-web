@@ -1,3 +1,6 @@
+import { useStore } from "zustand";
+import { useEffect, useState } from "react";
+import { uiStore } from "@/lib/stores/ui-store";
 import { APP_STORE_URL, PLAY_STORE_URL } from "./landing-data";
 
 interface AppStoreBadgesProps {
@@ -30,57 +33,109 @@ function GooglePlayLogo({ className }: { className?: string }) {
   );
 }
 
+/** Mirrors the pattern in MapView.tsx — reads the app's theme store and the
+ *  OS media query so "System" mode works correctly too. */
+function useIsDark() {
+  const theme = useStore(uiStore, (s) => s.theme);
+  const [systemDark, setSystemDark] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  return theme === "dark" || (theme === "system" && systemDark);
+}
+
+const BADGES = [
+  {
+    href: APP_STORE_URL,
+    label: "Download 360 Flatmates on the App Store",
+    Icon: AppleLogo,
+    eyebrow: "Download on the",
+    name: "App Store",
+  },
+  {
+    href: PLAY_STORE_URL,
+    label: "Download 360 Flatmates on Google Play",
+    Icon: GooglePlayLogo,
+    eyebrow: "Get it on",
+    name: "Google Play",
+  },
+] as const;
+
 export function AppStoreBadges({ variant = "light" }: AppStoreBadgesProps) {
+  const isDark = useIsDark();
+
   const base =
     "inline-flex items-center gap-2.5 rounded-[10px] px-4 py-2.5 transition-all duration-200 hover:-translate-y-px active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2";
 
-  const styles = {
-    light:
-      base +
-      " bg-ink text-white border border-ink/10 hover:bg-ink-2 focus-visible:outline-ink" +
-      " dark:bg-white dark:text-[#1f1a14] dark:border-black/10 dark:hover:bg-white/90 dark:focus-visible:outline-white",
-    dark:
+  // "dark" variant: always on a dark section background (e.g. BottomCTA) — white glass pill.
+  // Does not need to adapt to app theme; it lives on a permanently dark surface.
+  const darkVariantProps = {
+    className:
       base +
       " bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm focus-visible:outline-white",
+    style: undefined as React.CSSProperties | undefined,
   };
+
+  // "light" variant: adapts to the current app theme using inline styles so the
+  // result is immune to CSS-cascade ordering (Tailwind v4 dark: uses OS media
+  // query, not [data-theme="dark"], so class-based dark: utilities don't fire
+  // when OS ≠ app theme).
+  //   Light mode → dark charcoal pill (#1f1a14 bg, #ffffff text)
+  //   Dark mode  → white pill         (#ffffff bg, #1f1a14 text)
+  const lightVariantProps = isDark
+    ? {
+        // Dark mode: white pill → use dark outline so it's visible against white bg
+        className: base + " focus-visible:outline-[#1f1a14]",
+        style: {
+          backgroundColor: "#ffffff",
+          color: "#1f1a14",
+          border: "1px solid rgba(0,0,0,0.10)",
+        } satisfies React.CSSProperties,
+      }
+    : {
+        // Light mode: dark pill → use white outline so it's visible against dark bg
+        className: base + " focus-visible:outline-white",
+        style: {
+          backgroundColor: "#1f1a14",
+          color: "#ffffff",
+          border: "1px solid rgba(31,26,20,0.10)",
+        } satisfies React.CSSProperties,
+      };
+
+  const props = variant === "dark" ? darkVariantProps : lightVariantProps;
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <a
-        href={APP_STORE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles[variant]}
-        aria-label="Download 360 Flatmates on the App Store"
-      >
-        <AppleLogo className="h-5 w-5 shrink-0" />
-        <span className="flex flex-col text-left leading-none">
-          <span className="text-[9px] font-medium opacity-75 tracking-wide uppercase mb-0.5">
-            Download on the
+      {BADGES.map(({ href, label, Icon, eyebrow, name }) => (
+        <a
+          key={name}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={props.className}
+          style={props.style}
+          aria-label={label}
+        >
+          <Icon className="h-5 w-5 shrink-0" />
+          <span className="flex flex-col text-left leading-none">
+            <span className="text-[9px] font-medium opacity-75 tracking-wide uppercase mb-0.5">
+              {eyebrow}
+            </span>
+            <span className="text-[13px] font-semibold tracking-tight">
+              {name}
+            </span>
           </span>
-          <span className="text-[13px] font-semibold tracking-tight">
-            App Store
-          </span>
-        </span>
-      </a>
-
-      <a
-        href={PLAY_STORE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles[variant]}
-        aria-label="Download 360 Flatmates on Google Play"
-      >
-        <GooglePlayLogo className="h-5 w-5 shrink-0" />
-        <span className="flex flex-col text-left leading-none">
-          <span className="text-[9px] font-medium opacity-75 tracking-wide uppercase mb-0.5">
-            Get it on
-          </span>
-          <span className="text-[13px] font-semibold tracking-tight">
-            Google Play
-          </span>
-        </span>
-      </a>
+        </a>
+      ))}
     </div>
   );
 }
